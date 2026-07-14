@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>ポジションサイジング</title>
+
+<!-- iPhoneでホーム画面に追加した時、アプリらしく動かすための設定 -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="サイジング" />
+<meta name="theme-color" content="#020617" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<style>
+  html, body { background:#020617; overscroll-behavior:none; }
+  body { -webkit-tap-highlight-color: transparent; }
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useMemo } = React;
+
+// ===== アイコン(lucide風の簡易SVG、CDN不要にするため自前実装) =====
+const IconBase = ({ children, size = 16, className = "" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
+    fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+    className={className}>{children}</svg>
+);
+const TrendingUp = (p) => <IconBase {...p}><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" /></IconBase>;
+const TrendingDown = (p) => <IconBase {...p}><polyline points="22 17 13.5 8.5 8.5 13.5 2 7" /><polyline points="16 17 22 17 22 11" /></IconBase>;
+const AlertTriangle = (p) => <IconBase {...p}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></IconBase>;
+const Info = (p) => <IconBase {...p}><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></IconBase>;
+
+// ===== 呼値テーブル(東証) =====
+function tickSize(price) {
+  if (price <= 3000) return 1;
+  if (price <= 5000) return 5;
+  if (price <= 30000) return 10;
+  if (price <= 50000) return 50;
+  if (price <= 100000) return 100;
+  if (price <= 1000000) return 1000;
+  return 5000;
+}
+function roundDownTick(price, tick) { return Math.floor(price / tick) * tick; }
+function fmt(n) { return (n === null || n === undefined || Number.isNaN(n)) ? "―" : Math.round(n).toLocaleString("ja-JP"); }
+function fmtPrice(n) { return (n === null || n === undefined || Number.isNaN(n)) ? "―" : n.toLocaleString("ja-JP", { maximumFractionDigits: 2 }); }
+
+function NumberField({ label, value, onChange, placeholder, suffix }) {
+  return (
+    <label className="block">
+      <span className="text-[13px] text-slate-400 tracking-wide">{label}</span>
+      <div className="mt-1 flex items-center rounded-xl bg-slate-900 border border-slate-700 focus-within:border-amber-500/70 transition-colors">
+        <input type="number" inputMode="decimal" value={value} onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="w-full bg-transparent px-4 py-3.5 text-[22px] font-mono tabular-nums text-slate-50 outline-none placeholder:text-slate-600" />
+        {suffix && <span className="pr-4 text-slate-500 text-sm shrink-0">{suffix}</span>}
+      </div>
+    </label>
+  );
+}
+
+function ResultRow({ label, value, tone = "default" }) {
+  const toneClass = tone === "risk" ? "text-red-400" : tone === "good" ? "text-emerald-400" : tone === "muted" ? "text-slate-400" : "text-slate-100";
+  return (
+    <div className="flex items-baseline justify-between py-2 border-b border-slate-800/80 last:border-0">
+      <span className="text-[13px] text-slate-500">{label}</span>
+      <span className={`text-[16px] font-mono tabular-nums ${toneClass}`}>{value}</span>
+    </div>
+  );
+}
+
+function ConstraintBadge({ binding, sharesByRisk, sharesByNotional }) {
+  if (binding === null) return null;
+  const isRisk = binding === "risk";
+  return (
+    <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[12px] font-medium ${isRisk ? "bg-red-500/10 text-red-300 border border-red-500/25" : "bg-amber-500/10 text-amber-300 border border-amber-500/25"}`}>
+      <AlertTriangle size={14} className="shrink-0" />
+      <span>{isRisk ? `リスク上限で頭打ち（建玉代金上限なら${fmt(sharesByNotional)}株まで許容）` : `建玉代金上限で頭打ち（リスク上限だけなら${fmt(sharesByRisk)}株まで許容）`}</span>
+    </div>
+  );
+}
+
+function PhoenixCalc() {
+  const [entry, setEntry] = useState("");
+  const [morningLow, setMorningLow] = useState("");
+  const RISK_CAP = 84000, NOTIONAL_CAP = 1120000, SL_BUFFER = 0.003, TP_MULT = 1.05, TRAIL_MULT = 1.015;
+
+  const r = useMemo(() => {
+    const e = parseFloat(entry), ml = parseFloat(morningLow);
+    if (!e || !ml || e <= 0 || ml <= 0) return null;
+    const sl = ml * (1 - SL_BUFFER);
+    const riskPerShare = e - sl;
+    if (riskPerShare <= 0) return { error: "前引け値が前場安値以下です。入力を確認してください。" };
+    const tp = e * TP_MULT, trailTrigger = e * TRAIL_MULT;
+    const sharesByRisk = Math.floor(RISK_CAP / riskPerShare / 100) * 100;
+    const sharesByNotional = Math.floor(NOTIONAL_CAP / e / 100) * 100;
+    const finalShares = Math.min(sharesByRisk, sharesByNotional);
+    if (finalShares <= 0) return { error: "建玉代金上限に対して株価が高すぎます（100株単位で購入不可）。見送り推奨。" };
+    const binding = sharesByRisk <= sharesByNotional ? "risk" : "notional";
+    return { sl, tp, trailTrigger, riskPerShare, sharesByRisk, sharesByNotional, finalShares, binding,
+      positionValue: finalShares * e, maxLoss: finalShares * riskPerShare, maxGain: finalShares * (tp - e) };
+  }, [entry, morningLow]);
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 gap-3">
+        <NumberField label="前引け値（エントリー予定価格）" value={entry} onChange={setEntry} placeholder="例: 4800" suffix="円" />
+        <NumberField label="前場安値" value={morningLow} onChange={setMorningLow} placeholder="例: 4650" suffix="円" />
+      </div>
+      {r?.error && <div className="flex items-start gap-2 rounded-xl bg-red-500/10 border border-red-500/25 px-3.5 py-3 text-[13px] text-red-300"><AlertTriangle size={16} className="shrink-0 mt-0.5" /><span>{r.error}</span></div>}
+      {r && !r.error && (
+        <>
+          <div className="rounded-2xl bg-gradient-to-b from-slate-800/80 to-slate-900 border border-slate-700 p-5 text-center">
+            <div className="text-[12px] text-slate-400 tracking-wide mb-1">推奨株数</div>
+            <div className="text-[44px] leading-none font-mono font-bold tabular-nums text-emerald-400">{fmt(r.finalShares)}<span className="text-[18px] text-slate-400 ml-1">株</span></div>
+            <div className="mt-2 text-[13px] text-slate-400 font-mono tabular-nums">建玉代金 ¥{fmt(r.positionValue)}</div>
+          </div>
+          <ConstraintBadge binding={r.binding} sharesByRisk={r.sharesByRisk} sharesByNotional={r.sharesByNotional} />
+          <div className="rounded-xl bg-slate-900/60 border border-slate-800 px-4 py-1">
+            <ResultRow label="SL（前場安値−0.3%）" value={`¥${fmtPrice(r.sl)}`} />
+            <ResultRow label="TP（エントリー×1.05）" value={`¥${fmtPrice(r.tp)}`} tone="good" />
+            <ResultRow label="建値トレーリング発動（+1.5%）" value={`¥${fmtPrice(r.trailTrigger)}`} />
+            <ResultRow label="1株あたりリスク" value={`¥${fmtPrice(r.riskPerShare)}`} tone="muted" />
+          </div>
+          <div className="rounded-xl bg-slate-900/60 border border-slate-800 px-4 py-1">
+            <ResultRow label="最大損失（SL到達時）" value={`−¥${fmt(r.maxLoss)}`} tone="risk" />
+            <ResultRow label="想定利益（TP到達時）" value={`+¥${fmt(r.maxGain)}`} tone="good" />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function AtypeCalc() {
+  const [c2open, setC2open] = useState("");
+  const [c2high, setC2high] = useState("");
+  const RISK_CAP = 48000, NOTIONAL_CAP = 480000;
+
+  const r = useMemo(() => {
+    const entry = parseFloat(c2open), spikeHigh = parseFloat(c2high);
+    if (!entry || !spikeHigh || entry <= 0 || spikeHigh <= 0) return null;
+    if (spikeHigh <= entry) return { error: "2本目高値が2本目始値以下です。入力を確認してください。" };
+    const tick = tickSize(entry);
+    const sl = spikeHigh + tick;
+    const riskPerShare = sl - entry;
+    const tp = roundDownTick(entry * 0.97, tick);
+    const sharesByRisk = Math.floor(RISK_CAP / riskPerShare / 100) * 100;
+    const sharesByNotional = Math.floor(NOTIONAL_CAP / entry / 100) * 100;
+    const finalShares = Math.min(sharesByRisk, sharesByNotional);
+    if (finalShares <= 0) return { error: "建玉代金上限に対して株価が高すぎます（100株単位で売建不可）。見送り推奨。" };
+    const binding = sharesByRisk <= sharesByNotional ? "risk" : "notional";
+    return { tick, sl, tp, riskPerShare, sharesByRisk, sharesByNotional, finalShares, binding,
+      positionValue: finalShares * entry, maxLoss: finalShares * riskPerShare, maxGain: finalShares * (entry - tp) };
+  }, [c2open, c2high]);
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 gap-3">
+        <NumberField label="2本目の始値（＝エントリー価格）" value={c2open} onChange={setC2open} placeholder="例: 1500" suffix="円" />
+        <NumberField label="2本目の高値（スパイク高値）" value={c2high} onChange={setC2high} placeholder="例: 1545" suffix="円" />
+      </div>
+      {r?.error && <div className="flex items-start gap-2 rounded-xl bg-red-500/10 border border-red-500/25 px-3.5 py-3 text-[13px] text-red-300"><AlertTriangle size={16} className="shrink-0 mt-0.5" /><span>{r.error}</span></div>}
+      {r && !r.error && (
+        <>
+          <div className="rounded-2xl bg-gradient-to-b from-slate-800/80 to-slate-900 border border-slate-700 p-5 text-center">
+            <div className="text-[12px] text-slate-400 tracking-wide mb-1">推奨株数（売建）</div>
+            <div className="text-[44px] leading-none font-mono font-bold tabular-nums text-emerald-400">{fmt(r.finalShares)}<span className="text-[18px] text-slate-400 ml-1">株</span></div>
+            <div className="mt-2 text-[13px] text-slate-400 font-mono tabular-nums">建玉代金 ¥{fmt(r.positionValue)}</div>
+          </div>
+          <ConstraintBadge binding={r.binding} sharesByRisk={r.sharesByRisk} sharesByNotional={r.sharesByNotional} />
+          <div className="rounded-xl bg-slate-900/60 border border-slate-800 px-4 py-1">
+            <ResultRow label="呼値" value={`¥${r.tick}`} tone="muted" />
+            <ResultRow label="SL（スパイク高値+1呼値）" value={`¥${fmtPrice(r.sl)}`} />
+            <ResultRow label="TP（エントリー×0.97・切下げ）" value={`¥${fmtPrice(r.tp)}`} tone="good" />
+            <ResultRow label="1株あたりリスク" value={`¥${fmtPrice(r.riskPerShare)}`} tone="muted" />
+          </div>
+          <div className="rounded-xl bg-slate-900/60 border border-slate-800 px-4 py-1">
+            <ResultRow label="最大損失（SL到達時）" value={`−¥${fmt(r.maxLoss)}`} tone="risk" />
+            <ResultRow label="想定利益（TP到達時）" value={`+¥${fmt(r.maxGain)}`} tone="good" />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function App() {
+  const [tab, setTab] = useState("phoenix");
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex justify-center" style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}>
+      <div className="w-full max-w-md px-4 pt-6 pb-10">
+        <div className="mb-5">
+          <h1 className="text-[20px] font-bold tracking-tight text-slate-50">ポジションサイジング</h1>
+          <p className="text-[12px] text-slate-500 mt-0.5">リスク上限 ÷ SL距離 と 建玉代金上限 の小さい方を採用</p>
+        </div>
+        <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 mb-5">
+          <button onClick={() => setTab("phoenix")} className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${tab === "phoenix" ? "bg-slate-100 text-slate-900" : "text-slate-400"}`}>
+            <TrendingUp size={15} />フェニックス
+          </button>
+          <button onClick={() => setTab("atype")} className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${tab === "atype" ? "bg-slate-100 text-slate-900" : "text-slate-400"}`}>
+            <TrendingDown size={15} />A型
+          </button>
+        </div>
+        {tab === "phoenix" ? <PhoenixCalc /> : <AtypeCalc />}
+        <div className="mt-6 flex items-start gap-2 rounded-xl bg-slate-900/50 border border-slate-800 px-3.5 py-3 text-[12px] text-slate-500">
+          <Info size={14} className="shrink-0 mt-0.5" />
+          <span>1日の目安：フェニックス最大2件（日次損失上限16.8万円）、A型最大2件（同9.6万円）。資金拘束の観点から実務上は合計1〜3件程度を推奨。</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
