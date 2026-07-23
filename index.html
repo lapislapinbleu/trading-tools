@@ -79,18 +79,158 @@ const Info = (p) => e(IconBase, p,
   e("line", { key: "3", x1: "12", y1: "8", x2: "12.01", y2: "8" })
 );
 
+// A型3銘柄はすべてTOPIX500構成のため細かい呼値を使う（rulebook v1.5 §2.4・§3）
 function tickSize(price) {
-  if (price <= 3000) return 1;
-  if (price <= 5000) return 5;
-  if (price <= 30000) return 10;
-  if (price <= 50000) return 50;
-  if (price <= 100000) return 100;
-  if (price <= 1000000) return 1000;
-  return 5000;
+  if (price <= 1000) return 0.1;
+  if (price <= 3000) return 0.5;
+  if (price <= 10000) return 1;
+  if (price <= 30000) return 5;
+  return 10;
 }
-function roundDownTick(price, tick) { return Math.floor(price / tick) * tick; }
+function roundDownTick(price, tick) {
+  const steps = Math.floor(price / tick + 1e-6);
+  return Math.round(steps * tick * 100) / 100;
+}
 function fmt(n) { return (n === null || n === undefined || Number.isNaN(n)) ? "―" : Math.round(n).toLocaleString("ja-JP"); }
 function fmtPrice(n) { return (n === null || n === undefined || Number.isNaN(n)) ? "―" : n.toLocaleString("ja-JP", { maximumFractionDigits: 2 }); }
+
+// ---- 監視リスト27銘柄辞書（rulebook v1.5 §2.1・2.4、2026-07-23判定） ----
+const WATCH_ENTRIES = [
+  { code: "5803", name: "フジクラ",     sector: "非鉄金属", cls: "green", rank: 1 },
+  { code: "8306", name: "三菱UFJ",      sector: "銀行",     cls: "green", rank: 2 },
+  { code: "8316", name: "三井住友FG",   sector: "銀行",     cls: "green", rank: 3 },
+  { code: "5016", name: "JX金属",       sector: "非鉄金属", cls: "green", rank: 4 },
+  { code: "5801", name: "古河電工",     sector: "非鉄金属", cls: "green", rank: 5 },
+  { code: "8411", name: "みずほ",       sector: "銀行",     cls: "green", rank: 6 },
+  { code: "8766", name: "東京海上",     sector: "保険",     cls: "green", rank: 7 },
+  { code: "5802", name: "住友電工",     sector: "非鉄金属", cls: "green", rank: 8 },
+  { code: "8725", name: "MS&AD",        sector: "保険",     cls: "green", rank: 9 },
+  { code: "5713", name: "住友鉱山",     sector: "非鉄金属", cls: "green", rank: 10 },
+  { code: "8729", name: "ソニーFG",     sector: "保険",     cls: "green", rank: 11 },
+  { code: "8308", name: "りそな",       sector: "銀行",     cls: "green", rank: 12 },
+  { code: "7182", name: "ゆうちょ",     sector: "銀行",     cls: "green", rank: 13 },
+  { code: "8750", name: "第一生命",     sector: "保険",     cls: "green", rank: 14 },
+  { code: "5108", name: "ブリヂストン", sector: "ゴム",     cls: "green", rank: 15 },
+  { code: "8630", name: "SOMPO",        sector: "保険",     cls: "green", rank: 16 },
+  { code: "8309", name: "三井住友TR",   sector: "銀行",     cls: "green", rank: 17 },
+  { code: "8795", name: "T&D",          sector: "保険",     cls: "green", rank: 18 },
+  { code: "5101", name: "横浜ゴム",     sector: "ゴム",     cls: "green", rank: 19 },
+  { code: "5711", name: "三菱マテ",     sector: "非鉄金属", cls: "green", rank: 20 },
+  { code: "5714", name: "DOWA",         sector: "非鉄金属", cls: "yellow", rank: null },
+  { code: "5110", name: "住友ゴム",     sector: "ゴム",     cls: "yellow", rank: null },
+  { code: "5105", name: "TOYO TIRE",    sector: "ゴム",     cls: "yellow", rank: null },
+  { code: "7181", name: "かんぽ生命",   sector: "保険",     cls: "yellow", rank: null },
+  { code: "9364", name: "上組",         sector: "倉庫運輸", cls: "yellow", rank: null, noMarket: true },
+  { code: "9301", name: "三菱倉庫",     sector: "倉庫運輸", cls: "yellow", rank: null, noMarket: true },
+  { code: "9302", name: "三井倉庫",     sector: "倉庫運輸", cls: "yellow", rank: null, noMarket: true },
+];
+const WATCHLIST = WATCH_ENTRIES.reduce((acc, x) => { acc[x.code] = x; return acc; }, {});
+const GREEN_ENTRIES = WATCH_ENTRIES.filter((x) => x.cls === "green");
+const YELLOW_ENTRIES = WATCH_ENTRIES.filter((x) => x.cls === "yellow");
+const FINANCIAL_SECTORS = ["銀行", "保険"];
+const NO_MARKET_CODES = ["9364", "9301", "9302"];
+
+function normalizeCode(code) { return (code || "").trim(); }
+
+function computeViolations(slots) {
+  const filled = slots
+    .map((s, i) => ({ idx: i, code: normalizeCode(s.code) }))
+    .filter((s) => s.code.length === 4);
+  const violations = [];
+
+  // 1. 重複
+  const countByCode = {};
+  filled.forEach((s) => { countByCode[s.code] = (countByCode[s.code] || 0) + 1; });
+  Object.keys(countByCode).forEach((code) => {
+    if (countByCode[code] >= 2) {
+      const info = WATCHLIST[code];
+      violations.push({
+        level: "error",
+        text: `重複: ${code}${info ? "（" + info.name + "）" : ""}が${countByCode[code]}枠で重複しています。同一銘柄の重複保有は不可`,
+      });
+    }
+  });
+
+  // 2. セクター上限（4枠以上で違反＝最大3銘柄）
+  const sectorCount = {};
+  filled.forEach((s) => {
+    const info = WATCHLIST[s.code];
+    if (info) sectorCount[info.sector] = (sectorCount[info.sector] || 0) + 1;
+  });
+  Object.keys(sectorCount).forEach((sector) => {
+    if (sectorCount[sector] >= 4) {
+      violations.push({
+        level: "error",
+        text: `セクター上限超過: 「${sector}」が${sectorCount[sector]}銘柄です。同一セクターは最大3銘柄（§2.2②）`,
+      });
+    }
+  });
+
+  // 3. 金融クラスタ上限（5枠以上で違反＝最大4銘柄）
+  const finCount = filled.filter((s) => {
+    const info = WATCHLIST[s.code];
+    return info && FINANCIAL_SECTORS.includes(info.sector);
+  }).length;
+  if (finCount >= 5) {
+    violations.push({
+      level: "error",
+      text: `金融クラスタ上限超過: 銀行＋保険 合計${finCount}銘柄です。金融（銀行＋保険）は最大4銘柄（§2.2③）`,
+    });
+  }
+
+  // 4. 非監視銘柄
+  filled.forEach((s) => {
+    if (!WATCHLIST[s.code]) {
+      violations.push({
+        level: "error",
+        text: `枠${s.idx + 1}: コード${s.code}は監視リスト27銘柄外。フェニックス発注対象外`,
+      });
+    }
+  });
+
+  // 5. 黄区分（注意）
+  filled.forEach((s) => {
+    const info = WATCHLIST[s.code];
+    if (info && info.cls === "yellow") {
+      violations.push({
+        level: "warn",
+        text: `枠${s.idx + 1}: ${info.name}（${s.code}）は黄区分。緑で5枠が埋まらない時のみ使用`,
+      });
+    }
+  });
+
+  // 6. 成行禁止
+  filled.forEach((s) => {
+    if (NO_MARKET_CODES.includes(s.code)) {
+      const info = WATCHLIST[s.code];
+      violations.push({
+        level: "error",
+        text: `枠${s.idx + 1}: ${info.name}（${s.code}）は成行禁止（指値のみ・旧赤運用継続）`,
+      });
+    }
+  });
+
+  return violations;
+}
+
+function computePhoenixSlot(entry, morningLow) {
+  const RISK_CAP = 77000, NOTIONAL_CAP = 1027000, SL_BUFFER = 0.003, TP_MULT = 1.05, TRAIL_MULT = 1.015;
+  const en = parseFloat(entry), ml = parseFloat(morningLow);
+  if (!en || !ml || en <= 0 || ml <= 0) return null;
+  const sl = ml * (1 - SL_BUFFER);
+  const riskPerShare = en - sl;
+  if (riskPerShare <= 0) return { error: "前引け値が前場安値以下です。入力を確認してください。" };
+  const tp = en * TP_MULT, trailTrigger = en * TRAIL_MULT;
+  const sharesByRisk = Math.floor(RISK_CAP / riskPerShare / 100) * 100;
+  const sharesByNotional = Math.floor(NOTIONAL_CAP / en / 100) * 100;
+  const finalShares = Math.min(sharesByRisk, sharesByNotional);
+  if (finalShares <= 0) return { error: "建玉代金上限に対して株価が高すぎます（100株単位で購入不可）。見送り推奨。" };
+  const binding = sharesByRisk <= sharesByNotional ? "risk" : "notional";
+  return {
+    sl, tp, trailTrigger, riskPerShare, sharesByRisk, sharesByNotional, finalShares, binding,
+    positionValue: finalShares * en, maxLoss: finalShares * riskPerShare, maxGain: finalShares * (tp - en),
+  };
+}
 
 function NumberField({ label, value, onChange, placeholder, suffix }) {
   return e("label", { className: "block" },
@@ -103,6 +243,20 @@ function NumberField({ label, value, onChange, placeholder, suffix }) {
         className: "w-full bg-transparent px-4 py-3.5 text-[22px] font-mono tabular-nums text-slate-50 outline-none placeholder:text-slate-600",
       }),
       suffix && e("span", { className: "pr-4 text-slate-500 text-sm shrink-0" }, suffix)
+    )
+  );
+}
+
+function CodeField({ label, value, onChange, placeholder }) {
+  return e("label", { className: "block" },
+    e("span", { className: "text-[13px] text-slate-400 tracking-wide" }, label || "銘柄コード"),
+    e("div", { className: "mt-1 flex items-center rounded-xl bg-slate-900 border border-slate-700 focus-within:border-amber-500/70 transition-colors" },
+      e("input", {
+        type: "text", inputMode: "numeric", maxLength: 4, value,
+        onChange: (ev) => onChange(ev.target.value.replace(/[^0-9]/g, "").slice(0, 4)),
+        placeholder: placeholder || "例: 5803",
+        className: "w-full bg-transparent px-4 py-3.5 text-[22px] font-mono tabular-nums text-slate-50 outline-none placeholder:text-slate-600",
+      })
     )
   );
 }
@@ -128,71 +282,158 @@ function ConstraintBadge({ binding, sharesByRisk, sharesByNotional }) {
   );
 }
 
-function PhoenixCalc() {
-  const [entry, setEntry] = useState("");
-  const [morningLow, setMorningLow] = useState("");
-  const RISK_CAP = 84000, NOTIONAL_CAP = 1120000, SL_BUFFER = 0.003, TP_MULT = 1.05, TRAIL_MULT = 1.015;
+function StockBadge({ code }) {
+  const norm = normalizeCode(code);
+  if (norm.length !== 4) return null;
+  const info = WATCHLIST[norm];
+  if (!info) {
+    return e("div", { className: "inline-flex items-center gap-1 rounded-md bg-red-500/10 border border-red-500/25 px-2 py-1 text-[11px] text-red-300" },
+      "監視リスト外（27銘柄外）");
+  }
+  const isGreen = info.cls === "green";
+  const badgeColor = isGreen
+    ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-300"
+    : "bg-amber-500/10 border-amber-500/25 text-amber-300";
+  return e("div", { className: "flex flex-wrap items-center gap-1" },
+    e("span", { className: `rounded-md border px-2 py-1 text-[11px] font-medium ${badgeColor}` },
+      `${info.name}・${info.sector}${isGreen ? "・緑#" + info.rank : "・黄"}`),
+    info.noMarket && e("span", { className: "rounded-md border border-red-500/25 bg-red-500/10 px-2 py-1 text-[11px] font-medium text-red-300" }, "成行禁止")
+  );
+}
 
-  const r = useMemo(() => {
-    const en = parseFloat(entry), ml = parseFloat(morningLow);
-    if (!en || !ml || en <= 0 || ml <= 0) return null;
-    const sl = ml * (1 - SL_BUFFER);
-    const riskPerShare = en - sl;
-    if (riskPerShare <= 0) return { error: "前引け値が前場安値以下です。入力を確認してください。" };
-    const tp = en * TP_MULT, trailTrigger = en * TRAIL_MULT;
-    const sharesByRisk = Math.floor(RISK_CAP / riskPerShare / 100) * 100;
-    const sharesByNotional = Math.floor(NOTIONAL_CAP / en / 100) * 100;
-    const finalShares = Math.min(sharesByRisk, sharesByNotional);
-    if (finalShares <= 0) return { error: "建玉代金上限に対して株価が高すぎます（100株単位で購入不可）。見送り推奨。" };
-    const binding = sharesByRisk <= sharesByNotional ? "risk" : "notional";
-    return {
-      sl, tp, trailTrigger, riskPerShare, sharesByRisk, sharesByNotional, finalShares, binding,
-      positionValue: finalShares * en, maxLoss: finalShares * riskPerShare, maxGain: finalShares * (tp - en),
-    };
-  }, [entry, morningLow]);
-
-  return e("div", { className: "space-y-5" },
-    e("div", { className: "grid grid-cols-1 gap-3" },
-      e(NumberField, { label: "前引け値（エントリー予定価格）", value: entry, onChange: setEntry, placeholder: "例: 4800", suffix: "円" }),
-      e(NumberField, { label: "前場安値", value: morningLow, onChange: setMorningLow, placeholder: "例: 4650", suffix: "円" })
+function WatchlistPanel() {
+  const [open, setOpen] = useState(false);
+  return e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800" },
+    e("button", {
+      onClick: () => setOpen((o) => !o),
+      className: "w-full flex items-center justify-between px-3.5 py-2.5 text-[12.5px] font-medium text-slate-300",
+    },
+      e("span", null, `監視リスト 緑20・黄7 ${open ? "▲" : "▼"}`),
+      e("span", { className: "text-[10px] text-slate-500" }, "2026-07-23 v1.5判定")
     ),
-    r && r.error && e("div", { className: "flex items-start gap-2 rounded-xl bg-red-500/10 border border-red-500/25 px-3.5 py-3 text-[13px] text-red-300" },
-      e(AlertTriangle, { size: 16, className: "shrink-0 mt-0.5" }),
-      e("span", null, r.error)
-    ),
-    r && !r.error && e(React.Fragment, null,
-      e("div", { className: "rounded-2xl bg-gradient-to-b from-slate-800/80 to-slate-900 border border-slate-700 p-5 text-center" },
-        e("div", { className: "text-[12px] text-slate-400 tracking-wide mb-1" }, "推奨株数"),
-        e("div", { className: "text-[44px] leading-none font-mono font-bold tabular-nums text-emerald-400" },
-          fmt(r.finalShares), e("span", { className: "text-[18px] text-slate-400 ml-1" }, "株")),
-        e("div", { className: "mt-2 text-[13px] text-slate-400 font-mono tabular-nums" }, `建玉代金 ¥${fmt(r.positionValue)}`)
+    open && e("div", { className: "px-3.5 pb-3.5 space-y-3 max-h-64 overflow-y-auto" },
+      e("div", null,
+        e("div", { className: "text-[11px] text-emerald-400 font-medium mb-1" }, "緑20（12:30-40売買代金順・成行OK）"),
+        e("div", { className: "flex flex-wrap gap-1" },
+          GREEN_ENTRIES.map((x) => e("span", {
+            key: x.code,
+            className: "rounded-md bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 text-[11px] text-emerald-300",
+          }, `${x.rank}.${x.name}(${x.code})`))
+        )
       ),
-      e(ConstraintBadge, { binding: r.binding, sharesByRisk: r.sharesByRisk, sharesByNotional: r.sharesByNotional }),
-      e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800 px-4 py-1" },
-        e(ResultRow, { label: "SL（前場安値−0.3%）", value: `¥${fmtPrice(r.sl)}` }),
-        e(ResultRow, { label: "TP（エントリー×1.05）", value: `¥${fmtPrice(r.tp)}`, tone: "good" }),
-        e(ResultRow, { label: "建値トレーリング発動（+1.5%）", value: `¥${fmtPrice(r.trailTrigger)}` }),
-        e(ResultRow, { label: "1株あたりリスク", value: `¥${fmtPrice(r.riskPerShare)}`, tone: "muted" })
-      ),
-      e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800 px-4 py-1" },
-        e(ResultRow, { label: "最大損失（SL到達時）", value: `−¥${fmt(r.maxLoss)}`, tone: "risk" }),
-        e(ResultRow, { label: "想定利益（TP到達時）", value: `+¥${fmt(r.maxGain)}`, tone: "good" })
+      e("div", null,
+        e("div", { className: "text-[11px] text-amber-400 font-medium mb-1" }, "黄7（緑で5枠が埋まらない時のみ）"),
+        e("div", { className: "flex flex-wrap gap-1" },
+          YELLOW_ENTRIES.map((x) => e("span", {
+            key: x.code,
+            className: "rounded-md bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 text-[11px] text-amber-300",
+          }, `${x.name}(${x.code})${x.noMarket ? "・成行禁止" : ""}`))
+        )
       )
     )
+  );
+}
+
+function ViolationPanel({ violations }) {
+  if (!violations || violations.length === 0) {
+    return e("div", { className: "flex items-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25 px-3.5 py-3 text-[13px] text-emerald-300" },
+      e(Info, { size: 16, className: "shrink-0" }),
+      e("span", null, "制約OK（重複・セクター・金融クラスタ・成行禁止の抵触なし）")
+    );
+  }
+  return e("div", { className: "space-y-1.5" },
+    violations.map((v, i) => e("div", {
+      key: i,
+      className: `flex items-start gap-2 rounded-xl px-3.5 py-2.5 text-[12.5px] border ${v.level === "error" ? "bg-red-500/10 border-red-500/25 text-red-300" : "bg-amber-500/10 border-amber-500/25 text-amber-300"}`,
+    },
+      e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
+      e("span", null, v.text)
+    ))
+  );
+}
+
+function PhoenixSlotCard({ idx, slot, result, onChange }) {
+  return e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800 p-3.5 space-y-2.5" },
+    e("div", { className: "flex items-center justify-between" },
+      e("span", { className: "text-[12.5px] font-semibold text-slate-300" }, `枠${idx + 1}`)
+    ),
+    e("div", { className: "grid grid-cols-1 gap-2" },
+      e(CodeField, { value: slot.code, onChange: (v) => onChange(idx, "code", v) }),
+      e(StockBadge, { code: slot.code })
+    ),
+    e("div", { className: "grid grid-cols-2 gap-2" },
+      e(NumberField, { label: "前引け値", value: slot.entry, onChange: (v) => onChange(idx, "entry", v), placeholder: "例: 4800", suffix: "円" }),
+      e(NumberField, { label: "前場安値", value: slot.morningLow, onChange: (v) => onChange(idx, "morningLow", v), placeholder: "例: 4650", suffix: "円" })
+    ),
+    result && result.error && e("div", { className: "flex items-start gap-2 rounded-lg bg-red-500/10 border border-red-500/25 px-3 py-2 text-[12px] text-red-300" },
+      e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
+      e("span", null, result.error)
+    ),
+    result && !result.error && e("div", { className: "rounded-lg bg-slate-950/60 border border-slate-800 px-3 py-1" },
+      e("div", { className: "flex items-baseline justify-between py-2 border-b border-slate-800/80" },
+        e("span", { className: "text-[12px] text-slate-500" }, "推奨株数"),
+        e("span", { className: "text-[20px] font-mono font-bold tabular-nums text-emerald-400" },
+          fmt(result.finalShares), e("span", { className: "text-[12px] text-slate-400 ml-1" }, "株"))
+      ),
+      e(ResultRow, { label: "建玉代金", value: `¥${fmt(result.positionValue)}`, tone: "muted" }),
+      e(ResultRow, { label: "SL（前場安値−0.3%）", value: `¥${fmtPrice(result.sl)}` }),
+      e(ResultRow, { label: "TP（×1.05）／トレール（+1.5%）", value: `¥${fmtPrice(result.tp)} ／ ¥${fmtPrice(result.trailTrigger)}`, tone: "good" }),
+      e(ResultRow, { label: "最大損失（SL到達時）", value: `−¥${fmt(result.maxLoss)}`, tone: "risk" }),
+      result.binding === "notional" && e("div", { className: "pb-2 text-[11px] text-amber-400" },
+        `建玉代金上限で頭打ち（リスク上限だけなら${fmt(result.sharesByRisk)}株まで許容）`)
+    )
+  );
+}
+
+function TotalLossCard({ totalMaxLoss, overCap }) {
+  return e("div", { className: `rounded-2xl border p-4 ${overCap ? "bg-red-500/10 border-red-500/30" : "bg-slate-900/60 border-slate-800"}` },
+    e("div", { className: "flex items-baseline justify-between" },
+      e("span", { className: "text-[12.5px] text-slate-400" }, "採用枠 最大損失合計（SL全到達時）"),
+      e("span", { className: `text-[18px] font-mono font-bold tabular-nums ${overCap ? "text-red-300" : "text-slate-100"}` }, `−¥${fmt(totalMaxLoss)}`)
+    ),
+    e("div", { className: "mt-1 text-[11.5px] text-slate-500" }, `日次上限 ¥154,000（フェニックス）に対して${overCap ? "超過しています" : "収まっています"}`),
+    overCap && e("div", { className: "mt-2 flex items-start gap-2 text-[12.5px] text-red-300" },
+      e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
+      e("span", null, "SL全到達なら日次上限超過")
+    ),
+    e("div", { className: "mt-2 text-[11px] text-slate-600" }, "候補が競合したら緑内順位（バッジの「緑#」）の小さい方を優先")
+  );
+}
+
+function PhoenixCalc() {
+  const [slots, setSlots] = useState([0, 1, 2, 3, 4].map(() => ({ code: "", entry: "", morningLow: "" })));
+  const updateSlot = (idx, field, value) => {
+    setSlots((prev) => prev.map((s, i) => (i === idx ? { ...s, [field]: value } : s)));
+  };
+  const results = useMemo(() => slots.map((s) => computePhoenixSlot(s.entry, s.morningLow)), [slots]);
+  const violations = useMemo(() => computeViolations(slots), [slots]);
+  const totalMaxLoss = useMemo(
+    () => results.reduce((sum, r) => sum + ((r && !r.error) ? r.maxLoss : 0), 0),
+    [results]
+  );
+  const overCap = totalMaxLoss > 154000;
+
+  return e("div", { className: "space-y-4" },
+    e(WatchlistPanel),
+    e(ViolationPanel, { violations }),
+    e("div", { className: "space-y-3" },
+      slots.map((s, idx) => e(PhoenixSlotCard, { key: idx, idx, slot: s, result: results[idx], onChange: updateSlot }))
+    ),
+    e(TotalLossCard, { totalMaxLoss, overCap })
   );
 }
 
 function AtypeCalc() {
   const [c2open, setC2open] = useState("");
   const [c2high, setC2high] = useState("");
-  const RISK_CAP = 48000, NOTIONAL_CAP = 480000;
+  const RISK_CAP = 44000, NOTIONAL_CAP = 1000000;
 
   const r = useMemo(() => {
     const entry = parseFloat(c2open), spikeHigh = parseFloat(c2high);
     if (!entry || !spikeHigh || entry <= 0 || spikeHigh <= 0) return null;
     if (spikeHigh <= entry) return { error: "2本目高値が2本目始値以下です。入力を確認してください。" };
     const tick = tickSize(entry);
-    const sl = spikeHigh + tick;
+    const sl = Math.round((spikeHigh + tick) * 100) / 100;
     const riskPerShare = sl - entry;
     const tp = roundDownTick(entry * 0.97, tick);
     const sharesByRisk = Math.floor(RISK_CAP / riskPerShare / 100) * 100;
@@ -207,6 +448,10 @@ function AtypeCalc() {
   }, [c2open, c2high]);
 
   return e("div", { className: "space-y-5" },
+    e("div", { className: "flex items-start gap-2 rounded-xl bg-slate-900/60 border border-slate-800 px-3.5 py-3 text-[12px] text-slate-400" },
+      e(Info, { size: 14, className: "shrink-0 mt-0.5" }),
+      e("span", null, "発注可能3銘柄: ルネサス(6723)・フジクラ(5803)・村田製作所(6981)。これ以外は発注禁止・記録のみ（§3.1）")
+    ),
     e("div", { className: "grid grid-cols-1 gap-3" },
       e(NumberField, { label: "2本目の始値（＝エントリー価格）", value: c2open, onChange: setC2open, placeholder: "例: 1500", suffix: "円" }),
       e(NumberField, { label: "2本目の高値（スパイク高値）", value: c2high, onChange: setC2high, placeholder: "例: 1545", suffix: "円" })
@@ -224,7 +469,7 @@ function AtypeCalc() {
       ),
       e(ConstraintBadge, { binding: r.binding, sharesByRisk: r.sharesByRisk, sharesByNotional: r.sharesByNotional }),
       e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800 px-4 py-1" },
-        e(ResultRow, { label: "呼値", value: `¥${r.tick}`, tone: "muted" }),
+        e(ResultRow, { label: "呼値（細かい呼値・TOPIX500）", value: `¥${r.tick}`, tone: "muted" }),
         e(ResultRow, { label: "SL（スパイク高値+1呼値）", value: `¥${fmtPrice(r.sl)}` }),
         e(ResultRow, { label: "TP（エントリー×0.97・切下げ）", value: `¥${fmtPrice(r.tp)}`, tone: "good" }),
         e(ResultRow, { label: "1株あたりリスク", value: `¥${fmtPrice(r.riskPerShare)}`, tone: "muted" })
@@ -261,7 +506,7 @@ function App() {
       tab === "phoenix" ? e(PhoenixCalc) : e(AtypeCalc),
       e("div", { className: "mt-6 flex items-start gap-2 rounded-xl bg-slate-900/50 border border-slate-800 px-3.5 py-3 text-[12px] text-slate-500" },
         e(Info, { size: 14, className: "shrink-0 mt-0.5" }),
-        e("span", null, "1日の目安：フェニックス最大2件（日次損失上限16.8万円）、A型最大2件（同9.6万円）。資金拘束の観点から実務上は合計1〜3件程度を推奨。")
+        e("span", null, "フェニックス同時保有最大5枠（セクター上限3・金融上限4）・1日損失上限15.4万円／A型1日1件・上限8.8万円／合算24.2万円で当日全システム停止。")
       )
     )
   );
