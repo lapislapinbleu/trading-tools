@@ -128,6 +128,7 @@ const WATCHLIST = WATCH_ENTRIES.reduce((acc, x) => { acc[x.code] = x; return acc
 const GREEN_ENTRIES = WATCH_ENTRIES.filter((x) => x.cls === "green");
 const YELLOW_ENTRIES = WATCH_ENTRIES.filter((x) => x.cls === "yellow");
 const FINANCIAL_SECTORS = ["銀行", "保険"];
+const SECTOR_CHAR = { "非鉄金属": "非", "銀行": "銀", "保険": "保", "ゴム": "ゴ", "倉庫運輸": "倉" };
 const NO_MARKET_CODES = ["9364", "9301", "9302"];
 
 function normalizeCode(code) { return (code || "").trim(); }
@@ -318,18 +319,19 @@ function WatchlistPanel() {
           GREEN_ENTRIES.map((x) => e("span", {
             key: x.code,
             className: "rounded-md bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 text-[11px] text-emerald-300",
-          }, `${x.rank}.${x.name}(${x.code})`))
+          }, `${x.rank}(${SECTOR_CHAR[x.sector]}).${x.name}(${x.code})`))
         )
       ),
       e("div", null,
-        e("div", { className: "text-[11px] text-amber-400 font-medium mb-1" }, "黄7（緑で5枠が埋まらない時のみ）"),
+        e("div", { className: "text-[11px] text-amber-400 font-medium mb-1" }, "黄7（12:30-40売買代金順・緑で5枠が埋まらない時のみ）"),
         e("div", { className: "flex flex-wrap gap-1" },
-          YELLOW_ENTRIES.map((x) => e("span", {
+          YELLOW_ENTRIES.map((x, i) => e("span", {
             key: x.code,
             className: "rounded-md bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 text-[11px] text-amber-300",
-          }, `${x.name}(${x.code})${x.noMarket ? "・成行禁止" : ""}`))
+          }, `${i + 1}(${SECTOR_CHAR[x.sector]}).${x.name}(${x.code})${x.noMarket ? "・成行禁止" : ""}`))
         )
-      )
+      ),
+      e("div", { className: "text-[10px] text-slate-500" }, "セクター識別: 非=非鉄金属 / 銀=銀行 / 保=保険 / ゴ=ゴム / 倉=倉庫運輸")
     )
   );
 }
