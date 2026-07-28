@@ -183,13 +183,14 @@ const NO_MARKET_CODES = ["9364", "9301", "9302"];
 
 function normalizeCode(code) { return (code || "").trim(); }
 
-function computeViolations(slots) {
+function computeViolations(slots, heldPositions) {
+  const held = heldPositions || [];
   const filled = slots
     .map((s, i) => ({ idx: i, code: normalizeCode(s.code) }))
     .filter((s) => s.code.length === 4);
   const violations = [];
 
-  // 1. 重複
+  // 1. 重複（枠間）
   const countByCode = {};
   filled.forEach((s) => { countByCode[s.code] = (countByCode[s.code] || 0) + 1; });
   Object.keys(countByCode).forEach((code) => {
@@ -202,30 +203,52 @@ function computeViolations(slots) {
     }
   });
 
-  // 2. セクター上限（4枠以上で違反＝最大3銘柄）
+  // 1b. 保有中建玉との重複
+  const heldCodes = new Set(held.map((p) => normalizeCode(p.code)));
+  filled.forEach((s) => {
+    if (heldCodes.has(s.code)) {
+      const info = WATCHLIST[s.code];
+      violations.push({
+        level: "error",
+        text: `枠${s.idx + 1}: ${s.code}${info ? "（" + info.name + "）" : ""}は保有中の建玉と重複`,
+      });
+    }
+  });
+
+  // 2. セクター上限（4枠以上で違反＝最大3銘柄。保有中を合算）
   const sectorCount = {};
+  const sectorHeldCount = {};
+  held.forEach((p) => {
+    if (p.sector) {
+      sectorCount[p.sector] = (sectorCount[p.sector] || 0) + 1;
+      sectorHeldCount[p.sector] = (sectorHeldCount[p.sector] || 0) + 1;
+    }
+  });
   filled.forEach((s) => {
     const info = WATCHLIST[s.code];
     if (info) sectorCount[info.sector] = (sectorCount[info.sector] || 0) + 1;
   });
   Object.keys(sectorCount).forEach((sector) => {
     if (sectorCount[sector] >= 4) {
+      const heldN = sectorHeldCount[sector] || 0;
       violations.push({
         level: "error",
-        text: `セクター上限超過: 「${sector}」が${sectorCount[sector]}銘柄です。同一セクターは最大3銘柄（§2.2②）`,
+        text: `セクター上限超過: 「${sector}」が${sectorCount[sector]}銘柄です${heldN > 0 ? `（保有中${heldN}件を含む）` : ""}。同一セクターは最大3銘柄（§2.2②）`,
       });
     }
   });
 
-  // 3. 金融クラスタ上限（5枠以上で違反＝最大4銘柄）
-  const finCount = filled.filter((s) => {
+  // 3. 金融クラスタ上限（5枠以上で違反＝最大4銘柄。保有中を合算）
+  const finHeldCount = held.filter((p) => p.sector && FINANCIAL_SECTORS.includes(p.sector)).length;
+  const finFilledCount = filled.filter((s) => {
     const info = WATCHLIST[s.code];
     return info && FINANCIAL_SECTORS.includes(info.sector);
   }).length;
+  const finCount = finHeldCount + finFilledCount;
   if (finCount >= 5) {
     violations.push({
       level: "error",
-      text: `金融クラスタ上限超過: 銀行＋保険 合計${finCount}銘柄です。金融（銀行＋保険）は最大4銘柄（§2.2③）`,
+      text: `金融クラスタ上限超過: 銀行＋保険 合計${finCount}銘柄です${finHeldCount > 0 ? `（保有中${finHeldCount}件を含む）` : ""}。金融（銀行＋保険）は最大4銘柄（§2.2③）`,
     });
   }
 
@@ -459,12 +482,12 @@ function TotalLossCard({ totalMaxLoss, overCap }) {
   );
 }
 
-function PhoenixCalc({ slots, setSlots, onTranscribe }) {
+function PhoenixCalc({ slots, setSlots, onTranscribe, heldPositions }) {
   const updateSlot = (idx, field, value) => {
     setSlots((prev) => prev.map((s, i) => (i === idx ? { ...s, [field]: value } : s)));
   };
   const results = useMemo(() => slots.map((s) => computePhoenixSlot(s.entry, s.morningLow)), [slots]);
-  const violations = useMemo(() => computeViolations(slots), [slots]);
+  const violations = useMemo(() => computeViolations(slots, heldPositions), [slots, heldPositions]);
   const totalMaxLoss = useMemo(
     () => results.reduce((sum, r) => sum + ((r && !r.error) ? r.maxLoss : 0), 0),
     [results]
@@ -566,7 +589,10 @@ function PositionEditFields({ form, onChange }) {
   );
 }
 
-function PositionCard({ pos, isEditing, editForm, onEditField, onStartEdit, onCancelEdit, onSaveEdit, onToggleTrail }) {
+function PositionCard({
+  pos, isEditing, editForm, onEditField, onStartEdit, onCancelEdit, onSaveEdit, onToggleTrail,
+  isSettling, settlePrice, onSettlePriceChange, onStartSettle, onCancelSettle, onConfirmSettle,
+}) {
   if (isEditing) {
     return e("div", { className: "rounded-xl bg-slate-900/60 border border-amber-500/30 p-3.5 space-y-2.5" },
       e("div", { className: "text-[12.5px] font-semibold text-slate-300" }, `${pos.name}（${pos.code}）を編集`),
@@ -610,16 +636,171 @@ function PositionCard({ pos, isEditing, editForm, onEditField, onStartEdit, onCa
         onClick: onToggleTrail,
         className: `flex-1 rounded-lg text-[12.5px] font-semibold py-2.5 border ${pos.trailArmed ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-300" : "bg-slate-800 border-slate-700 text-slate-300"}`,
       }, pos.trailArmed ? "トレール解除" : "トレール発動"),
-      e("button", { onClick: onStartEdit, className: "flex-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-[12.5px] font-semibold py-2.5" }, "編集")
+      e("button", { onClick: onStartEdit, className: "flex-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-[12.5px] font-semibold py-2.5" }, "編集"),
+      e("button", { onClick: onStartSettle, className: "flex-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-[12.5px] font-semibold py-2.5" }, "決済")
+    ),
+    isSettling && e("div", { className: "rounded-lg bg-slate-950/60 border border-slate-800 p-3 space-y-2.5" },
+      e(NumberField, { label: "決済単価", value: settlePrice, onChange: onSettlePriceChange, placeholder: "例: 4900", suffix: "円" }),
+      e("div", { className: "flex gap-2" },
+        e("button", {
+          onClick: onConfirmSettle,
+          disabled: !(parseFloat(settlePrice) > 0),
+          className: `flex-1 rounded-lg text-[12.5px] font-semibold py-2.5 ${parseFloat(settlePrice) > 0 ? "bg-emerald-500/90 text-slate-950" : "bg-slate-800 text-slate-600"}`,
+        }, "決済確定"),
+        e("button", { onClick: onCancelSettle, className: "flex-1 rounded-lg bg-slate-800 text-slate-300 text-[12.5px] font-semibold py-2.5" }, "キャンセル")
+      )
     )
   );
 }
 
+function effectivePositionMaxLoss(p) {
+  const hasSl = Number.isFinite(p.slPrice);
+  if (!hasSl && !p.trailArmed) return 0;
+  const eff = p.trailArmed ? Math.max(hasSl ? p.slPrice : p.entryPrice, p.entryPrice) : p.slPrice;
+  return Math.max(0, (p.entryPrice - eff) * p.qty);
+}
+
+function todayRealizedPnl(closed) {
+  const today = todayStr();
+  return closed.filter((c) => c.closeDate === today).reduce((sum, c) => sum + c.pnl, 0);
+}
+
+function SummaryPanel({ positions, closed }) {
+  const n = positions.length;
+  const positionValueSum = positions.reduce((s, p) => s + p.qty * p.entryPrice, 0);
+  const capitalRatio = CAPITAL > 0 ? (positionValueSum / CAPITAL) * 100 : 0;
+  const totalMaxLoss = positions.reduce((sum, p) => sum + effectivePositionMaxLoss(p), 0);
+  const todayPnlSum = todayRealizedPnl(closed);
+  const todayLoss = Math.max(0, -todayPnlSum);
+  const overDaily = todayLoss + totalMaxLoss > DAILY_LOSS_CAP;
+
+  return e("div", { className: "rounded-2xl bg-slate-900/60 border border-slate-800 p-4 space-y-1" },
+    e(ResultRow, { label: "保有銘柄数", value: `${n} / ${MAX_POSITIONS}（残り${Math.max(0, MAX_POSITIONS - n)}枠）`, tone: "muted" }),
+    e(ResultRow, { label: "建玉代金合計", value: `¥${fmt(positionValueSum)}（対資本${capitalRatio.toFixed(1)}%）`, tone: "muted" }),
+    e(ResultRow, { label: "想定最大損失合計（SL到達時）", value: `−¥${fmt(totalMaxLoss)}`, tone: "risk" }),
+    e(ResultRow, {
+      label: "当日の確定損益", value: `${todayPnlSum >= 0 ? "+" : "−"}¥${fmt(Math.abs(todayPnlSum))}`,
+      tone: todayPnlSum >= 0 ? "good" : "risk",
+    }),
+    overDaily && e("div", { className: "mt-1 flex items-start gap-2 rounded-lg bg-red-500/10 border border-red-500/25 px-3 py-2 text-[12px] text-red-300" },
+      e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
+      e("span", null, "SL全到達なら日次損失上限15.4万円を超過")
+    )
+  );
+}
+
+function ClosedHistoryPanel({ closed, open, onToggle }) {
+  const items = [...closed]
+    .sort((a, b) => {
+      if (a.closeDate !== b.closeDate) return a.closeDate < b.closeDate ? 1 : -1;
+      return String(b.id).localeCompare(String(a.id));
+    })
+    .slice(0, 20);
+  return e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800" },
+    e("button", {
+      onClick: onToggle,
+      className: "w-full flex items-center justify-between px-3.5 py-2.5 text-[12.5px] font-medium text-slate-300",
+    }, e("span", null, `決済履歴 ${open ? "▲" : "▼"}`)),
+    open && e("div", { className: "px-3.5 pb-3.5 space-y-1.5" },
+      items.length === 0
+        ? e("div", { className: "text-[12px] text-slate-500 py-2" }, "決済履歴はまだありません")
+        : items.map((c) => e("div", {
+            key: c.id,
+            className: "flex items-center justify-between gap-2 py-1.5 border-b border-slate-800/70 last:border-0 text-[11.5px]",
+          },
+            e("span", { className: "text-slate-400 truncate" }, `${c.closeDate} ${c.name}（${c.code}）`),
+            e("span", { className: "font-mono tabular-nums text-slate-300 shrink-0" }, `${fmt(c.qty)}株 @¥${fmtPrice(c.closePrice)}`),
+            e("span", {
+              className: `font-mono tabular-nums shrink-0 ${c.pnl >= 0 ? "text-emerald-400" : "text-red-400"}`,
+            }, `${c.pnl >= 0 ? "+" : "−"}¥${fmt(Math.abs(c.pnl))}`)
+          ))
+    )
+  );
+}
+
+function computeRegistrationWarnings(form, positions, closed) {
+  const code = normalizeCode(form.code);
+  const qty = parseFloat(form.qty);
+  const entryPrice = parseFloat(form.entryPrice);
+  const slPrice = parseFloat(form.slPrice);
+  if (!(code.length === 4 && qty > 0 && entryPrice > 0)) return [];
+
+  const warnings = [];
+  const info = WATCHLIST[code];
+  const positionValue = qty * entryPrice;
+
+  if (positionValue > NOTIONAL_CAP) {
+    warnings.push(`建玉代金 ¥${fmt(positionValue)} が1銘柄上限 ¥${fmt(NOTIONAL_CAP)} を超えています`);
+  }
+  if (Number.isFinite(slPrice) && slPrice < entryPrice) {
+    const risk = (entryPrice - slPrice) * qty;
+    if (risk > RISK_CAP) {
+      warnings.push(`1建玉のリスク ¥${fmt(risk)} が上限 ¥${fmt(RISK_CAP)} を超えています`);
+    }
+  }
+  const heldCodes = positions.map((p) => normalizeCode(p.code));
+  if (heldCodes.includes(code)) {
+    warnings.push(`重複: ${code}${info ? "（" + info.name + "）" : ""}は保有中の建玉と重複しています`);
+  }
+  const postCount = positions.length + 1;
+  if (postCount > MAX_POSITIONS) {
+    warnings.push(`登録後の保有数が${postCount}件になり、同時保有上限${MAX_POSITIONS}件を超えます`);
+  }
+
+  const existingMaxLossSum = positions.reduce((sum, p) => sum + effectivePositionMaxLoss(p), 0);
+  const newMaxLoss = Number.isFinite(slPrice) && slPrice < entryPrice ? (entryPrice - slPrice) * qty : 0;
+  const todayLoss = Math.max(0, -todayRealizedPnl(closed));
+  const projectedTotal = existingMaxLossSum + newMaxLoss + todayLoss;
+  if (projectedTotal > DAILY_LOSS_CAP) {
+    warnings.push(`登録後の想定最大損失合計＋当日確定損失 ¥${fmt(projectedTotal)} が日次上限 ¥${fmt(DAILY_LOSS_CAP)} を超えます`);
+  }
+
+  if (info) {
+    const sectorAfter = positions.filter((p) => p.sector === info.sector).length + 1;
+    if (sectorAfter >= 4) {
+      warnings.push(`登録後「${info.sector}」セクターが${sectorAfter}銘柄になります（同一セクター上限3）`);
+    }
+    if (FINANCIAL_SECTORS.includes(info.sector)) {
+      const finAfter = positions.filter((p) => p.sector && FINANCIAL_SECTORS.includes(p.sector)).length + 1;
+      if (finAfter >= 5) {
+        warnings.push(`登録後 金融（銀行＋保険）が${finAfter}銘柄になります（金融クラスタ上限4）`);
+      }
+    }
+    if (info.cls === "yellow") {
+      warnings.push(`${info.name}（${code}）は黄区分。緑で5枠が埋まらない時のみ使用`);
+    }
+    if (NO_MARKET_CODES.includes(code)) {
+      warnings.push(`${info.name}（${code}）は成行禁止（指値のみ・旧赤運用継続）`);
+    }
+  } else {
+    warnings.push(`コード${code}は監視リスト27銘柄外。フェニックス発注対象外`);
+  }
+
+  return warnings;
+}
+
+function RegistrationWarnings({ warnings }) {
+  if (!warnings || warnings.length === 0) return null;
+  return e("div", { className: "space-y-1.5" },
+    warnings.map((w, i) => e("div", {
+      key: i,
+      className: "flex items-start gap-2 rounded-xl px-3.5 py-2.5 text-[12.5px] border bg-amber-500/10 border-amber-500/25 text-amber-300",
+    },
+      e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
+      e("span", null, w)
+    ))
+  );
+}
+
 function PositionsSection({ positions, setPositions, prefill }) {
+  const [closed, setClosed] = usePersistentState("closed_v1", []);
   const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState({ ...DEFAULT_POSITION_FORM, entryDate: todayStr() });
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState(null);
+  const [settlingId, setSettlingId] = useState(null);
+  const [settlePrice, setSettlePrice] = useState("");
+  const [closedOpen, setClosedOpen] = useState(false);
 
   useEffect(() => {
     if (!prefill) return;
@@ -693,6 +874,27 @@ function PositionsSection({ positions, setPositions, prefill }) {
     setEditForm(null);
   };
 
+  const startSettle = (pos) => { setSettlingId(pos.id); setSettlePrice(""); };
+  const cancelSettle = () => { setSettlingId(null); setSettlePrice(""); };
+  const confirmSettle = () => {
+    const closePrice = parseFloat(settlePrice);
+    if (!(closePrice > 0)) return;
+    const pos = positions.find((p) => p.id === settlingId);
+    if (!pos) return;
+    const pnl = (closePrice - pos.entryPrice) * pos.qty;
+    const record = {
+      id: genId(), code: pos.code, name: pos.name, sector: pos.sector,
+      entryDate: pos.entryDate, closeDate: todayStr(), qty: pos.qty,
+      entryPrice: pos.entryPrice, closePrice, pnl, note: pos.note || "",
+    };
+    setClosed((prev) => [...prev, record]);
+    setPositions((prev) => prev.filter((p) => p.id !== pos.id));
+    setSettlingId(null);
+    setSettlePrice("");
+  };
+
+  const warnings = useMemo(() => computeRegistrationWarnings(form, positions, closed), [form, positions, closed]);
+
   return e("div", { className: "space-y-4" },
     e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800" },
       e("button", {
@@ -703,6 +905,7 @@ function PositionsSection({ positions, setPositions, prefill }) {
         e(CodeField, { value: form.code, onChange: (v) => updateForm("code", v) }),
         e(StockBadge, { code: form.code }),
         e(PositionEditFields, { form, onChange: updateForm }),
+        e(RegistrationWarnings, { warnings }),
         e("button", {
           onClick: registerPosition,
           disabled: !canRegister,
@@ -710,6 +913,7 @@ function PositionsSection({ positions, setPositions, prefill }) {
         }, "登録")
       )
     ),
+    e(SummaryPanel, { positions, closed }),
     positions.length === 0
       ? e("div", { className: "rounded-xl bg-slate-900/40 border border-slate-800 px-3.5 py-6 text-center text-[13px] text-slate-500" }, "建玉はまだありません")
       : e("div", { className: "space-y-3" },
@@ -721,8 +925,15 @@ function PositionsSection({ positions, setPositions, prefill }) {
             onCancelEdit: cancelEdit,
             onSaveEdit: saveEdit,
             onToggleTrail: () => toggleTrail(pos.id),
+            isSettling: settlingId === pos.id,
+            settlePrice,
+            onSettlePriceChange: setSettlePrice,
+            onStartSettle: () => startSettle(pos),
+            onCancelSettle: cancelSettle,
+            onConfirmSettle: confirmSettle,
           }))
-        )
+        ),
+    e(ClosedHistoryPanel, { closed, open: closedOpen, onToggle: () => setClosedOpen((o) => !o) })
   );
 }
 
@@ -732,7 +943,7 @@ const DEFAULT_SIZING = {
   c2high: "",
 };
 
-function SizingSection({ onTranscribe }) {
+function SizingSection({ onTranscribe, heldPositions }) {
   const [tab, setTab] = useState("phoenix");
   const [sizing, setSizing] = usePersistentState("sizing_v1", DEFAULT_SIZING);
 
@@ -762,7 +973,7 @@ function SizingSection({ onTranscribe }) {
       }, e(TrendingDown, { size: 15 }), "A型")
     ),
     tab === "phoenix"
-      ? e(PhoenixCalc, { slots: sizing.slots, setSlots, onTranscribe })
+      ? e(PhoenixCalc, { slots: sizing.slots, setSlots, onTranscribe, heldPositions })
       : e(AtypeCalc, { c2open: sizing.c2open, setC2open, c2high: sizing.c2high, setC2high }),
     e("div", { className: "mt-6 flex items-start gap-2 rounded-xl bg-slate-900/50 border border-slate-800 px-3.5 py-3 text-[12px] text-slate-500" },
       e(Info, { size: 14, className: "shrink-0 mt-0.5" }),
@@ -805,7 +1016,7 @@ function App() {
         }, "建玉管理")
       ),
       topTab === "sizing"
-        ? e(SizingSection, { onTranscribe: handleTranscribe })
+        ? e(SizingSection, { onTranscribe: handleTranscribe, heldPositions: positions })
         : e(PositionsSection, { positions, setPositions, prefill })
     )
   );
