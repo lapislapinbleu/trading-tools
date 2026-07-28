@@ -51,7 +51,57 @@
 
 <script>
 const e = React.createElement;
-const { useState, useMemo } = React;
+const { useState, useMemo, useEffect } = React;
+
+// ---- 判定定数（rulebook v1.5・資本550万で統一。既存 computePhoenixSlot 内のローカル定数は触らない） ----
+const NOTIONAL_CAP = 1027000;
+const RISK_CAP = 77000;
+const DAILY_LOSS_CAP = 154000;
+const CAPITAL = 5500000;
+const MAX_POSITIONS = 5;
+const TP_MULT = 1.05;
+const TRAIL_MULT = 1.015;
+
+// ---- localStorage 汎用ヘルパー（Safariプライベートモード等で例外になりうるため try/catch 保護） ----
+function lsGet(key, fallback) {
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (raw === null) return fallback;
+    return JSON.parse(raw);
+  } catch (err) {
+    return fallback;
+  }
+}
+function lsSet(key, value) {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch (err) {
+    // Safariプライベートモード等の書き込み失敗は無視（次回起動時は初期値に戻るだけ）
+  }
+}
+function lsRemove(key) {
+  try {
+    window.localStorage.removeItem(key);
+  } catch (err) {}
+}
+
+function usePersistentState(key, initial) {
+  const [state, setState] = useState(() => lsGet(key, initial));
+  useEffect(() => {
+    lsSet(key, state);
+  }, [key, state]);
+  return [state, setState];
+}
+
+function todayStr() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function genId() {
+  return String(Date.now()) + "_" + Math.random().toString(36).slice(2, 7);
+}
 
 function IconBase({ children, size = 16, className = "" }) {
   return e("svg", {
@@ -233,12 +283,12 @@ function computePhoenixSlot(entry, morningLow) {
   };
 }
 
-function NumberField({ label, value, onChange, placeholder, suffix }) {
+function NumberField({ label, value, onChange, placeholder, suffix, id }) {
   return e("label", { className: "block" },
     e("span", { className: "text-[13px] text-slate-400 tracking-wide" }, label),
     e("div", { className: "mt-1 flex items-center rounded-xl bg-slate-900 border border-slate-700 focus-within:border-amber-500/70 transition-colors" },
       e("input", {
-        type: "number", inputMode: "decimal", value,
+        id, type: "number", inputMode: "decimal", value,
         onChange: (ev) => onChange(ev.target.value),
         placeholder,
         className: "w-full bg-transparent px-4 py-3.5 text-[22px] font-mono tabular-nums text-slate-50 outline-none placeholder:text-slate-600",
@@ -248,12 +298,12 @@ function NumberField({ label, value, onChange, placeholder, suffix }) {
   );
 }
 
-function CodeField({ label, value, onChange, placeholder }) {
+function CodeField({ label, value, onChange, placeholder, id }) {
   return e("label", { className: "block" },
     e("span", { className: "text-[13px] text-slate-400 tracking-wide" }, label || "銘柄コード"),
     e("div", { className: "mt-1 flex items-center rounded-xl bg-slate-900 border border-slate-700 focus-within:border-amber-500/70 transition-colors" },
       e("input", {
-        type: "text", inputMode: "numeric", maxLength: 4, value,
+        id, type: "text", inputMode: "numeric", maxLength: 4, value,
         onChange: (ev) => onChange(ev.target.value.replace(/[^0-9]/g, "").slice(0, 4)),
         placeholder: placeholder || "例: 5803",
         className: "w-full bg-transparent px-4 py-3.5 text-[22px] font-mono tabular-nums text-slate-50 outline-none placeholder:text-slate-600",
@@ -360,12 +410,12 @@ function PhoenixSlotCard({ idx, slot, result, onChange }) {
       e("span", { className: "text-[12.5px] font-semibold text-slate-300" }, `枠${idx + 1}`)
     ),
     e("div", { className: "grid grid-cols-1 gap-2" },
-      e(CodeField, { value: slot.code, onChange: (v) => onChange(idx, "code", v) }),
+      e(CodeField, { id: `slot${idx + 1}_code`, value: slot.code, onChange: (v) => onChange(idx, "code", v) }),
       e(StockBadge, { code: slot.code })
     ),
     e("div", { className: "grid grid-cols-2 gap-2" },
-      e(NumberField, { label: "前引け値", value: slot.entry, onChange: (v) => onChange(idx, "entry", v), placeholder: "例: 4800", suffix: "円" }),
-      e(NumberField, { label: "前場安値", value: slot.morningLow, onChange: (v) => onChange(idx, "morningLow", v), placeholder: "例: 4650", suffix: "円" })
+      e(NumberField, { id: `slot${idx + 1}_entry`, label: "前引け値", value: slot.entry, onChange: (v) => onChange(idx, "entry", v), placeholder: "例: 4800", suffix: "円" }),
+      e(NumberField, { id: `slot${idx + 1}_morningLow`, label: "前場安値", value: slot.morningLow, onChange: (v) => onChange(idx, "morningLow", v), placeholder: "例: 4650", suffix: "円" })
     ),
     result && result.error && e("div", { className: "flex items-start gap-2 rounded-lg bg-red-500/10 border border-red-500/25 px-3 py-2 text-[12px] text-red-300" },
       e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
@@ -402,8 +452,7 @@ function TotalLossCard({ totalMaxLoss, overCap }) {
   );
 }
 
-function PhoenixCalc() {
-  const [slots, setSlots] = useState([0, 1, 2, 3, 4].map(() => ({ code: "", entry: "", morningLow: "" })));
+function PhoenixCalc({ slots, setSlots }) {
   const updateSlot = (idx, field, value) => {
     setSlots((prev) => prev.map((s, i) => (i === idx ? { ...s, [field]: value } : s)));
   };
@@ -425,9 +474,7 @@ function PhoenixCalc() {
   );
 }
 
-function AtypeCalc() {
-  const [c2open, setC2open] = useState("");
-  const [c2high, setC2high] = useState("");
+function AtypeCalc({ c2open, setC2open, c2high, setC2high }) {
   const RISK_CAP = 44000, NOTIONAL_CAP = 1000000;
 
   const r = useMemo(() => {
@@ -455,8 +502,8 @@ function AtypeCalc() {
       e("span", null, "発注可能3銘柄: ルネサス(6723)・フジクラ(5803)・村田製作所(6981)。これ以外は発注禁止・記録のみ（§3.1）")
     ),
     e("div", { className: "grid grid-cols-1 gap-3" },
-      e(NumberField, { label: "2本目の始値（＝エントリー価格）", value: c2open, onChange: setC2open, placeholder: "例: 1500", suffix: "円" }),
-      e(NumberField, { label: "2本目の高値（スパイク高値）", value: c2high, onChange: setC2high, placeholder: "例: 1545", suffix: "円" })
+      e(NumberField, { id: "atype_c2open", label: "2本目の始値（＝エントリー価格）", value: c2open, onChange: setC2open, placeholder: "例: 1500", suffix: "円" }),
+      e(NumberField, { id: "atype_c2high", label: "2本目の高値（スパイク高値）", value: c2high, onChange: setC2high, placeholder: "例: 1545", suffix: "円" })
     ),
     r && r.error && e("div", { className: "flex items-start gap-2 rounded-xl bg-red-500/10 border border-red-500/25 px-3.5 py-3 text-[13px] text-red-300" },
       e(AlertTriangle, { size: 16, className: "shrink-0 mt-0.5" }),
@@ -484,8 +531,56 @@ function AtypeCalc() {
   );
 }
 
-function App() {
+const DEFAULT_SIZING = {
+  slots: [0, 1, 2, 3, 4].map(() => ({ code: "", entry: "", morningLow: "" })),
+  c2open: "",
+  c2high: "",
+};
+
+function SizingSection() {
   const [tab, setTab] = useState("phoenix");
+  const [sizing, setSizing] = usePersistentState("sizing_v1", DEFAULT_SIZING);
+
+  const setSlots = (updater) => {
+    setSizing((prev) => ({
+      ...prev,
+      slots: typeof updater === "function" ? updater(prev.slots) : updater,
+    }));
+  };
+  const setC2open = (v) => setSizing((prev) => ({ ...prev, c2open: v }));
+  const setC2high = (v) => setSizing((prev) => ({ ...prev, c2high: v }));
+
+  const clearSizing = () => {
+    if (!window.confirm("サイジング入力をすべてクリアしますか？")) return;
+    setSizing(DEFAULT_SIZING);
+  };
+
+  return e("div", null,
+    e("div", { className: "grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 mb-5" },
+      e("button", {
+        onClick: () => setTab("phoenix"),
+        className: `flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${tab === "phoenix" ? "bg-slate-100 text-slate-900" : "text-slate-400"}`,
+      }, e(TrendingUp, { size: 15 }), "フェニックス"),
+      e("button", {
+        onClick: () => setTab("atype"),
+        className: `flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${tab === "atype" ? "bg-slate-100 text-slate-900" : "text-slate-400"}`,
+      }, e(TrendingDown, { size: 15 }), "A型")
+    ),
+    tab === "phoenix"
+      ? e(PhoenixCalc, { slots: sizing.slots, setSlots })
+      : e(AtypeCalc, { c2open: sizing.c2open, setC2open, c2high: sizing.c2high, setC2high }),
+    e("div", { className: "mt-6 flex items-start gap-2 rounded-xl bg-slate-900/50 border border-slate-800 px-3.5 py-3 text-[12px] text-slate-500" },
+      e(Info, { size: 14, className: "shrink-0 mt-0.5" }),
+      e("span", null, "フェニックス同時保有最大5枠（セクター上限3・金融上限4）・1日損失上限15.4万円／A型1日1件・上限8.8万円／合算24.2万円で当日全システム停止。")
+    ),
+    e("button", {
+      onClick: clearSizing,
+      className: "mt-4 w-full rounded-xl border border-slate-800 bg-slate-900/60 py-2.5 text-[12.5px] font-medium text-slate-400 hover:text-red-300 hover:border-red-500/30 transition-colors",
+    }, "入力をクリア")
+  );
+}
+
+function App() {
   return e("div", {
     className: "min-h-screen bg-slate-950 text-slate-100 flex justify-center",
     style: { paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" },
@@ -495,21 +590,7 @@ function App() {
         e("h1", { className: "text-[20px] font-bold tracking-tight text-slate-50" }, "ポジションサイジング"),
         e("p", { className: "text-[12px] text-slate-500 mt-0.5" }, "リスク上限 ÷ SL距離 と 建玉代金上限 の小さい方を採用")
       ),
-      e("div", { className: "grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 mb-5" },
-        e("button", {
-          onClick: () => setTab("phoenix"),
-          className: `flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${tab === "phoenix" ? "bg-slate-100 text-slate-900" : "text-slate-400"}`,
-        }, e(TrendingUp, { size: 15 }), "フェニックス"),
-        e("button", {
-          onClick: () => setTab("atype"),
-          className: `flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${tab === "atype" ? "bg-slate-100 text-slate-900" : "text-slate-400"}`,
-        }, e(TrendingDown, { size: 15 }), "A型")
-      ),
-      tab === "phoenix" ? e(PhoenixCalc) : e(AtypeCalc),
-      e("div", { className: "mt-6 flex items-start gap-2 rounded-xl bg-slate-900/50 border border-slate-800 px-3.5 py-3 text-[12px] text-slate-500" },
-        e(Info, { size: 14, className: "shrink-0 mt-0.5" }),
-        e("span", null, "フェニックス同時保有最大5枠（セクター上限3・金融上限4）・1日損失上限15.4万円／A型1日1件・上限8.8万円／合算24.2万円で当日全システム停止。")
-      )
+      e(SizingSection)
     )
   );
 }
