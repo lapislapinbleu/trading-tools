@@ -404,7 +404,7 @@ function ViolationPanel({ violations }) {
   );
 }
 
-function PhoenixSlotCard({ idx, slot, result, onChange }) {
+function PhoenixSlotCard({ idx, slot, result, onChange, onTranscribe }) {
   return e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800 p-3.5 space-y-2.5" },
     e("div", { className: "flex items-center justify-between" },
       e("span", { className: "text-[12.5px] font-semibold text-slate-300" }, `枠${idx + 1}`)
@@ -433,7 +433,14 @@ function PhoenixSlotCard({ idx, slot, result, onChange }) {
       e(ResultRow, { label: "最大損失（SL到達時）", value: `−¥${fmt(result.maxLoss)}`, tone: "risk" }),
       result.binding === "notional" && e("div", { className: "pb-2 text-[11px] text-amber-400" },
         `建玉代金上限で頭打ち（リスク上限だけなら${fmt(result.sharesByRisk)}株まで許容）`)
-    )
+    ),
+    result && !result.error && e("button", {
+      onClick: () => onTranscribe({
+        code: normalizeCode(slot.code), qty: result.finalShares, entryPrice: slot.entry,
+        slPrice: result.sl, tpPrice: result.tp, entryDate: todayStr(),
+      }),
+      className: "w-full rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[12.5px] font-semibold py-2.5",
+    }, "この内容で建玉登録")
   );
 }
 
@@ -452,7 +459,7 @@ function TotalLossCard({ totalMaxLoss, overCap }) {
   );
 }
 
-function PhoenixCalc({ slots, setSlots }) {
+function PhoenixCalc({ slots, setSlots, onTranscribe }) {
   const updateSlot = (idx, field, value) => {
     setSlots((prev) => prev.map((s, i) => (i === idx ? { ...s, [field]: value } : s)));
   };
@@ -468,7 +475,7 @@ function PhoenixCalc({ slots, setSlots }) {
     e(WatchlistPanel),
     e(ViolationPanel, { violations }),
     e("div", { className: "space-y-3" },
-      slots.map((s, idx) => e(PhoenixSlotCard, { key: idx, idx, slot: s, result: results[idx], onChange: updateSlot }))
+      slots.map((s, idx) => e(PhoenixSlotCard, { key: idx, idx, slot: s, result: results[idx], onChange: updateSlot, onTranscribe }))
     ),
     e(TotalLossCard, { totalMaxLoss, overCap })
   );
@@ -531,13 +538,201 @@ function AtypeCalc({ c2open, setC2open, c2high, setC2high }) {
   );
 }
 
+// ---- 建玉管理 ----
+const DEFAULT_POSITION_FORM = { code: "", qty: "", entryPrice: "", slPrice: "", tpPrice: "", entryDate: "", note: "" };
+
+function PositionEditFields({ form, onChange }) {
+  return e("div", { className: "grid grid-cols-2 gap-2" },
+    e(NumberField, { label: "株数", value: form.qty, onChange: (v) => onChange("qty", v), placeholder: "例: 200", suffix: "株" }),
+    e(NumberField, { label: "建値", value: form.entryPrice, onChange: (v) => onChange("entryPrice", v), placeholder: "例: 4800", suffix: "円" }),
+    e(NumberField, { label: "SL価格", value: form.slPrice, onChange: (v) => onChange("slPrice", v), placeholder: "任意", suffix: "円" }),
+    e(NumberField, { label: "TP価格", value: form.tpPrice, onChange: (v) => onChange("tpPrice", v), placeholder: "任意", suffix: "円" }),
+    e("label", { className: "block col-span-2" },
+      e("span", { className: "text-[13px] text-slate-400 tracking-wide" }, "エントリー日"),
+      e("input", {
+        type: "date", value: form.entryDate,
+        onChange: (ev) => onChange("entryDate", ev.target.value),
+        className: "mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-[15px] text-slate-50 outline-none focus:border-amber-500/70",
+      })
+    ),
+    e("label", { className: "block col-span-2" },
+      e("span", { className: "text-[13px] text-slate-400 tracking-wide" }, "メモ（任意）"),
+      e("input", {
+        type: "text", value: form.note,
+        onChange: (ev) => onChange("note", ev.target.value),
+        className: "mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-[15px] text-slate-50 outline-none focus:border-amber-500/70",
+      })
+    )
+  );
+}
+
+function PositionCard({ pos, isEditing, editForm, onEditField, onStartEdit, onCancelEdit, onSaveEdit, onToggleTrail }) {
+  if (isEditing) {
+    return e("div", { className: "rounded-xl bg-slate-900/60 border border-amber-500/30 p-3.5 space-y-2.5" },
+      e("div", { className: "text-[12.5px] font-semibold text-slate-300" }, `${pos.name}（${pos.code}）を編集`),
+      e(PositionEditFields, { form: editForm, onChange: onEditField }),
+      e("div", { className: "flex gap-2 pt-1" },
+        e("button", { onClick: onSaveEdit, className: "flex-1 rounded-lg bg-emerald-500/90 text-slate-950 text-[13px] font-semibold py-2.5" }, "保存"),
+        e("button", { onClick: onCancelEdit, className: "flex-1 rounded-lg bg-slate-800 text-slate-300 text-[13px] font-semibold py-2.5" }, "キャンセル")
+      )
+    );
+  }
+  const hasSl = Number.isFinite(pos.slPrice);
+  const effectiveSL = pos.trailArmed ? Math.max(hasSl ? pos.slPrice : pos.entryPrice, pos.entryPrice) : pos.slPrice;
+  const maxLoss = hasSl || pos.trailArmed ? Math.max(0, (pos.entryPrice - effectiveSL) * pos.qty) : null;
+  const trailTrigger = pos.entryPrice * TRAIL_MULT;
+  const positionValue = pos.qty * pos.entryPrice;
+  return e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800 p-3.5 space-y-2.5" },
+    e("div", { className: "flex items-center justify-between flex-wrap gap-1.5" },
+      e("div", { className: "flex items-center gap-1.5 flex-wrap" },
+        e("span", { className: "text-[14px] font-semibold text-slate-100" }, `${pos.name}（${pos.code}）`),
+        pos.sector
+          ? e("span", { className: "text-[11px] text-slate-500" }, `［${SECTOR_CHAR[pos.sector] || pos.sector}］`)
+          : e("span", { className: "rounded-md border border-red-500/25 bg-red-500/10 px-1.5 py-0.5 text-[10.5px] text-red-300" }, "監視リスト外")
+      ),
+      pos.trailArmed && e("span", { className: "rounded-md border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-300" }, "トレール済（実質ノーリスク）")
+    ),
+    e("div", { className: "grid grid-cols-2 gap-x-3" },
+      e(ResultRow, { label: "株数", value: `${fmt(pos.qty)}株`, tone: "muted" }),
+      e(ResultRow, { label: "建値", value: `¥${fmtPrice(pos.entryPrice)}`, tone: "muted" })
+    ),
+    e(ResultRow, { label: "建玉代金", value: `¥${fmt(positionValue)}`, tone: "muted" }),
+    e(ResultRow, {
+      label: pos.trailArmed ? "SL（建値・トレール済）" : "SL価格",
+      value: pos.trailArmed ? `¥${fmtPrice(pos.entryPrice)}` : (hasSl ? `¥${fmtPrice(pos.slPrice)}` : "―"),
+    }),
+    e(ResultRow, { label: "TP価格", value: Number.isFinite(pos.tpPrice) ? `¥${fmtPrice(pos.tpPrice)}` : "―", tone: "good" }),
+    e(ResultRow, { label: "トレール発動ライン（+1.5%）", value: `¥${fmtPrice(trailTrigger)}`, tone: "muted" }),
+    e(ResultRow, { label: "SL到達時の想定最大損失", value: maxLoss === null ? "―" : `−¥${fmt(maxLoss)}`, tone: "risk" }),
+    pos.note && e("div", { className: "text-[11.5px] text-slate-500" }, `メモ: ${pos.note}`),
+    e("div", { className: "flex gap-2 pt-1" },
+      e("button", {
+        onClick: onToggleTrail,
+        className: `flex-1 rounded-lg text-[12.5px] font-semibold py-2.5 border ${pos.trailArmed ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-300" : "bg-slate-800 border-slate-700 text-slate-300"}`,
+      }, pos.trailArmed ? "トレール解除" : "トレール発動"),
+      e("button", { onClick: onStartEdit, className: "flex-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-[12.5px] font-semibold py-2.5" }, "編集")
+    )
+  );
+}
+
+function PositionsSection({ positions, setPositions, prefill }) {
+  const [formOpen, setFormOpen] = useState(false);
+  const [form, setForm] = useState({ ...DEFAULT_POSITION_FORM, entryDate: todayStr() });
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState(null);
+
+  useEffect(() => {
+    if (!prefill) return;
+    setFormOpen(true);
+    setForm({
+      code: normalizeCode(prefill.code || ""),
+      qty: prefill.qty != null ? String(prefill.qty) : "",
+      entryPrice: prefill.entryPrice != null ? String(prefill.entryPrice) : "",
+      slPrice: prefill.slPrice != null ? String(prefill.slPrice) : "",
+      tpPrice: prefill.tpPrice != null ? String(prefill.tpPrice) : "",
+      entryDate: prefill.entryDate || todayStr(),
+      note: "",
+    });
+  }, [prefill]);
+
+  const updateForm = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
+
+  const canRegister = normalizeCode(form.code).length === 4 &&
+    parseFloat(form.qty) > 0 && parseFloat(form.entryPrice) > 0;
+
+  const registerPosition = () => {
+    if (!canRegister) return;
+    const code = normalizeCode(form.code);
+    const info = WATCHLIST[code];
+    const qty = parseFloat(form.qty);
+    const entryPrice = parseFloat(form.entryPrice);
+    const slPrice = parseFloat(form.slPrice);
+    const tpPrice = parseFloat(form.tpPrice);
+    const newPos = {
+      id: genId(), code, name: info ? info.name : code, sector: info ? info.sector : null,
+      entryDate: form.entryDate || todayStr(), qty, entryPrice,
+      slPrice: Number.isFinite(slPrice) ? slPrice : null,
+      tpPrice: Number.isFinite(tpPrice) ? tpPrice : null,
+      trailArmed: false, note: (form.note || "").trim(),
+    };
+    setPositions((prev) => [...prev, newPos]);
+    setForm({ ...DEFAULT_POSITION_FORM, entryDate: todayStr() });
+    setFormOpen(false);
+  };
+
+  const toggleTrail = (id) => {
+    setPositions((prev) => prev.map((p) => (p.id === id ? { ...p, trailArmed: !p.trailArmed } : p)));
+  };
+
+  const startEdit = (pos) => {
+    setEditingId(pos.id);
+    setEditForm({
+      qty: String(pos.qty), entryPrice: String(pos.entryPrice),
+      slPrice: Number.isFinite(pos.slPrice) ? String(pos.slPrice) : "",
+      tpPrice: Number.isFinite(pos.tpPrice) ? String(pos.tpPrice) : "",
+      entryDate: pos.entryDate, note: pos.note || "",
+    });
+  };
+  const cancelEdit = () => { setEditingId(null); setEditForm(null); };
+  const saveEdit = () => {
+    setPositions((prev) => prev.map((p) => {
+      if (p.id !== editingId) return p;
+      const qty = parseFloat(editForm.qty), entryPrice = parseFloat(editForm.entryPrice);
+      const slPrice = parseFloat(editForm.slPrice), tpPrice = parseFloat(editForm.tpPrice);
+      return {
+        ...p,
+        qty: qty > 0 ? qty : p.qty,
+        entryPrice: entryPrice > 0 ? entryPrice : p.entryPrice,
+        slPrice: Number.isFinite(slPrice) ? slPrice : null,
+        tpPrice: Number.isFinite(tpPrice) ? tpPrice : null,
+        entryDate: editForm.entryDate || p.entryDate,
+        note: (editForm.note || "").trim(),
+      };
+    }));
+    setEditingId(null);
+    setEditForm(null);
+  };
+
+  return e("div", { className: "space-y-4" },
+    e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800" },
+      e("button", {
+        onClick: () => setFormOpen((o) => !o),
+        className: "w-full flex items-center justify-between px-3.5 py-3 text-[13px] font-medium text-slate-300",
+      }, e("span", null, `建玉を登録 ${formOpen ? "▲" : "▼"}`)),
+      formOpen && e("div", { className: "px-3.5 pb-3.5 space-y-2.5" },
+        e(CodeField, { value: form.code, onChange: (v) => updateForm("code", v) }),
+        e(StockBadge, { code: form.code }),
+        e(PositionEditFields, { form, onChange: updateForm }),
+        e("button", {
+          onClick: registerPosition,
+          disabled: !canRegister,
+          className: `w-full rounded-lg text-[13.5px] font-semibold py-3 ${canRegister ? "bg-emerald-500/90 text-slate-950" : "bg-slate-800 text-slate-600"}`,
+        }, "登録")
+      )
+    ),
+    positions.length === 0
+      ? e("div", { className: "rounded-xl bg-slate-900/40 border border-slate-800 px-3.5 py-6 text-center text-[13px] text-slate-500" }, "建玉はまだありません")
+      : e("div", { className: "space-y-3" },
+          positions.map((pos) => e(PositionCard, {
+            key: pos.id, pos,
+            isEditing: editingId === pos.id, editForm,
+            onEditField: (field, v) => setEditForm((prev) => ({ ...prev, [field]: v })),
+            onStartEdit: () => startEdit(pos),
+            onCancelEdit: cancelEdit,
+            onSaveEdit: saveEdit,
+            onToggleTrail: () => toggleTrail(pos.id),
+          }))
+        )
+  );
+}
+
 const DEFAULT_SIZING = {
   slots: [0, 1, 2, 3, 4].map(() => ({ code: "", entry: "", morningLow: "" })),
   c2open: "",
   c2high: "",
 };
 
-function SizingSection() {
+function SizingSection({ onTranscribe }) {
   const [tab, setTab] = useState("phoenix");
   const [sizing, setSizing] = usePersistentState("sizing_v1", DEFAULT_SIZING);
 
@@ -567,7 +762,7 @@ function SizingSection() {
       }, e(TrendingDown, { size: 15 }), "A型")
     ),
     tab === "phoenix"
-      ? e(PhoenixCalc, { slots: sizing.slots, setSlots })
+      ? e(PhoenixCalc, { slots: sizing.slots, setSlots, onTranscribe })
       : e(AtypeCalc, { c2open: sizing.c2open, setC2open, c2high: sizing.c2high, setC2high }),
     e("div", { className: "mt-6 flex items-start gap-2 rounded-xl bg-slate-900/50 border border-slate-800 px-3.5 py-3 text-[12px] text-slate-500" },
       e(Info, { size: 14, className: "shrink-0 mt-0.5" }),
@@ -581,6 +776,15 @@ function SizingSection() {
 }
 
 function App() {
+  const [topTab, setTopTab] = useState("sizing");
+  const [positions, setPositions] = usePersistentState("positions_v1", []);
+  const [prefill, setPrefill] = useState(null);
+
+  const handleTranscribe = (payload) => {
+    setPrefill({ ...payload, _key: genId() });
+    setTopTab("positions");
+  };
+
   return e("div", {
     className: "min-h-screen bg-slate-950 text-slate-100 flex justify-center",
     style: { paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" },
@@ -590,7 +794,19 @@ function App() {
         e("h1", { className: "text-[20px] font-bold tracking-tight text-slate-50" }, "ポジションサイジング"),
         e("p", { className: "text-[12px] text-slate-500 mt-0.5" }, "リスク上限 ÷ SL距離 と 建玉代金上限 の小さい方を採用")
       ),
-      e(SizingSection)
+      e("div", { className: "grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 mb-5" },
+        e("button", {
+          onClick: () => setTopTab("sizing"),
+          className: `flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${topTab === "sizing" ? "bg-slate-100 text-slate-900" : "text-slate-400"}`,
+        }, "サイジング"),
+        e("button", {
+          onClick: () => setTopTab("positions"),
+          className: `flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${topTab === "positions" ? "bg-slate-100 text-slate-900" : "text-slate-400"}`,
+        }, "建玉管理")
+      ),
+      topTab === "sizing"
+        ? e(SizingSection, { onTranscribe: handleTranscribe })
+        : e(PositionsSection, { positions, setPositions, prefill })
     )
   );
 }
