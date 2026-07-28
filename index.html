@@ -427,6 +427,18 @@ function ViolationPanel({ violations }) {
   );
 }
 
+function SlippageRow({ refPrice, fillPrice }) {
+  const rp = parseFloat(refPrice), fp = parseFloat(fillPrice);
+  if (!(rp > 0) || !(fp > 0)) return null;
+  const diff = fp - rp;
+  const pct = (diff / rp) * 100;
+  const bad = diff > 0;
+  const tone = bad ? "text-red-400" : diff < 0 ? "text-emerald-400" : "text-slate-400";
+  const sign = diff > 0 ? "+" : diff < 0 ? "" : "±";
+  return e("div", { className: `text-[11.5px] ${tone}` },
+    `スリッページ（約定−エントリー値）: ${sign}${pct.toFixed(2)}%（${sign}${fmtPrice(diff)}円/株）`);
+}
+
 function PhoenixSlotCard({ idx, slot, result, onChange, onTranscribe }) {
   return e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800 p-3.5 space-y-2.5" },
     e("div", { className: "flex items-center justify-between" },
@@ -440,6 +452,11 @@ function PhoenixSlotCard({ idx, slot, result, onChange, onTranscribe }) {
       e(NumberField, { id: `slot${idx + 1}_entry`, label: "前引け値", value: slot.entry, onChange: (v) => onChange(idx, "entry", v), placeholder: "例: 4800", suffix: "円" }),
       e(NumberField, { id: `slot${idx + 1}_morningLow`, label: "前場安値", value: slot.morningLow, onChange: (v) => onChange(idx, "morningLow", v), placeholder: "例: 4650", suffix: "円" })
     ),
+    e("div", { className: "grid grid-cols-2 gap-2" },
+      e(NumberField, { id: `slot${idx + 1}_refPrice`, label: "エントリー値（発注直前）", value: slot.refPrice || "", onChange: (v) => onChange(idx, "refPrice", v), placeholder: "例: 4805", suffix: "円" }),
+      e(NumberField, { id: `slot${idx + 1}_fillPrice`, label: "約定値", value: slot.fillPrice || "", onChange: (v) => onChange(idx, "fillPrice", v), placeholder: "例: 4810", suffix: "円" })
+    ),
+    e(SlippageRow, { refPrice: slot.refPrice, fillPrice: slot.fillPrice }),
     result && result.error && e("div", { className: "flex items-start gap-2 rounded-lg bg-red-500/10 border border-red-500/25 px-3 py-2 text-[12px] text-red-300" },
       e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
       e("span", null, result.error)
@@ -1023,7 +1040,7 @@ function PositionsSection({ positions, setPositions, prefill }) {
 }
 
 const DEFAULT_SIZING = {
-  slots: [0, 1, 2, 3, 4].map(() => ({ code: "", entry: "", morningLow: "" })),
+  slots: [0, 1, 2, 3, 4].map(() => ({ code: "", entry: "", morningLow: "", refPrice: "", fillPrice: "" })),
   c2open: "",
   c2high: "",
 };
