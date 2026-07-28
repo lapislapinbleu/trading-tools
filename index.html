@@ -183,6 +183,22 @@ const NO_MARKET_CODES = ["9364", "9301", "9302"];
 
 function normalizeCode(code) { return (code || "").trim(); }
 
+// 建玉オブジェクトの共通生成（フェニックス直接登録・建玉管理タブの手動登録の両方から使用）
+function buildPosition(fields) {
+  const code = normalizeCode(fields.code);
+  const info = WATCHLIST[code];
+  const numOrNull = (v) => (Number.isFinite(v) ? v : null);
+  return {
+    id: genId(), code, name: info ? info.name : code, sector: info ? info.sector : null,
+    entryDate: fields.entryDate || todayStr(),
+    qty: fields.qty, entryPrice: fields.entryPrice,
+    slPrice: numOrNull(fields.slPrice), tpPrice: numOrNull(fields.tpPrice),
+    trailArmed: false, note: (fields.note || "").trim(),
+    refPrice: numOrNull(fields.refPrice), fillPrice: numOrNull(fields.fillPrice),
+    morningClose: numOrNull(fields.morningClose), morningLow: numOrNull(fields.morningLow),
+  };
+}
+
 function computeViolations(slots, heldPositions) {
   const held = heldPositions || [];
   const filled = slots
@@ -439,7 +455,7 @@ function SlippageRow({ refPrice, fillPrice }) {
     `スリッページ（約定−エントリー値）: ${sign}${pct.toFixed(2)}%（${sign}${fmtPrice(diff)}円/株）`);
 }
 
-function PhoenixSlotCard({ idx, slot, result, onChange, onTranscribe }) {
+function PhoenixSlotCard({ idx, slot, result, onChange, onRegister, warnings }) {
   return e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800 p-3.5 space-y-2.5" },
     e("div", { className: "flex items-center justify-between" },
       e("span", { className: "text-[12.5px] font-semibold text-slate-300" }, `枠${idx + 1}`)
@@ -474,11 +490,9 @@ function PhoenixSlotCard({ idx, slot, result, onChange, onTranscribe }) {
       result.binding === "notional" && e("div", { className: "pb-2 text-[11px] text-amber-400" },
         `建玉代金上限で頭打ち（リスク上限だけなら${fmt(result.sharesByRisk)}株まで許容）`)
     ),
+    result && !result.error && e(RegistrationWarnings, { warnings }),
     result && !result.error && e("button", {
-      onClick: () => onTranscribe({
-        code: normalizeCode(slot.code), qty: result.finalShares, entryPrice: slot.entry,
-        slPrice: result.sl, tpPrice: result.tp, entryDate: todayStr(),
-      }),
+      onClick: onRegister,
       className: "w-full rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[12.5px] font-semibold py-2.5",
     }, "この内容で建玉登録")
   );
@@ -499,9 +513,16 @@ function TotalLossCard({ totalMaxLoss, overCap }) {
   );
 }
 
-function PhoenixCalc({ slots, setSlots, onTranscribe, heldPositions }) {
+function emptySlot() {
+  return { code: "", entry: "", morningLow: "", refPrice: "", fillPrice: "" };
+}
+
+function PhoenixCalc({ slots, setSlots, onRegister, heldPositions, closed }) {
   const updateSlot = (idx, field, value) => {
     setSlots((prev) => prev.map((s, i) => (i === idx ? { ...s, [field]: value } : s)));
+  };
+  const clearSlot = (idx) => {
+    setSlots((prev) => prev.map((s, i) => (i === idx ? emptySlot() : s)));
   };
   const results = useMemo(() => slots.map((s) => computePhoenixSlot(s.entry, s.morningLow)), [slots]);
   const violations = useMemo(() => computeViolations(slots, heldPositions), [slots, heldPositions]);
@@ -511,11 +532,44 @@ function PhoenixCalc({ slots, setSlots, onTranscribe, heldPositions }) {
   );
   const overCap = totalMaxLoss > 154000;
 
+  // 登録ボタン押下前のリアルタイム警告（保有中建玉・当日確定損益を加味。既存の computeRegistrationWarnings を流用）
+  const slotWarnings = useMemo(() => slots.map((s, idx) => {
+    const r = results[idx];
+    if (!r || r.error) return [];
+    const fillPrice = parseFloat(s.fillPrice);
+    const entryPrice = fillPrice > 0 ? fillPrice : parseFloat(s.entry);
+    return computeRegistrationWarnings({ code: s.code, qty: r.finalShares, entryPrice, slPrice: r.sl }, heldPositions, closed);
+  }), [slots, results, heldPositions, closed]);
+
+  const registerSlot = (idx) => {
+    const s = slots[idx];
+    const r = results[idx];
+    if (!r || r.error) return;
+    const fillPrice = parseFloat(s.fillPrice);
+    const refPrice = parseFloat(s.refPrice);
+    const morningClose = parseFloat(s.entry);
+    const morningLow = parseFloat(s.morningLow);
+    const entryPrice = fillPrice > 0 ? fillPrice : morningClose;
+    const tpPrice = entryPrice * TP_MULT;
+    onRegister({
+      code: normalizeCode(s.code), qty: r.finalShares, entryPrice,
+      slPrice: r.sl, tpPrice, entryDate: todayStr(),
+      refPrice: refPrice > 0 ? refPrice : null,
+      fillPrice: fillPrice > 0 ? fillPrice : null,
+      morningClose: morningClose > 0 ? morningClose : null,
+      morningLow: morningLow > 0 ? morningLow : null,
+    });
+    clearSlot(idx);
+  };
+
   return e("div", { className: "space-y-4" },
     e(WatchlistPanel),
     e(ViolationPanel, { violations }),
     e("div", { className: "space-y-3" },
-      slots.map((s, idx) => e(PhoenixSlotCard, { key: idx, idx, slot: s, result: results[idx], onChange: updateSlot, onTranscribe }))
+      slots.map((s, idx) => e(PhoenixSlotCard, {
+        key: idx, idx, slot: s, result: results[idx], onChange: updateSlot,
+        onRegister: () => registerSlot(idx), warnings: slotWarnings[idx],
+      }))
     ),
     e(TotalLossCard, { totalMaxLoss, overCap })
   );
@@ -579,7 +633,10 @@ function AtypeCalc({ c2open, setC2open, c2high, setC2high }) {
 }
 
 // ---- 建玉管理 ----
-const DEFAULT_POSITION_FORM = { code: "", qty: "", entryPrice: "", slPrice: "", tpPrice: "", entryDate: "", note: "" };
+const DEFAULT_POSITION_FORM = {
+  code: "", qty: "", entryPrice: "", slPrice: "", tpPrice: "", entryDate: "", note: "",
+  refPrice: "", fillPrice: "", morningClose: "", morningLow: "",
+};
 
 function PositionEditFields({ form, onChange }) {
   return e("div", { className: "grid grid-cols-2 gap-2" },
@@ -587,6 +644,11 @@ function PositionEditFields({ form, onChange }) {
     e(NumberField, { label: "建値", value: form.entryPrice, onChange: (v) => onChange("entryPrice", v), placeholder: "例: 4800", suffix: "円" }),
     e(NumberField, { label: "SL価格", value: form.slPrice, onChange: (v) => onChange("slPrice", v), placeholder: "任意", suffix: "円" }),
     e(NumberField, { label: "TP価格", value: form.tpPrice, onChange: (v) => onChange("tpPrice", v), placeholder: "任意", suffix: "円" }),
+    e("div", { className: "col-span-2 text-[11px] text-slate-500 pt-1" }, "以下は任意（記録・スリッページ参考用）"),
+    e(NumberField, { label: "前引け値", value: form.morningClose, onChange: (v) => onChange("morningClose", v), placeholder: "任意", suffix: "円" }),
+    e(NumberField, { label: "前場安値", value: form.morningLow, onChange: (v) => onChange("morningLow", v), placeholder: "任意", suffix: "円" }),
+    e(NumberField, { label: "エントリー値（発注直前）", value: form.refPrice, onChange: (v) => onChange("refPrice", v), placeholder: "任意", suffix: "円" }),
+    e(NumberField, { label: "約定値", value: form.fillPrice, onChange: (v) => onChange("fillPrice", v), placeholder: "任意", suffix: "円" }),
     e("label", { className: "block col-span-2" },
       e("span", { className: "text-[13px] text-slate-400 tracking-wide" }, "エントリー日"),
       e("input", {
@@ -647,6 +709,14 @@ function PositionCard({
     e(ResultRow, { label: "TP価格", value: Number.isFinite(pos.tpPrice) ? `¥${fmtPrice(pos.tpPrice)}` : "―", tone: "good" }),
     e(ResultRow, { label: "トレール発動ライン（+1.5%）", value: `¥${fmtPrice(trailTrigger)}`, tone: "muted" }),
     e(ResultRow, { label: "SL到達時の想定最大損失", value: maxLoss === null ? "―" : `−¥${fmt(maxLoss)}`, tone: "risk" }),
+    Number.isFinite(pos.morningClose) && Number.isFinite(pos.morningLow) && e(ResultRow, {
+      label: "前引け値 / 前場安値", value: `¥${fmtPrice(pos.morningClose)} / ¥${fmtPrice(pos.morningLow)}`, tone: "muted",
+    }),
+    (Number.isFinite(pos.refPrice) || Number.isFinite(pos.fillPrice)) && e(ResultRow, {
+      label: "エントリー値 / 約定値",
+      value: `${Number.isFinite(pos.refPrice) ? "¥" + fmtPrice(pos.refPrice) : "―"} / ${Number.isFinite(pos.fillPrice) ? "¥" + fmtPrice(pos.fillPrice) : "―"}`,
+      tone: "muted",
+    }),
     pos.note && e("div", { className: "text-[11.5px] text-slate-500" }, `メモ: ${pos.note}`),
     e("div", { className: "flex gap-2 pt-1" },
       e("button", {
@@ -893,8 +963,7 @@ function BackupPanel({ positions, setPositions, closed, setClosed }) {
   );
 }
 
-function PositionsSection({ positions, setPositions, prefill }) {
-  const [closed, setClosed] = usePersistentState("closed_v1", []);
+function PositionsSection({ positions, setPositions, closed, setClosed }) {
   const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState({ ...DEFAULT_POSITION_FORM, entryDate: todayStr() });
   const [editingId, setEditingId] = useState(null);
@@ -903,20 +972,6 @@ function PositionsSection({ positions, setPositions, prefill }) {
   const [settlePrice, setSettlePrice] = useState("");
   const [closedOpen, setClosedOpen] = useState(false);
 
-  useEffect(() => {
-    if (!prefill) return;
-    setFormOpen(true);
-    setForm({
-      code: normalizeCode(prefill.code || ""),
-      qty: prefill.qty != null ? String(prefill.qty) : "",
-      entryPrice: prefill.entryPrice != null ? String(prefill.entryPrice) : "",
-      slPrice: prefill.slPrice != null ? String(prefill.slPrice) : "",
-      tpPrice: prefill.tpPrice != null ? String(prefill.tpPrice) : "",
-      entryDate: prefill.entryDate || todayStr(),
-      note: "",
-    });
-  }, [prefill]);
-
   const updateForm = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
   const canRegister = normalizeCode(form.code).length === 4 &&
@@ -924,19 +979,14 @@ function PositionsSection({ positions, setPositions, prefill }) {
 
   const registerPosition = () => {
     if (!canRegister) return;
-    const code = normalizeCode(form.code);
-    const info = WATCHLIST[code];
-    const qty = parseFloat(form.qty);
-    const entryPrice = parseFloat(form.entryPrice);
-    const slPrice = parseFloat(form.slPrice);
-    const tpPrice = parseFloat(form.tpPrice);
-    const newPos = {
-      id: genId(), code, name: info ? info.name : code, sector: info ? info.sector : null,
-      entryDate: form.entryDate || todayStr(), qty, entryPrice,
-      slPrice: Number.isFinite(slPrice) ? slPrice : null,
-      tpPrice: Number.isFinite(tpPrice) ? tpPrice : null,
-      trailArmed: false, note: (form.note || "").trim(),
-    };
+    const newPos = buildPosition({
+      code: form.code,
+      qty: parseFloat(form.qty), entryPrice: parseFloat(form.entryPrice),
+      slPrice: parseFloat(form.slPrice), tpPrice: parseFloat(form.tpPrice),
+      entryDate: form.entryDate || todayStr(), note: form.note,
+      refPrice: parseFloat(form.refPrice), fillPrice: parseFloat(form.fillPrice),
+      morningClose: parseFloat(form.morningClose), morningLow: parseFloat(form.morningLow),
+    });
     setPositions((prev) => [...prev, newPos]);
     setForm({ ...DEFAULT_POSITION_FORM, entryDate: todayStr() });
     setFormOpen(false);
@@ -953,6 +1003,10 @@ function PositionsSection({ positions, setPositions, prefill }) {
       slPrice: Number.isFinite(pos.slPrice) ? String(pos.slPrice) : "",
       tpPrice: Number.isFinite(pos.tpPrice) ? String(pos.tpPrice) : "",
       entryDate: pos.entryDate, note: pos.note || "",
+      refPrice: Number.isFinite(pos.refPrice) ? String(pos.refPrice) : "",
+      fillPrice: Number.isFinite(pos.fillPrice) ? String(pos.fillPrice) : "",
+      morningClose: Number.isFinite(pos.morningClose) ? String(pos.morningClose) : "",
+      morningLow: Number.isFinite(pos.morningLow) ? String(pos.morningLow) : "",
     });
   };
   const cancelEdit = () => { setEditingId(null); setEditForm(null); };
@@ -961,6 +1015,8 @@ function PositionsSection({ positions, setPositions, prefill }) {
       if (p.id !== editingId) return p;
       const qty = parseFloat(editForm.qty), entryPrice = parseFloat(editForm.entryPrice);
       const slPrice = parseFloat(editForm.slPrice), tpPrice = parseFloat(editForm.tpPrice);
+      const refPrice = parseFloat(editForm.refPrice), fillPrice = parseFloat(editForm.fillPrice);
+      const morningClose = parseFloat(editForm.morningClose), morningLow = parseFloat(editForm.morningLow);
       return {
         ...p,
         qty: qty > 0 ? qty : p.qty,
@@ -969,6 +1025,10 @@ function PositionsSection({ positions, setPositions, prefill }) {
         tpPrice: Number.isFinite(tpPrice) ? tpPrice : null,
         entryDate: editForm.entryDate || p.entryDate,
         note: (editForm.note || "").trim(),
+        refPrice: Number.isFinite(refPrice) ? refPrice : null,
+        fillPrice: Number.isFinite(fillPrice) ? fillPrice : null,
+        morningClose: Number.isFinite(morningClose) ? morningClose : null,
+        morningLow: Number.isFinite(morningLow) ? morningLow : null,
       };
     }));
     setEditingId(null);
@@ -987,6 +1047,10 @@ function PositionsSection({ positions, setPositions, prefill }) {
       id: genId(), code: pos.code, name: pos.name, sector: pos.sector,
       entryDate: pos.entryDate, closeDate: todayStr(), qty: pos.qty,
       entryPrice: pos.entryPrice, closePrice, pnl, note: pos.note || "",
+      refPrice: Number.isFinite(pos.refPrice) ? pos.refPrice : null,
+      fillPrice: Number.isFinite(pos.fillPrice) ? pos.fillPrice : null,
+      morningClose: Number.isFinite(pos.morningClose) ? pos.morningClose : null,
+      morningLow: Number.isFinite(pos.morningLow) ? pos.morningLow : null,
     };
     setClosed((prev) => [...prev, record]);
     setPositions((prev) => prev.filter((p) => p.id !== pos.id));
@@ -1040,14 +1104,29 @@ function PositionsSection({ positions, setPositions, prefill }) {
 }
 
 const DEFAULT_SIZING = {
-  slots: [0, 1, 2, 3, 4].map(() => ({ code: "", entry: "", morningLow: "", refPrice: "", fillPrice: "" })),
+  slots: [0, 1, 2, 3, 4].map(() => emptySlot()),
   c2open: "",
   c2high: "",
 };
 
-function SizingSection({ onTranscribe, heldPositions }) {
+// 旧スキーマ（refPrice/fillPrice無し）の sizing_v1 を読み込んでも壊れないよう正規化
+function normalizeSizing(raw) {
+  const base = raw && typeof raw === "object" ? raw : {};
+  const rawSlots = Array.isArray(base.slots) ? base.slots : [];
+  const slots = [0, 1, 2, 3, 4].map((i) => {
+    const s = rawSlots[i] || {};
+    return {
+      code: s.code || "", entry: s.entry || "", morningLow: s.morningLow || "",
+      refPrice: s.refPrice || "", fillPrice: s.fillPrice || "",
+    };
+  });
+  return { slots, c2open: base.c2open || "", c2high: base.c2high || "" };
+}
+
+function SizingSection({ onRegister, heldPositions, closed }) {
   const [tab, setTab] = useState("phoenix");
-  const [sizing, setSizing] = usePersistentState("sizing_v1", DEFAULT_SIZING);
+  const [sizing, setSizing] = useState(() => normalizeSizing(lsGet("sizing_v1", DEFAULT_SIZING)));
+  useEffect(() => { lsSet("sizing_v1", sizing); }, [sizing]);
 
   const setSlots = (updater) => {
     setSizing((prev) => ({
@@ -1075,7 +1154,7 @@ function SizingSection({ onTranscribe, heldPositions }) {
       }, e(TrendingDown, { size: 15 }), "A型")
     ),
     tab === "phoenix"
-      ? e(PhoenixCalc, { slots: sizing.slots, setSlots, onTranscribe, heldPositions })
+      ? e(PhoenixCalc, { slots: sizing.slots, setSlots, onRegister, heldPositions, closed })
       : e(AtypeCalc, { c2open: sizing.c2open, setC2open, c2high: sizing.c2high, setC2high }),
     e("div", { className: "mt-6 flex items-start gap-2 rounded-xl bg-slate-900/50 border border-slate-800 px-3.5 py-3 text-[12px] text-slate-500" },
       e(Info, { size: 14, className: "shrink-0 mt-0.5" }),
@@ -1088,13 +1167,31 @@ function SizingSection({ onTranscribe, heldPositions }) {
   );
 }
 
+function NoticeBanner({ notice, onDone }) {
+  useEffect(() => {
+    if (!notice) return undefined;
+    const t = setTimeout(onDone, 4000);
+    return () => clearTimeout(t);
+  }, [notice]);
+  if (!notice) return null;
+  return e("div", {
+    className: "mb-4 flex items-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25 px-3.5 py-3 text-[13px] text-emerald-300",
+  },
+    e(Info, { size: 16, className: "shrink-0" }),
+    e("span", null, notice.text)
+  );
+}
+
 function App() {
   const [topTab, setTopTab] = useState("sizing");
   const [positions, setPositions] = usePersistentState("positions_v1", []);
-  const [prefill, setPrefill] = useState(null);
+  const [closed, setClosed] = usePersistentState("closed_v1", []);
+  const [notice, setNotice] = useState(null);
 
-  const handleTranscribe = (payload) => {
-    setPrefill({ ...payload, _key: genId() });
+  const handleRegister = (fields) => {
+    const pos = buildPosition(fields);
+    setPositions((prev) => [...prev, pos]);
+    setNotice({ text: `${pos.name}（${pos.code}）を登録しました`, key: genId() });
     setTopTab("positions");
   };
 
@@ -1117,9 +1214,14 @@ function App() {
           className: `flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[14px] font-medium transition-colors ${topTab === "positions" ? "bg-slate-100 text-slate-900" : "text-slate-400"}`,
         }, "建玉管理")
       ),
-      topTab === "sizing"
-        ? e(SizingSection, { onTranscribe: handleTranscribe, heldPositions: positions })
-        : e(PositionsSection, { positions, setPositions, prefill })
+      topTab === "positions" && e(NoticeBanner, { notice, onDone: () => setNotice(null) }),
+      // 両タブを常時マウントしCSSで表示切替（登録直後の枠クリアがタブ切替と同一バッチで
+      // 走るため、SizingSectionをアンマウントすると setSlots によるクリアが
+      // localStorageへ反映される前に消える。tab切替のたびに再マウントしないことで回避）
+      e("div", { className: topTab === "sizing" ? "" : "hidden" },
+        e(SizingSection, { onRegister: handleRegister, heldPositions: positions, closed })),
+      e("div", { className: topTab === "positions" ? "" : "hidden" },
+        e(PositionsSection, { positions, setPositions, closed, setClosed }))
     )
   );
 }
