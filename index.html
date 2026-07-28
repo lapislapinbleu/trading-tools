@@ -792,6 +792,90 @@ function RegistrationWarnings({ warnings }) {
   );
 }
 
+function BackupPanel({ positions, setPositions, closed, setClosed }) {
+  const [open, setOpen] = useState(false);
+  const [exportText, setExportText] = useState("");
+  const [importText, setImportText] = useState("");
+  const [importError, setImportError] = useState("");
+
+  const doExport = () => {
+    const sizing = lsGet("sizing_v1", DEFAULT_SIZING);
+    const data = {
+      exportedAt: new Date().toISOString(),
+      sizing_v1: sizing,
+      positions_v1: positions,
+      closed_v1: closed,
+    };
+    setExportText(JSON.stringify(data, null, 2));
+  };
+
+  const doImport = () => {
+    setImportError("");
+    let parsed;
+    try {
+      parsed = JSON.parse(importText);
+    } catch (err) {
+      setImportError("JSONの解析に失敗しました。貼り付け内容を確認してください。");
+      return;
+    }
+    const isValidArr = (arr) => Array.isArray(arr) && arr.every((x) =>
+      x && typeof x === "object" && "code" in x && "qty" in x && "entryPrice" in x);
+    const posOk = isValidArr(parsed.positions_v1);
+    const closedOk = isValidArr(parsed.closed_v1);
+    if (!posOk || !closedOk) {
+      setImportError("形式が不正です。positions_v1 / closed_v1 が配列であり、各要素に code・qty・entryPrice を含む必要があります。");
+      return;
+    }
+    if (!window.confirm("現在のデータを上書きします。よろしいですか？")) return;
+    const nextSizing = parsed.sizing_v1 || DEFAULT_SIZING;
+    lsSet("sizing_v1", nextSizing);
+    lsSet("positions_v1", parsed.positions_v1);
+    lsSet("closed_v1", parsed.closed_v1);
+    setPositions(parsed.positions_v1);
+    setClosed(parsed.closed_v1);
+    setImportText("");
+    setImportError("");
+  };
+
+  return e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800" },
+    e("button", {
+      onClick: () => setOpen((o) => !o),
+      className: "w-full flex items-center justify-between px-3.5 py-2.5 text-[12.5px] font-medium text-slate-300",
+    }, e("span", null, `バックアップ ${open ? "▲" : "▼"}`)),
+    open && e("div", { className: "px-3.5 pb-3.5 space-y-3" },
+      e("div", { className: "space-y-1.5" },
+        e("div", { className: "text-[11.5px] text-slate-500" }, "エクスポート（サイジング入力・建玉・決済履歴を含む）"),
+        e("button", {
+          onClick: doExport,
+          className: "w-full rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-[12.5px] font-semibold py-2.5",
+        }, "エクスポート"),
+        exportText && e("textarea", {
+          readOnly: true,
+          value: exportText,
+          onClick: (ev) => ev.target.select(),
+          rows: 6,
+          className: "w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-[11px] font-mono text-slate-300",
+        })
+      ),
+      e("div", { className: "space-y-1.5" },
+        e("div", { className: "text-[11.5px] text-slate-500" }, "インポート（現在のデータを上書き）"),
+        e("textarea", {
+          value: importText,
+          onChange: (ev) => setImportText(ev.target.value),
+          placeholder: "エクスポートしたJSONをここに貼り付け",
+          rows: 6,
+          className: "w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-[11px] font-mono text-slate-300 placeholder:text-slate-600",
+        }),
+        importError && e("div", { className: "text-[12px] text-red-400" }, importError),
+        e("button", {
+          onClick: doImport,
+          className: "w-full rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[12.5px] font-semibold py-2.5",
+        }, "インポート")
+      )
+    )
+  );
+}
+
 function PositionsSection({ positions, setPositions, prefill }) {
   const [closed, setClosed] = usePersistentState("closed_v1", []);
   const [formOpen, setFormOpen] = useState(false);
@@ -933,7 +1017,8 @@ function PositionsSection({ positions, setPositions, prefill }) {
             onConfirmSettle: confirmSettle,
           }))
         ),
-    e(ClosedHistoryPanel, { closed, open: closedOpen, onToggle: () => setClosedOpen((o) => !o) })
+    e(ClosedHistoryPanel, { closed, open: closedOpen, onToggle: () => setClosedOpen((o) => !o) }),
+    e(BackupPanel, { positions, setPositions, closed, setClosed })
   );
 }
 
