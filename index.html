@@ -103,6 +103,81 @@ function genId() {
   return String(Date.now()) + "_" + Math.random().toString(36).slice(2, 7);
 }
 
+// ---- 営業日計算ユーティリティ（rulebook v1.9・土日＋日本の祝日／東証休場日をスキップ） ----
+// 2027年末まで対応。以降は要更新
+const JP_HOLIDAYS_2026_2027 = [
+  // 2026
+  "2026-07-20", // 海の日
+  "2026-08-11", // 山の日
+  "2026-09-21", // 敬老の日
+  "2026-09-23", // 秋分の日
+  "2026-10-12", // スポーツの日
+  "2026-11-03", // 文化の日
+  "2026-11-23", // 勤労感謝の日
+  "2026-12-31", // 年末年始休場
+  "2027-01-01", // 年末年始休場・元日
+  "2027-01-02", // 年末年始休場
+  "2027-01-03", // 年末年始休場
+  // 2027
+  "2027-01-11", // 成人の日
+  "2027-02-11", // 建国記念の日
+  "2027-02-23", // 天皇誕生日
+  "2027-03-22", // 春分の日 振替休日（3/21が日曜）
+  "2027-04-29", // 昭和の日
+  "2027-05-03", // 憲法記念日
+  "2027-05-04", // みどりの日
+  "2027-05-05", // こどもの日
+  "2027-07-19", // 海の日
+  "2027-08-11", // 山の日
+  "2027-09-20", // 敬老の日
+  "2027-09-23", // 秋分の日
+  "2027-10-11", // スポーツの日
+  "2027-11-03", // 文化の日
+  "2027-11-23", // 勤労感謝の日
+  "2027-12-31", // 年末休場
+];
+const JP_HOLIDAY_SET = new Set(JP_HOLIDAYS_2026_2027);
+const WEEKDAY_JP = ["日", "月", "火", "水", "木", "金", "土"];
+
+// "YYYY-MM-DD" をローカル日付として解釈（new Date(str)のタイムゾーン依存を回避）
+function parseISODate(dateStr) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+function isoOfDate(d) {
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+function isBusinessDay(d) {
+  const day = d.getDay();
+  if (day === 0 || day === 6) return false;
+  if (JP_HOLIDAY_SET.has(isoOfDate(d))) return false;
+  return true;
+}
+// dateStr（起点日、休日でも可）から n 営業日後の日付を "YYYY-MM-DD" で返す
+function addBusinessDays(dateStr, n) {
+  let d = parseISODate(dateStr);
+  let count = 0;
+  while (count < n) {
+    d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
+    if (isBusinessDay(d)) count++;
+  }
+  return isoOfDate(d);
+}
+// "YYYY-MM-DD" → "M/D(曜)" 表示
+function fmtDateWithWeekday(dateStr) {
+  if (!dateStr) return "―";
+  const d = parseISODate(dateStr);
+  return `${d.getMonth() + 1}/${d.getDate()}(${WEEKDAY_JP[d.getDay()]})`;
+}
+// フェニックス保有期限（エントリー+4営業日＝5営業日目）と寄成返済日（期限日の翌営業日＝+5営業日）
+function phoenixDueDate(entryDate) {
+  return addBusinessDays(entryDate, 4);
+}
+function phoenixMarketSellDate(entryDate) {
+  return addBusinessDays(entryDate, 5);
+}
+
 function IconBase({ children, size = 16, className = "" }) {
   return e("svg", {
     xmlns: "http://www.w3.org/2000/svg", width: size, height: size, viewBox: "0 0 24 24",
@@ -687,6 +762,14 @@ function PositionCard({
   const maxLoss = hasSl || pos.trailArmed ? Math.max(0, (pos.entryPrice - effectiveSL) * pos.qty) : null;
   const trailTrigger = pos.entryPrice * TRAIL_MULT;
   const positionValue = pos.qty * pos.entryPrice;
+
+  // rulebook v1.9: フェニックス保有期限（+4営業日）／寄成返済日（+5営業日＝期限日の翌営業日）
+  const today = todayStr();
+  const dueDate = phoenixDueDate(pos.entryDate);
+  const marketSellDate = phoenixMarketSellDate(pos.entryDate);
+  const isDueToday = today === dueDate;
+  const isPastMarketSell = today >= marketSellDate;
+
   return e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800 p-3.5 space-y-2.5" },
     e("div", { className: "flex items-center justify-between flex-wrap gap-1.5" },
       e("div", { className: "flex items-center gap-1.5 flex-wrap" },
@@ -709,6 +792,17 @@ function PositionCard({
     e(ResultRow, { label: "TP価格", value: Number.isFinite(pos.tpPrice) ? `¥${fmtPrice(pos.tpPrice)}` : "―", tone: "good" }),
     e(ResultRow, { label: "トレール発動ライン（+1.5%）", value: `¥${fmtPrice(trailTrigger)}`, tone: "muted" }),
     e(ResultRow, { label: "SL到達時の想定最大損失", value: maxLoss === null ? "―" : `−¥${fmt(maxLoss)}`, tone: "risk" }),
+    e(ResultRow, { label: "期限日（5営業日目）", value: fmtDateWithWeekday(dueDate), tone: isDueToday ? "risk" : "muted" }),
+    e(ResultRow, { label: "寄成返済日", value: fmtDateWithWeekday(marketSellDate), tone: isPastMarketSell ? "risk" : "muted" }),
+    isPastMarketSell
+      ? e("div", { className: "flex items-start gap-2 rounded-lg bg-red-500/15 border border-red-500/40 px-3 py-2 text-[12.5px] font-semibold text-red-300" },
+          e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
+          e("span", null, "本日寄成で返済（期限超過）"))
+      : isDueToday
+        ? e("div", { className: "flex items-start gap-2 rounded-lg bg-amber-500/15 border border-amber-500/40 px-3 py-2 text-[12.5px] font-semibold text-amber-300" },
+            e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
+            e("span", null, "今夜OCO取消→明日寄成で返済"))
+        : null,
     Number.isFinite(pos.morningClose) && Number.isFinite(pos.morningLow) && e(ResultRow, {
       label: "前引け値 / 前場安値", value: `¥${fmtPrice(pos.morningClose)} / ¥${fmtPrice(pos.morningLow)}`, tone: "muted",
     }),
@@ -761,6 +855,11 @@ function SummaryPanel({ positions, closed }) {
   const todayLoss = Math.max(0, -todayPnlSum);
   const overDaily = todayLoss + totalMaxLoss > DAILY_LOSS_CAP;
 
+  // rulebook v1.9: 今夜OCO取消・本日寄成返済の建玉件数
+  const today = todayStr();
+  const dueTodayCount = positions.filter((p) => today === phoenixDueDate(p.entryDate)).length;
+  const marketSellTodayCount = positions.filter((p) => today >= phoenixMarketSellDate(p.entryDate)).length;
+
   return e("div", { className: "rounded-2xl bg-slate-900/60 border border-slate-800 p-4 space-y-1" },
     e(ResultRow, { label: "保有銘柄数", value: `${n} / ${MAX_POSITIONS}（残り${Math.max(0, MAX_POSITIONS - n)}枠）`, tone: "muted" }),
     e(ResultRow, { label: "建玉代金合計", value: `¥${fmt(positionValueSum)}（対資本${capitalRatio.toFixed(1)}%）`, tone: "muted" }),
@@ -772,6 +871,16 @@ function SummaryPanel({ positions, closed }) {
     overDaily && e("div", { className: "mt-1 flex items-start gap-2 rounded-lg bg-red-500/10 border border-red-500/25 px-3 py-2 text-[12px] text-red-300" },
       e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
       e("span", null, "SL全到達なら日次損失上限15.4万円を超過")
+    ),
+    (dueTodayCount > 0 || marketSellTodayCount > 0) && e("div", { className: "mt-1 space-y-1.5" },
+      dueTodayCount > 0 && e("div", { className: "flex items-center gap-2 rounded-lg bg-amber-500/15 border border-amber-500/40 px-3 py-2 text-[12.5px] font-semibold text-amber-300" },
+        e(AlertTriangle, { size: 14, className: "shrink-0" }),
+        e("span", null, `今夜OCO取消が必要な建玉: ${dueTodayCount}件`)
+      ),
+      marketSellTodayCount > 0 && e("div", { className: "flex items-center gap-2 rounded-lg bg-red-500/15 border border-red-500/40 px-3 py-2 text-[12.5px] font-semibold text-red-300" },
+        e(AlertTriangle, { size: 14, className: "shrink-0" }),
+        e("span", null, `本日寄成返済の建玉: ${marketSellTodayCount}件`)
+      )
     )
   );
 }
