@@ -256,7 +256,46 @@ const FINANCIAL_SECTORS = ["銀行", "保険"];
 const SECTOR_CHAR = { "非鉄金属": "非", "銀行": "銀", "保険": "保", "ゴム": "ゴ", "倉庫運輸": "倉" };
 const NO_MARKET_CODES = ["9364", "9301", "9302"];
 
+// ---- ATR自動推定の定数（rulebook v1.9・SL式のATR項）----
+// 生成元: jq/fullmarket/audit_atr_approximation.py の検証（2026-08-01実行・
+// jq/fullmarket/results/atr_approximation_study.md）。データ期間: bars_5m
+// 2024-07〜2026-07(監視27銘柄・全営業日)。判定: 指標②(SL価格ズレ>株価0.2%の日割合)
+// が最小だった (d)ハイブリッド max(p_code×前引け値, c_global×前場レンジ) を採用。
+// 四半期再選抜時にこの定数表とc_global・audit_atr_approximation.pyの再実行結果を更新すること。
+//
+// p_code: 銘柄別定数(直近60営業日のatr_confirm/closeの中央値・ローリング、末尾値)。
+// 古河電工(5801)・住友電工(5802)は2026-06-29に未調整分割(1:10/1:4)があるため、
+// ローリング窓は分割前後で分断して算出(比率自体はスケール不変なので分割後もそのまま使える)。
+const ATR_PCODE = {
+  "5016": 0.00590, "5101": 0.00298, "5105": 0.00225, "5108": 0.00150, "5110": 0.00225,
+  "5711": 0.00325, "5713": 0.00431, "5714": 0.00322, "5801": 0.00631, "5802": 0.00506,
+  "5803": 0.00631, "7181": 0.00235, "7182": 0.00263, "8306": 0.00221, "8308": 0.00296,
+  "8309": 0.00208, "8316": 0.00226, "8411": 0.00279, "8630": 0.00208, "8725": 0.00184,
+  "8729": 0.00186, "8750": 0.00228, "8766": 0.00215, "8795": 0.00241, "9301": 0.00179,
+  "9302": 0.00189, "9364": 0.00154,
+};
+// c_global: 前場レンジ比例のグローバル1定数(全銘柄・全日のatr_confirm/前場レンジの中央値)。
+const ATR_C_GLOBAL = 0.109023;
+
 function normalizeCode(code) { return (code || "").trim(); }
+
+// ATR自動推定(未入力時のみ使用)。(a)p_code×前引け値 と (b)c_global×前場レンジ の
+// 大きい方を採用(仕様: 急変日はレンジ項が持ち上げるハイブリッド式)。
+// 前場高値が未入力、または銘柄が監視リスト外でp_code不明なら、算出できる方だけを使う。
+// どちらも算出不能ならnullを返す(呼び出し側で0.3%下限のみにフォールバック)。
+function estimateAtrYen(code, en, ml, mh) {
+  const norm = normalizeCode(code);
+  const p = ATR_PCODE[norm];
+  const aEst = (p !== undefined && en > 0) ? p * en : null;
+  const range = (mh > 0 && ml > 0 && mh > ml) ? mh - ml : null;
+  const bEst = range !== null ? ATR_C_GLOBAL * range : null;
+  if (aEst === null && bEst === null) return null;
+  if (bEst === null) return { value: aEst, label: `推定ATR: 銘柄別係数(p=${p.toFixed(5)})×前引け値` };
+  if (aEst === null) return { value: bEst, label: `推定ATR: 前場レンジ×${ATR_C_GLOBAL.toFixed(3)}` };
+  return aEst >= bEst
+    ? { value: aEst, label: `推定ATR: 銘柄別係数(p=${p.toFixed(5)})×前引け値` }
+    : { value: bEst, label: `推定ATR: 前場レンジ×${ATR_C_GLOBAL.toFixed(3)}` };
+}
 
 // 建玉オブジェクトの共通生成（フェニックス直接登録・建玉管理タブの手動登録の両方から使用）
 function buildPosition(fields) {
@@ -378,11 +417,32 @@ function computeViolations(slots, heldPositions) {
   return violations;
 }
 
-function computePhoenixSlot(entry, morningLow) {
-  const RISK_CAP = 77000, NOTIONAL_CAP = 1027000, SL_BUFFER = 0.003, TP_MULT = 1.06, TRAIL_MULT = 1.015;
+// SL = 前場安値 − max(0.3%×前引け値, ATR_used)。ATR_used = 手入力値 > 自動推定値 > 0
+// （未入力・推定不能なら従来どおり0.3%のみ＝ATR_used=0で下限が採用される）。
+function computePhoenixSlot(entry, morningLow, morningHigh, atrManual, code) {
+  const RISK_CAP = 77000, NOTIONAL_CAP = 1027000, SL_PCT = 0.003, TP_MULT = 1.06, TRAIL_MULT = 1.015;
   const en = parseFloat(entry), ml = parseFloat(morningLow);
   if (!en || !ml || en <= 0 || ml <= 0) return null;
-  const sl = ml * (1 - SL_BUFFER);
+
+  const floorBuf = SL_PCT * en;
+  const mh = parseFloat(morningHigh);
+  const atrManualVal = parseFloat(atrManual);
+  const hasManual = Number.isFinite(atrManualVal) && atrManualVal > 0;
+  const est = hasManual ? null : estimateAtrYen(code, en, ml, mh);
+  const atrCandidate = hasManual ? atrManualVal : (est ? est.value : 0);
+
+  let buf, bufSource;
+  if (atrCandidate >= floorBuf) {
+    buf = atrCandidate;
+    bufSource = hasManual
+      ? { kind: "manual", label: "ATR入力値" }
+      : { kind: "estimated", label: est.label };
+  } else {
+    buf = floorBuf;
+    bufSource = { kind: "floor", label: "0.3%下限" };
+  }
+
+  const sl = ml - buf;
   const riskPerShare = en - sl;
   if (riskPerShare <= 0) return { error: "前引け値が前場安値以下です。入力を確認してください。" };
   const tp = en * TP_MULT, trailTrigger = en * TRAIL_MULT;
@@ -393,6 +453,7 @@ function computePhoenixSlot(entry, morningLow) {
   const binding = sharesByRisk <= sharesByNotional ? "risk" : "notional";
   return {
     sl, tp, trailTrigger, riskPerShare, sharesByRisk, sharesByNotional, finalShares, binding,
+    buf, bufSource,
     positionValue: finalShares * en, maxLoss: finalShares * riskPerShare, maxGain: finalShares * (tp - en),
   };
 }
@@ -544,6 +605,10 @@ function PhoenixSlotCard({ idx, slot, result, onChange, onRegister, warnings }) 
       e(NumberField, { id: `slot${idx + 1}_morningLow`, label: "前場安値", value: slot.morningLow, onChange: (v) => onChange(idx, "morningLow", v), placeholder: "例: 4650", suffix: "円" })
     ),
     e("div", { className: "grid grid-cols-2 gap-2" },
+      e(NumberField, { id: `slot${idx + 1}_morningHigh`, label: "前場高値（ATR推定用・任意）", value: slot.morningHigh, onChange: (v) => onChange(idx, "morningHigh", v), placeholder: "例: 4830", suffix: "円" }),
+      e(NumberField, { id: `slot${idx + 1}_atrManual`, label: "ATR（円・任意・SBIアプリ非対応）", value: slot.atrManual, onChange: (v) => onChange(idx, "atrManual", v), placeholder: "TradingView等", suffix: "円" })
+    ),
+    e("div", { className: "grid grid-cols-2 gap-2" },
       e(NumberField, { id: `slot${idx + 1}_refPrice`, label: "エントリー値（発注直前）", value: slot.refPrice || "", onChange: (v) => onChange(idx, "refPrice", v), placeholder: "例: 4805", suffix: "円" }),
       e(NumberField, { id: `slot${idx + 1}_fillPrice`, label: "約定値", value: slot.fillPrice || "", onChange: (v) => onChange(idx, "fillPrice", v), placeholder: "例: 4810", suffix: "円" })
     ),
@@ -559,7 +624,9 @@ function PhoenixSlotCard({ idx, slot, result, onChange, onRegister, warnings }) 
           fmt(result.finalShares), e("span", { className: "text-[12px] text-slate-400 ml-1" }, "株"))
       ),
       e(ResultRow, { label: "建玉代金", value: `¥${fmt(result.positionValue)}`, tone: "muted" }),
-      e(ResultRow, { label: "SL（前場安値−0.3%）", value: `¥${fmtPrice(result.sl)}` }),
+      e(ResultRow, { label: "SL（前場安値−バッファ）", value: `¥${fmtPrice(result.sl)}` }),
+      e("div", { className: "pb-2 -mt-1 text-[11px] text-slate-500" },
+        `バッファ${fmtPrice(result.buf)}円 = ${result.bufSource.label}`),
       e(ResultRow, { label: "TP（×1.06）／トレール（+1.5%）", value: `¥${fmtPrice(result.tp)} ／ ¥${fmtPrice(result.trailTrigger)}`, tone: "good" }),
       e(ResultRow, { label: "最大損失（SL到達時）", value: `−¥${fmt(result.maxLoss)}`, tone: "risk" }),
       result.binding === "notional" && e("div", { className: "pb-2 text-[11px] text-amber-400" },
@@ -589,7 +656,7 @@ function TotalLossCard({ totalMaxLoss, overCap }) {
 }
 
 function emptySlot() {
-  return { code: "", entry: "", morningLow: "", refPrice: "", fillPrice: "" };
+  return { code: "", entry: "", morningLow: "", morningHigh: "", atrManual: "", refPrice: "", fillPrice: "" };
 }
 
 function PhoenixCalc({ slots, setSlots, onRegister, heldPositions, closed }) {
@@ -599,7 +666,10 @@ function PhoenixCalc({ slots, setSlots, onRegister, heldPositions, closed }) {
   const clearSlot = (idx) => {
     setSlots((prev) => prev.map((s, i) => (i === idx ? emptySlot() : s)));
   };
-  const results = useMemo(() => slots.map((s) => computePhoenixSlot(s.entry, s.morningLow)), [slots]);
+  const results = useMemo(
+    () => slots.map((s) => computePhoenixSlot(s.entry, s.morningLow, s.morningHigh, s.atrManual, s.code)),
+    [slots]
+  );
   const violations = useMemo(() => computeViolations(slots, heldPositions), [slots, heldPositions]);
   const totalMaxLoss = useMemo(
     () => results.reduce((sum, r) => sum + ((r && !r.error) ? r.maxLoss : 0), 0),
@@ -1376,7 +1446,8 @@ const DEFAULT_SIZING = {
   c2high: "",
 };
 
-// 旧スキーマ（refPrice/fillPrice無し）の sizing_v1 を読み込んでも壊れないよう正規化
+// 旧スキーマ（refPrice/fillPrice・morningHigh/atrManual無し）の sizing_v1 を
+// 読み込んでも壊れないよう正規化
 function normalizeSizing(raw) {
   const base = raw && typeof raw === "object" ? raw : {};
   const rawSlots = Array.isArray(base.slots) ? base.slots : [];
@@ -1384,6 +1455,7 @@ function normalizeSizing(raw) {
     const s = rawSlots[i] || {};
     return {
       code: s.code || "", entry: s.entry || "", morningLow: s.morningLow || "",
+      morningHigh: s.morningHigh || "", atrManual: s.atrManual || "",
       refPrice: s.refPrice || "", fillPrice: s.fillPrice || "",
     };
   });
