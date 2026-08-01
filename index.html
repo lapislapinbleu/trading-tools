@@ -59,7 +59,7 @@ const RISK_CAP = 77000;
 const DAILY_LOSS_CAP = 154000;
 const CAPITAL = 5500000;
 const MAX_POSITIONS = 5;
-const TP_MULT = 1.05;
+const TP_MULT = 1.06;
 const TRAIL_MULT = 1.015;
 
 // ---- localStorage 汎用ヘルパー（Safariプライベートモード等で例外になりうるため try/catch 保護） ----
@@ -304,7 +304,7 @@ function computeViolations(slots, heldPositions) {
 }
 
 function computePhoenixSlot(entry, morningLow) {
-  const RISK_CAP = 77000, NOTIONAL_CAP = 1027000, SL_BUFFER = 0.003, TP_MULT = 1.05, TRAIL_MULT = 1.015;
+  const RISK_CAP = 77000, NOTIONAL_CAP = 1027000, SL_BUFFER = 0.003, TP_MULT = 1.06, TRAIL_MULT = 1.015;
   const en = parseFloat(entry), ml = parseFloat(morningLow);
   if (!en || !ml || en <= 0 || ml <= 0) return null;
   const sl = ml * (1 - SL_BUFFER);
@@ -485,7 +485,7 @@ function PhoenixSlotCard({ idx, slot, result, onChange, onRegister, warnings }) 
       ),
       e(ResultRow, { label: "建玉代金", value: `¥${fmt(result.positionValue)}`, tone: "muted" }),
       e(ResultRow, { label: "SL（前場安値−0.3%）", value: `¥${fmtPrice(result.sl)}` }),
-      e(ResultRow, { label: "TP（×1.05）／トレール（+1.5%）", value: `¥${fmtPrice(result.tp)} ／ ¥${fmtPrice(result.trailTrigger)}`, tone: "good" }),
+      e(ResultRow, { label: "TP（×1.06）／トレール（+1.5%）", value: `¥${fmtPrice(result.tp)} ／ ¥${fmtPrice(result.trailTrigger)}`, tone: "good" }),
       e(ResultRow, { label: "最大損失（SL到達時）", value: `−¥${fmt(result.maxLoss)}`, tone: "risk" }),
       result.binding === "notional" && e("div", { className: "pb-2 text-[11px] text-amber-400" },
         `建玉代金上限で頭打ち（リスク上限だけなら${fmt(result.sharesByRisk)}株まで許容）`)
