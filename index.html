@@ -609,7 +609,7 @@ function PhoenixSlotCard({ idx, slot, result, onChange, onRegister, warnings }) 
       e(NumberField, { id: `slot${idx + 1}_atrManual`, label: "ATR（円・任意・SBIアプリ非対応）", value: slot.atrManual, onChange: (v) => onChange(idx, "atrManual", v), placeholder: "TradingView等", suffix: "円" })
     ),
     e("div", { className: "grid grid-cols-2 gap-2" },
-      e(NumberField, { id: `slot${idx + 1}_refPrice`, label: "エントリー値（発注直前）", value: slot.refPrice || "", onChange: (v) => onChange(idx, "refPrice", v), placeholder: "例: 4805", suffix: "円" }),
+      e(NumberField, { id: `slot${idx + 1}_refPrice`, label: "発注直前の現在値（ref_price・注文画面の値のまま）", value: slot.refPrice || "", onChange: (v) => onChange(idx, "refPrice", v), placeholder: "例: 4805", suffix: "円" }),
       e(NumberField, { id: `slot${idx + 1}_fillPrice`, label: "約定値", value: slot.fillPrice || "", onChange: (v) => onChange(idx, "fillPrice", v), placeholder: "例: 4810", suffix: "円" })
     ),
     e(SlippageRow, { refPrice: slot.refPrice, fillPrice: slot.fillPrice }),
