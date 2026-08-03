@@ -8,6 +8,9 @@ on:
     - cron: '5 3 * * 1-5'
   workflow_dispatch: {}   # Actionsタブから手動実行するためのボタンが出る
 
+permissions:
+  contents: write   # daily_prep.jsonのcommit/pushに必要（リポジトリ既定はread-only）
+
 jobs:
   prep:
     runs-on: ubuntu-latest
