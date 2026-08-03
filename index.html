@@ -96,6 +96,38 @@ function usePersistentState(key, initial) {
   return [state, setState];
 }
 
+// ---- 昼の準備シート(daily_prep.json)の共通フェッチフック ----
+// サイジング一覧タブ（自動入力）・建玉管理タブ（トレール引上げ判定）の両方が同じ
+// フェッチ結果を参照できるよう App() で一度だけ状態を持ち、両セクションへpropsで渡す。
+function useDailyPrepData() {
+  const [state, setState] = useState({ status: "idle", data: null, error: null, fetchedAt: null });
+  const load = () => {
+    setState((s) => ({ ...s, status: "loading", error: null }));
+    fetch(`${DAILY_PREP_URL}?t=${Date.now()}`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((json) => {
+        setState({ status: "done", data: json, error: null, fetchedAt: new Date() });
+      })
+      .catch((err) => {
+        setState((s) => ({ ...s, status: "error", data: null, error: String((err && err.message) || err) }));
+      });
+  };
+  useEffect(() => { load(); }, []);
+  return [state, load];
+}
+
+// ISO日時("2026-08-03T15:35:12+09:00"等)を "8/3 15:35" 形式に整形（トレール判定行の鮮度表示用）
+function fmtGeneratedAt(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 function todayStr() {
   const d = new Date();
   const pad = (n) => String(n).padStart(2, "0");
@@ -569,9 +601,41 @@ function PositionEditFields({ form, onChange }) {
   );
 }
 
+// トレール引上げ判定行（trailArmed=falseの建玉のみ表示。rulebook v1.9 §2.3・trail_check_ui_spec.md）
+function TrailCheckRow({ pos, trailTrigger, maxHighSeen, generatedAt, onToggleTrail }) {
+  const hasData = maxHighSeen !== undefined && maxHighSeen !== null;
+  const reached = hasData && maxHighSeen >= trailTrigger;
+  const pctRemaining = hasData && !reached ? ((trailTrigger - maxHighSeen) / maxHighSeen) * 100 : null;
+  const genLabel = fmtGeneratedAt(generatedAt);
+
+  return e("div", {
+    className: `rounded-lg border px-3 py-2.5 space-y-1.5 ${reached ? "bg-amber-500/15 border-amber-500/40" : "bg-slate-950/40 border-slate-800"}`,
+  },
+    reached
+      ? e(React.Fragment, null,
+          e("div", { className: "flex items-start gap-2 text-[12.5px] font-semibold text-amber-300" },
+            e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
+            e("span", null, `トレール引上げを実施: SL→建値¥${fmtPrice(pos.entryPrice)}に変更（現在値が建値未満でも実施）`)
+          ),
+          e("button", {
+            onClick: onToggleTrail,
+            className: "w-full rounded-lg bg-amber-500/90 text-slate-950 text-[12.5px] font-semibold py-2",
+          }, "引上げ済みにする")
+        )
+      : hasData
+        ? e("div", { className: "text-[12px] text-slate-400" },
+            `未到達: 観測最高値¥${fmtPrice(maxHighSeen)} / 発動ライン¥${fmtPrice(trailTrigger)}（あと+${pctRemaining.toFixed(1)}%）`)
+        : e("div", { className: "text-[12px] text-slate-500" }, "判定データなし（手動確認）"),
+    e("div", { className: "text-[10.5px] text-slate-600" }, `判定データ更新: ${genLabel || "―"}`),
+    e("div", { className: "text-[10px] text-slate-600" },
+      "判定は5分足高値ベースの参考値。エントリー当日は12:35以降の高値で判定（12:40以降のエントリーでは数分の誤差あり）。境界付近はチャートで確認")
+  );
+}
+
 function PositionCard({
   pos, isEditing, editForm, onEditField, onStartEdit, onCancelEdit, onSaveEdit, onToggleTrail,
   isSettling, settlePrice, onSettlePriceChange, onStartSettle, onCancelSettle, onConfirmSettle,
+  maxHighSeen, generatedAt,
 }) {
   if (isEditing) {
     return e("div", { className: "rounded-xl bg-slate-900/60 border border-amber-500/30 p-3.5 space-y-2.5" },
@@ -617,6 +681,7 @@ function PositionCard({
     }),
     e(ResultRow, { label: "TP価格", value: Number.isFinite(pos.tpPrice) ? `¥${fmtPrice(pos.tpPrice)}` : "―", tone: "good" }),
     e(ResultRow, { label: "トレール発動ライン（+1.5%）", value: `¥${fmtPrice(trailTrigger)}`, tone: "muted" }),
+    !pos.trailArmed && e(TrailCheckRow, { pos, trailTrigger, maxHighSeen, generatedAt, onToggleTrail }),
     e(ResultRow, { label: "SL到達時の想定最大損失", value: maxLoss === null ? "―" : `−¥${fmt(maxLoss)}`, tone: "risk" }),
     e(ResultRow, { label: "期限日（5営業日目）", value: fmtDateWithWeekday(dueDate), tone: isDueToday ? "risk" : "muted" }),
     e(ResultRow, { label: "寄成返済日", value: fmtDateWithWeekday(marketSellDate), tone: isPastMarketSell ? "risk" : "muted" }),
@@ -672,7 +737,7 @@ function todayRealizedPnl(closed) {
   return closed.filter((c) => c.closeDate === today).reduce((sum, c) => sum + c.pnl, 0);
 }
 
-function SummaryPanel({ positions, closed }) {
+function SummaryPanel({ positions, closed, trailDueCount }) {
   const n = positions.length;
   const positionValueSum = positions.reduce((s, p) => s + p.qty * p.entryPrice, 0);
   const capitalRatio = CAPITAL > 0 ? (positionValueSum / CAPITAL) * 100 : 0;
@@ -697,6 +762,10 @@ function SummaryPanel({ positions, closed }) {
     overDaily && e("div", { className: "mt-1 flex items-start gap-2 rounded-lg bg-red-500/10 border border-red-500/25 px-3 py-2 text-[12px] text-red-300" },
       e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
       e("span", null, "想定最大損失合計が15.4万円超（保守的目安。ルール実体は各トレード7.7万以内＋実現損失−15.4万で当日新規停止）")
+    ),
+    trailDueCount > 0 && e("div", { className: "mt-1 flex items-center gap-2 rounded-lg bg-amber-500/15 border border-amber-500/40 px-3 py-2 text-[12.5px] font-semibold text-amber-300" },
+      e(AlertTriangle, { size: 14, className: "shrink-0" }),
+      e("span", null, `トレール引上げが必要な建玉: ${trailDueCount}件`)
     ),
     (dueTodayCount > 0 || marketSellTodayCount > 0) && e("div", { className: "mt-1 space-y-1.5" },
       dueTodayCount > 0 && e("div", { className: "flex items-center gap-2 rounded-lg bg-amber-500/15 border border-amber-500/40 px-3 py-2 text-[12.5px] font-semibold text-amber-300" },
@@ -1056,7 +1125,7 @@ function BackupPanel({ positions, setPositions, closed, setClosed }) {
   );
 }
 
-function PositionsSection({ positions, setPositions, closed, setClosed }) {
+function PositionsSection({ positions, setPositions, closed, setClosed, prep, maxHighSeen }) {
   const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState({ ...DEFAULT_POSITION_FORM, entryDate: todayStr() });
   const [editingId, setEditingId] = useState(null);
@@ -1153,6 +1222,15 @@ function PositionsSection({ positions, setPositions, closed, setClosed }) {
 
   const warnings = useMemo(() => computeRegistrationWarnings(form, positions, closed), [form, positions, closed]);
 
+  // トレール引上げが必要な建玉件数（サマリーバッジ用。trail_check_ui_spec.md）
+  const generatedAt = prep && prep.data ? prep.data.generated_at : null;
+  const trailDueCount = positions.filter((p) => {
+    if (p.trailArmed) return false;
+    const maxHigh = (maxHighSeen || {})[p.id];
+    if (maxHigh === undefined || maxHigh === null) return false;
+    return maxHigh >= p.entryPrice * TRAIL_MULT;
+  }).length;
+
   return e("div", { className: "space-y-4" },
     e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800" },
       e("button", {
@@ -1171,7 +1249,7 @@ function PositionsSection({ positions, setPositions, closed, setClosed }) {
         }, "登録")
       )
     ),
-    e(SummaryPanel, { positions, closed }),
+    e(SummaryPanel, { positions, closed, trailDueCount }),
     positions.length === 0
       ? e("div", { className: "rounded-xl bg-slate-900/40 border border-slate-800 px-3.5 py-6 text-center text-[13px] text-slate-500" }, "建玉はまだありません")
       : e("div", { className: "space-y-3" },
@@ -1189,6 +1267,8 @@ function PositionsSection({ positions, setPositions, closed, setClosed }) {
             onStartSettle: () => startSettle(pos),
             onCancelSettle: cancelSettle,
             onConfirmSettle: confirmSettle,
+            maxHighSeen: (maxHighSeen || {})[pos.id],
+            generatedAt,
           }))
         ),
     e(ClosedHistoryPanel, { closed, open: closedOpen, onToggle: () => setClosedOpen((o) => !o) }),
@@ -1325,8 +1405,7 @@ function Sizing27Row({ row, rowEdits, result, isOpen, onToggle, onEdit, onRegist
   );
 }
 
-function Sizing27Section({ onRegister, heldPositions, closed }) {
-  const [prep, setPrep] = useState({ status: "idle", data: null, error: null, fetchedAt: null });
+function Sizing27Section({ onRegister, heldPositions, closed, prep, reloadPrep }) {
   const [edits, setEdits] = useState(() => {
     const stored = lsGet("sizing27_v1", null);
     return (stored && stored.date === todayStr() && stored.edits) ? stored.edits : {};
@@ -1337,41 +1416,28 @@ function Sizing27Section({ onRegister, heldPositions, closed }) {
 
   const rows = useMemo(() => buildSizing27Rows(prep.data), [prep.data]);
 
-  const load = () => {
-    setPrep((s) => ({ ...s, status: "loading", error: null }));
-    fetch(`${DAILY_PREP_URL}?t=${Date.now()}`)
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((json) => {
-        setPrep({ status: "done", data: json, error: null, fetchedAt: new Date() });
-        // 自動入力: 前引け値・前場安値・前場高値・ATR(実測)をedits側へ反映。
-        // 株数編集値・ref_price・約定値は据え置く（再読込で消さない）
-        setEdits((prev) => {
-          const next = { ...prev };
-          if (json && Array.isArray(json.stocks)) {
-            json.stocks.forEach((s) => {
-              const code = normalizeCode(s.code4);
-              const cur = next[code] || emptyRowEdits();
-              next[code] = {
-                ...cur,
-                entry: s.前引け値 != null ? String(s.前引け値) : cur.entry,
-                morningLow: s.前場安値 != null ? String(s.前場安値) : cur.morningLow,
-                morningHigh: s.前場高値 != null ? String(s.前場高値) : cur.morningHigh,
-                atrManual: s.atr14 != null ? String(s.atr14) : cur.atrManual,
-              };
-            });
-          }
-          return next;
-        });
-      })
-      .catch((err) => {
-        setPrep((s) => ({ ...s, status: "error", data: null, error: String((err && err.message) || err) }));
+  // prep.data（daily_prep.jsonのフェッチ結果。App()で共有管理）が更新されるたびに
+  // 自動入力: 前引け値・前場安値・前場高値・ATR(実測)をedits側へ反映。
+  // 株数編集値・ref_price・約定値は据え置く（再読込で消さない）
+  useEffect(() => {
+    const json = prep.data;
+    if (!json || !Array.isArray(json.stocks)) return;
+    setEdits((prev) => {
+      const next = { ...prev };
+      json.stocks.forEach((s) => {
+        const code = normalizeCode(s.code4);
+        const cur = next[code] || emptyRowEdits();
+        next[code] = {
+          ...cur,
+          entry: s.前引け値 != null ? String(s.前引け値) : cur.entry,
+          morningLow: s.前場安値 != null ? String(s.前場安値) : cur.morningLow,
+          morningHigh: s.前場高値 != null ? String(s.前場高値) : cur.morningHigh,
+          atrManual: s.atr14 != null ? String(s.atr14) : cur.atrManual,
+        };
       });
-  };
-  // タブ表示時（マウント時）に自動fetch
-  useEffect(() => { load(); }, []);
+      return next;
+    });
+  }, [prep.data]);
 
   const toggleRow = (code) => {
     setOpenCodes((prev) => {
@@ -1454,7 +1520,7 @@ function Sizing27Section({ onRegister, heldPositions, closed }) {
       e("div", { className: "flex items-center justify-between" },
         e("span", { className: "text-[13px] font-semibold text-slate-200" }, "昼の準備シート（自動入力）"),
         e("button", {
-          onClick: load,
+          onClick: reloadPrep,
           disabled: prep.status === "loading",
           className: "rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[12px] font-semibold px-3 py-1.5 disabled:opacity-50",
         }, prep.status === "loading" ? "読込中…" : "再読込")
@@ -1505,7 +1571,7 @@ function Sizing27Section({ onRegister, heldPositions, closed }) {
   );
 }
 
-function SizingSection({ onRegister, heldPositions, closed }) {
+function SizingSection({ onRegister, heldPositions, closed, prep, reloadPrep }) {
   const [tab, setTab] = useState("phoenix");
 
   return e("div", null,
@@ -1521,7 +1587,7 @@ function SizingSection({ onRegister, heldPositions, closed }) {
     ),
     // 両タブとも常時マウントしCSSで表示切替（フェニックス側のfetch状態・編集内容をタブ切替で失わないため）
     e("div", { className: tab === "phoenix" ? "" : "hidden" },
-      e(Sizing27Section, { onRegister, heldPositions, closed })),
+      e(Sizing27Section, { onRegister, heldPositions, closed, prep, reloadPrep })),
     e("div", { className: tab === "atype" ? "" : "hidden" },
       e(AtypeCalc, null)),
     e("div", { className: "mt-6 flex items-start gap-2 rounded-xl bg-slate-900/50 border border-slate-800 px-3.5 py-3 text-[12px] text-slate-500" },
@@ -1551,6 +1617,43 @@ function App() {
   const [positions, setPositions] = usePersistentState("positions_v1", []);
   const [closed, setClosed] = usePersistentState("closed_v1", []);
   const [notice, setNotice] = useState(null);
+  // daily_prep.jsonの共有フェッチ状態（サイジング一覧の自動入力・建玉管理のトレール判定の両方が参照）
+  const [prep, reloadPrep] = useDailyPrepData();
+  // 建玉ごとの観測最高値（トレール引上げ判定用。建玉idキー・rulebook v1.9 §2.3）
+  const [maxHighSeen, setMaxHighSeen] = usePersistentState("trail_max_high_v1", {});
+
+  // JSON読込のたび（prep.data更新時）・建玉構成が変わるたびに、建玉ごとのmax_high_seenを
+  // 累積更新する。更新規則: date > entryDate なら day_high、date == entryDate なら pm_high
+  // （エントリー当日は後場のみの高値で判定し、エントリー前の前場高値を混入させない）。
+  // null はスキップ。保有が外れた建玉のキーはここで自然に落ちる（次回の建玉一覧から再構築するため）。
+  useEffect(() => {
+    setMaxHighSeen((prev) => {
+      const json = prep.data;
+      const next = {};
+      positions.forEach((pos) => {
+        let val = prev[pos.id];
+        if (json && Array.isArray(json.stocks)) {
+          const code = normalizeCode(pos.code);
+          const s = json.stocks.find((x) => normalizeCode(x.code4) === code);
+          if (s) {
+            let candidate = null;
+            if (json.date > pos.entryDate) candidate = s.day_high;
+            else if (json.date === pos.entryDate) candidate = s.pm_high;
+            if (candidate !== null && candidate !== undefined) {
+              if (val === undefined || val === null || candidate > val) val = candidate;
+            }
+          }
+        }
+        if (val !== undefined && val !== null) next[pos.id] = val;
+      });
+      const prevKeys = Object.keys(prev), nextKeys = Object.keys(next);
+      let changed = prevKeys.length !== nextKeys.length;
+      if (!changed) {
+        for (const k of nextKeys) { if (prev[k] !== next[k]) { changed = true; break; } }
+      }
+      return changed ? next : prev;
+    });
+  }, [positions, prep.data]);
 
   const handleRegister = (fields) => {
     const pos = buildPosition(fields);
@@ -1582,9 +1685,9 @@ function App() {
       // 両タブを常時マウントしCSSで表示切替（サイジング側はdaily_prep.jsonのfetch状態・
       // 27行の編集内容を保持するため、トップタブ切替のたびに再マウントしない）
       e("div", { className: topTab === "sizing" ? "" : "hidden" },
-        e(SizingSection, { onRegister: handleRegister, heldPositions: positions, closed })),
+        e(SizingSection, { onRegister: handleRegister, heldPositions: positions, closed, prep, reloadPrep })),
       e("div", { className: topTab === "positions" ? "" : "hidden" },
-        e(PositionsSection, { positions, setPositions, closed, setClosed }))
+        e(PositionsSection, { positions, setPositions, closed, setClosed, prep, maxHighSeen }))
     )
   );
 }

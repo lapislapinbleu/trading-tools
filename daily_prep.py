@@ -45,6 +45,7 @@ DEFAULT_OUTPUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data"
 MORNING_START_MIN = 9 * 60          # 09:00
 MORNING_END_MIN = 11 * 60 + 30      # 11:30
 MOMENTUM_TIMES = (11 * 60 + 20, 11 * 60 + 25, 11 * 60 + 30)  # 11:20,11:25,11:30
+PM_START_MIN = 12 * 60 + 35         # 12:35（後場ハイの判定基準。トレール引上げ判定UI用）
 
 ATR_PERIOD = 14
 SL_PCT = 0.003
@@ -218,6 +219,12 @@ def process_code(entry: dict, df: pd.DataFrame, target_date) -> dict | None:
 
     sizing = compute_sizing(zenba_close, zenba_low, atr14)
 
+    # トレール引上げ判定UI用（trail_check_ui_spec.md）: 当日ザラ場全体の高値と後場(12:35以降)の高値。
+    # 前場のみの時点(11:35/11:50/12:05実行)では day_high=前場高値・pm_high=None になる。
+    day_high = float(day_df["high"].max())
+    pm_df = day_df[day_df["time_min"] >= PM_START_MIN]
+    pm_high = float(pm_df["high"].max()) if not pm_df.empty else None
+
     return {
         "code4": entry["code4"],
         "name": entry["name"],
@@ -243,13 +250,15 @@ def process_code(entry: dict, df: pd.DataFrame, target_date) -> dict | None:
         "tradable": sizing["tradable"],
         "has_1130_bar": has_1130_bar,
         "value_approx_jpy": value_approx,
+        "day_high": day_high,
+        "pm_high": pm_high,
     }
 
 
 def round_stock_numbers(s: dict) -> dict:
     """出力直前の丸め処理(円は整数、値は小数2桁程度)。"""
     out = dict(s)
-    for k in ("前引け値", "前場安値", "前場高値", "sl", "tp", "trail_trigger"):
+    for k in ("前引け値", "前場安値", "前場高値", "sl", "tp", "trail_trigger", "day_high", "pm_high"):
         if out.get(k) is not None:
             out[k] = round(out[k], 1)
     for k in ("atr14",):

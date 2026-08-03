@@ -2,10 +2,13 @@ name: Daily Prep Sheet
 
 on:
   schedule:
-    # UTC 02:35 / 02:50 / 03:05 = JST 11:35 / 11:50 / 12:05 (平日・Actions遅延保険で3回)
+    # UTC 02:35 / 02:50 / 03:05 = JST 11:35 / 11:50 / 12:05 (昼休み・平日・Actions遅延保険で3回)
     - cron: '35 2 * * 1-5'
     - cron: '50 2 * * 1-5'
     - cron: '5 3 * * 1-5'
+    # UTC 06:35 / 06:50 = JST 15:35 / 15:50 (大引け後・トレール引上げ判定UI用・trail_check_ui_spec.md)
+    - cron: '35 6 * * 1-5'
+    - cron: '50 6 * * 1-5'
   workflow_dispatch: {}   # Actionsタブから手動実行するためのボタンが出る
 
 permissions:
