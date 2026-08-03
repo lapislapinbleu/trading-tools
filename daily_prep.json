@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-03T13:48:38.859051+09:00",
+  "generated_at": "2026-08-03T16:07:38.561860+09:00",
   "date": "2026-08-03",
   "complete": true,
   "stocks": [
@@ -27,7 +27,9 @@
       "notional_jpy": 694000,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 92342977925,
+      "value_approx_jpy": 101157927425,
+      "day_high": 3573.0,
+      "pm_high": 3573.0,
       "優先順位": 1
     },
     {
@@ -55,6 +57,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 90833000025,
+      "day_high": 4325.0,
+      "pm_high": 4325.0,
       "優先順位": 2
     },
     {
@@ -81,7 +85,9 @@
       "notional_jpy": 645500,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 69589545200,
+      "value_approx_jpy": 74639868000,
+      "day_high": 6713.0,
+      "pm_high": 6667.0,
       "優先順位": 3
     },
     {
@@ -108,7 +114,9 @@
       "notional_jpy": 792100,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 44064851075,
+      "value_approx_jpy": 46533682850,
+      "day_high": 8205.0,
+      "pm_high": 8154.0,
       "優先順位": 4
     },
     {
@@ -136,6 +144,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 35855348088,
+      "day_high": 2075.0,
+      "pm_high": 2075.0,
       "優先順位": 5
     },
     {
@@ -163,6 +173,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 35629488475,
+      "day_high": 3860.0,
+      "pm_high": 3860.0,
       "優先順位": 6
     },
     {
@@ -190,6 +202,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 24264969875,
+      "day_high": 3233.0,
+      "pm_high": 3233.0,
       "優先順位": 7
     },
     {
@@ -216,7 +230,9 @@
       "notional_jpy": 775700,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 19002583000,
+      "value_approx_jpy": 20712564600,
+      "day_high": 8020.0,
+      "pm_high": 7881.0,
       "優先順位": 8
     },
     {
@@ -243,7 +259,9 @@
       "notional_jpy": 870400,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 18465412312,
+      "value_approx_jpy": 18752609050,
+      "day_high": 2276.5,
+      "pm_high": 2261.5,
       "優先順位": 9
     },
     {
@@ -270,7 +288,9 @@
       "notional_jpy": 788600,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 11696899000,
+      "value_approx_jpy": 12542967400,
+      "day_high": 8022.0,
+      "pm_high": 8022.0,
       "優先順位": 10
     },
     {
@@ -297,7 +317,9 @@
       "notional_jpy": 904200,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 9698055738,
+      "value_approx_jpy": 11395120438,
+      "day_high": 3123.0,
+      "pm_high": 3123.0,
       "優先順位": 11
     },
     {
@@ -324,7 +346,9 @@
       "notional_jpy": 948400,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 9371166875,
+      "value_approx_jpy": 9906984425,
+      "day_high": 4863.0,
+      "pm_high": 4816.0,
       "優先順位": 12
     },
     {
@@ -351,7 +375,9 @@
       "notional_jpy": 677700,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 8977989075,
+      "value_approx_jpy": 9391055475,
+      "day_high": 7052.0,
+      "pm_high": 6890.0,
       "優先順位": 13
     },
     {
@@ -378,7 +404,9 @@
       "notional_jpy": 949200,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 7892014100,
+      "value_approx_jpy": 9106467725,
+      "day_high": 1646.5,
+      "pm_high": 1628.0,
       "優先順位": 14
     },
     {
@@ -405,7 +433,9 @@
       "notional_jpy": 925000,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 7169439275,
+      "value_approx_jpy": 8163836988,
+      "day_high": 1900.0,
+      "pm_high": 1891.5,
       "優先順位": 15
     },
     {
@@ -432,7 +462,9 @@
       "notional_jpy": 768200,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 6945461525,
+      "value_approx_jpy": 7399318175,
+      "day_high": 3947.0,
+      "pm_high": 3920.0,
       "優先順位": 16
     },
     {
@@ -459,7 +491,9 @@
       "notional_jpy": 1015080,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 2681236451,
+      "value_approx_jpy": 3511665605,
+      "day_high": 156.0,
+      "pm_high": 155.7,
       "優先順位": 17
     },
     {
@@ -486,7 +520,9 @@
       "notional_jpy": 721300,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 2302567100,
+      "value_approx_jpy": 2484636550,
+      "day_high": 7560.0,
+      "pm_high": 7392.0,
       "優先順位": 18
     },
     {
@@ -513,7 +549,9 @@
       "notional_jpy": 982200,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 2187832325,
+      "value_approx_jpy": 2409258725,
+      "day_high": 5047.0,
+      "pm_high": 5001.0,
       "優先順位": 19
     },
     {
@@ -541,34 +579,9 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 1980850725,
+      "day_high": 4193.0,
+      "pm_high": 4178.0,
       "優先順位": 20
-    },
-    {
-      "code4": "9301",
-      "name": "三菱倉庫",
-      "区分": "黄",
-      "sector": "倉庫運輸",
-      "financial": false,
-      "no_market_order": true,
-      "前引け値": 1469.0,
-      "前場安値": 1455.5,
-      "前場高値": 1525.0,
-      "atr14": 4.86,
-      "hist_1130": 3.4645,
-      "gc_state": "正",
-      "d1_sign": "-",
-      "d2_sign": "-",
-      "momentum_hint": 3.4645,
-      "shares": 600,
-      "sl": 1450.6,
-      "tp": 1557.1,
-      "trail_trigger": 1491.0,
-      "risk_jpy": 11014,
-      "notional_jpy": 881400,
-      "tradable": true,
-      "has_1130_bar": true,
-      "value_approx_jpy": 1643525125,
-      "優先順位": 21
     },
     {
       "code4": "5714",
@@ -594,7 +607,38 @@
       "notional_jpy": 805500,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 1548596225,
+      "value_approx_jpy": 1735382700,
+      "day_high": 8207.0,
+      "pm_high": 8207.0,
+      "優先順位": 21
+    },
+    {
+      "code4": "9301",
+      "name": "三菱倉庫",
+      "区分": "黄",
+      "sector": "倉庫運輸",
+      "financial": false,
+      "no_market_order": true,
+      "前引け値": 1469.0,
+      "前場安値": 1455.5,
+      "前場高値": 1525.0,
+      "atr14": 4.86,
+      "hist_1130": 3.4645,
+      "gc_state": "正",
+      "d1_sign": "-",
+      "d2_sign": "-",
+      "momentum_hint": 3.4645,
+      "shares": 600,
+      "sl": 1450.6,
+      "tp": 1557.1,
+      "trail_trigger": 1491.0,
+      "risk_jpy": 11014,
+      "notional_jpy": 881400,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 1713909912,
+      "day_high": 1534.5,
+      "pm_high": 1534.5,
       "優先順位": 22
     },
     {
@@ -621,7 +665,9 @@
       "notional_jpy": 1020900,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 1486850375,
+      "value_approx_jpy": 1637435538,
+      "day_high": 1763.0,
+      "pm_high": 1734.5,
       "優先順位": 23
     },
     {
@@ -648,7 +694,9 @@
       "notional_jpy": 865400,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 1398395388,
+      "value_approx_jpy": 1514060938,
+      "day_high": 2213.0,
+      "pm_high": 2213.0,
       "優先順位": 24
     },
     {
@@ -675,7 +723,9 @@
       "notional_jpy": 815200,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 822274550,
+      "value_approx_jpy": 834891975,
+      "day_high": 4276.0,
+      "pm_high": 4160.0,
       "優先順位": 25
     },
     {
@@ -702,7 +752,9 @@
       "notional_jpy": 1018800,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 644619750,
+      "value_approx_jpy": 664557300,
+      "day_high": 5216.0,
+      "pm_high": 5113.0,
       "優先順位": 26
     },
     {
@@ -729,7 +781,9 @@
       "notional_jpy": 703000,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 225568775,
+      "value_approx_jpy": 239135325,
+      "day_high": 3582.0,
+      "pm_high": 3532.0,
       "優先順位": 27
     }
   ]
