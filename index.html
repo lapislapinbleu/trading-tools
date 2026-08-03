@@ -1378,7 +1378,16 @@ function Sizing27Row({ row, rowEdits, result, isOpen, onToggle, onEdit, onRegist
       result && !result.error && e("div", { className: "rounded-lg bg-slate-950/60 border border-slate-800 px-3 py-1" },
         e(ResultRow, { label: "SL（前場安値−バッファ）", value: `¥${fmtPrice(result.sl)}` }),
         e("div", { className: "pb-2 -mt-1 text-[11px] text-slate-500" }, `バッファ${fmtPrice(result.buf)}円 = ${result.bufSource.label}`),
-        e(ResultRow, { label: "TP（×1.06）／トレール（+1.5%）", value: `¥${fmtPrice(result.tp)} ／ ¥${fmtPrice(result.trailTrigger)}`, tone: "good" }),
+        (() => {
+          // TP/トレールはエントリー価格基準(rulebook 2.3節)。約定値が入ったら約定値×1.06/×1.015に表示を切替
+          // (建玉登録時の保存値と一致させる。未約定時は前引け値による事前見積り)
+          const fp = parseFloat(rowEdits.fillPrice);
+          const useFill = fp > 0;
+          const tpShow = useFill ? fp * TP_MULT : result.tp;
+          const trailShow = useFill ? fp * TRAIL_MULT : result.trailTrigger;
+          const lbl = useFill ? "TP（約定値×1.06）／トレール（+1.5%）" : "TP（前引け値×1.06=見積り・約定後は約定値基準）／トレール（+1.5%）";
+          return e(ResultRow, { label: lbl, value: `¥${fmtPrice(tpShow)} ／ ¥${fmtPrice(trailShow)}`, tone: "good" });
+        })(),
         e(ResultRow, { label: "自動計算株数（上限基準）", value: `${fmt(result.finalShares)}株（建玉¥${fmt(result.positionValue)}）`, tone: "muted" })
       ),
       e(NumberField, { label: "エントリー株数（編集可・デフォルト=自動計算値）", value: qtyDisplay, onChange: (v) => onEdit("qty", v), placeholder: "自動計算値", suffix: "株" }),
