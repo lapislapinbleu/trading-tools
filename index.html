@@ -63,7 +63,7 @@ const TP_MULT = 1.06;
 const TRAIL_MULT = 1.015;
 
 // ---- 昼の準備シート（phoenix-data Actions生成のdaily_prep.jsonを読み込む） ----
-const DAILY_PREP_URL = "https://raw.githubusercontent.com/lapislapinbleu/phoenix-data/main/data/daily_prep.json";
+const DAILY_PREP_URL = "daily_prep.json"; // 同一オリジン(GitHub Pages)。生成はこのリポジトリのActions(daily_prep.yml)
 
 // ---- localStorage 汎用ヘルパー（Safariプライベートモード等で例外になりうるため try/catch 保護） ----
 function lsGet(key, fallback) {
