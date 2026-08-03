@@ -62,6 +62,9 @@ const MAX_POSITIONS = 5;
 const TP_MULT = 1.06;
 const TRAIL_MULT = 1.015;
 
+// ---- 昼の準備シート（phoenix-data Actions生成のdaily_prep.jsonを読み込む） ----
+const DAILY_PREP_URL = "https://raw.githubusercontent.com/lapislapinbleu/phoenix-data/main/data/daily_prep.json";
+
 // ---- localStorage 汎用ヘルパー（Safariプライベートモード等で例外になりうるため try/catch 保護） ----
 function lsGet(key, fallback) {
   try {
@@ -940,7 +943,7 @@ function SummaryPanel({ positions, closed }) {
     }),
     overDaily && e("div", { className: "mt-1 flex items-start gap-2 rounded-lg bg-red-500/10 border border-red-500/25 px-3 py-2 text-[12px] text-red-300" },
       e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
-      e("span", null, "SL全到達なら日次損失上限15.4万円を超過")
+      e("span", null, "想定最大損失合計が15.4万円超（保守的目安。ルール実体は各トレード7.7万以内＋実現損失−15.4万で当日新規停止）")
     ),
     (dueTodayCount > 0 || marketSellTodayCount > 0) && e("div", { className: "mt-1 space-y-1.5" },
       dueTodayCount > 0 && e("div", { className: "flex items-center gap-2 rounded-lg bg-amber-500/15 border border-amber-500/40 px-3 py-2 text-[12.5px] font-semibold text-amber-300" },
@@ -1462,6 +1465,121 @@ function normalizeSizing(raw) {
   return { slots, c2open: base.c2open || "", c2high: base.c2high || "" };
 }
 
+// ---- 昼の準備シート: daily_prep.json 1行分の表示行 ----
+function DailyPrepRow({ s, onTranscribe }) {
+  const isGcNeg = s.gc_state === "負";
+  const hintVal = s.momentum_hint != null ? s.momentum_hint.toFixed(2) : "―";
+  return e("div", {
+    className: `rounded-lg border px-3 py-2.5 space-y-1.5 ${isGcNeg ? "bg-slate-950/30 border-slate-800/60 opacity-60" : "bg-slate-950/60 border-slate-800"}`,
+  },
+    e("div", { className: "flex items-start justify-between gap-2" },
+      e("div", { className: "flex flex-wrap items-center gap-1.5" },
+        e("span", { className: "text-[11px] text-slate-500" }, `#${s.優先順位}`),
+        e("span", { className: "text-[13px] font-medium text-slate-100" }, `${s.name}（${s.code4}）`),
+        e("span", {
+          className: `rounded-md border px-1.5 py-0.5 text-[10.5px] ${s.区分 === "緑" ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-300" : "bg-amber-500/10 border-amber-500/25 text-amber-300"}`,
+        }, s.区分),
+        isGcNeg && e("span", { className: "rounded-md border border-slate-700 bg-slate-800/60 px-1.5 py-0.5 text-[10.5px] text-slate-400" }, "新規GC待ち"),
+        s.no_market_order && e("span", { className: "rounded-md border border-red-500/25 bg-red-500/10 px-1.5 py-0.5 text-[10.5px] text-red-300" }, "前引け指値のみ"),
+        !s.tradable && e("span", { className: "rounded-md border border-slate-700 bg-slate-800/60 px-1.5 py-0.5 text-[10.5px] text-slate-400" }, "対象外(0株)")
+      ),
+      e("button", {
+        onClick: onTranscribe,
+        disabled: !s.tradable,
+        className: "shrink-0 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[11px] font-semibold px-2.5 py-1.5 disabled:opacity-40",
+      }, "枠へ転記")
+    ),
+    e("div", { className: "grid grid-cols-4 gap-1.5 text-[11px]" },
+      e("div", null,
+        e("div", { className: "text-slate-500" }, "GC状態"),
+        e("div", { className: s.gc_state === "正" ? "text-emerald-400" : "text-slate-400" }, s.gc_state)),
+      e("div", null,
+        e("div", { className: "text-slate-500" }, "株数"),
+        e("div", { className: "text-slate-200 font-mono" }, s.tradable ? `${fmt(s.shares)}株` : "―")),
+      e("div", null,
+        e("div", { className: "text-slate-500" }, "SL"),
+        e("div", { className: "text-slate-200 font-mono" }, fmtPrice(s.sl))),
+      e("div", null,
+        e("div", { className: "text-slate-500" }, "TP"),
+        e("div", { className: "text-slate-200 font-mono" }, s.tp != null ? fmtPrice(s.tp) : "―"))
+    ),
+    e("div", { className: "text-[10.5px] text-slate-500" },
+      `リスク額 ¥${fmt(s.risk_jpy)}／建玉 ¥${fmt(s.notional_jpy)}`),
+    e("div", { className: "text-[10.5px] text-slate-600" },
+      `12:30足ヒスト<${hintVal}なら見送り注意(d1,d2マイナス時: ${s.d1_sign || "?"}${s.d2_sign || "?"})`)
+  );
+}
+
+// ---- 昼の準備シート: 読み込みボタン・状態表示・候補テーブル ----
+function DailyPrepPanel({ slots, setSlots }) {
+  const [state, setState] = useState({ status: "idle", data: null, error: null, fetchedAt: null });
+
+  const load = () => {
+    setState((s) => ({ ...s, status: "loading", error: null }));
+    fetch(`${DAILY_PREP_URL}?t=${Date.now()}`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((json) => {
+        setState({ status: "done", data: json, error: null, fetchedAt: new Date() });
+      })
+      .catch((err) => {
+        setState((s) => ({ ...s, status: "error", data: null, error: String((err && err.message) || err) }));
+      });
+  };
+
+  const transcribe = (stock) => {
+    const emptyIdx = slots.findIndex((s) => !s.code || s.code.trim() === "");
+    if (emptyIdx === -1) {
+      window.alert("空いている枠がありません。既存5枠のいずれかをクリアしてから転記してください。");
+      return;
+    }
+    setSlots((prev) => prev.map((s, i) => (i === emptyIdx ? {
+      ...s,
+      code: stock.code4,
+      entry: String(stock.前引け値),
+      morningLow: String(stock.前場安値),
+      morningHigh: String(stock.前場高値),
+      atrManual: stock.atr14 != null ? String(stock.atr14) : "",
+    } : s)));
+  };
+
+  const data = state.data;
+  const isStale = data && data.date !== todayStr();
+
+  return e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800 p-3.5 mb-5 space-y-3" },
+    e("div", { className: "flex items-center justify-between" },
+      e("span", { className: "text-[13px] font-semibold text-slate-200" }, "昼の準備シート"),
+      e("button", {
+        onClick: load,
+        disabled: state.status === "loading",
+        className: "rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[12px] font-semibold px-3 py-1.5 disabled:opacity-50",
+      }, state.status === "loading" ? "読込中…" : "準備シートを読み込む")
+    ),
+    state.status === "error" && e("div", { className: "flex items-start gap-2 rounded-lg bg-red-500/10 border border-red-500/25 px-3 py-2 text-[12px] text-red-300" },
+      e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
+      e("span", null, `読み込み失敗: ${state.error}（通信環境を確認し再試行してください）`)
+    ),
+    data && e("div", { className: "space-y-2" },
+      e("div", { className: "text-[11px] text-slate-500" },
+        `取得時刻 ${state.fetchedAt ? state.fetchedAt.toLocaleTimeString("ja-JP") : "―"} ／ データ日付 ${data.date}`),
+      isStale && e("div", { className: "flex items-center gap-2 rounded-lg bg-red-500/15 border border-red-500/40 px-3 py-2 text-[12px] font-semibold text-red-300" },
+        e(AlertTriangle, { size: 14, className: "shrink-0" }),
+        e("span", null, `警告: データ日付（${data.date}）が本日と異なります。古いデータの可能性があります`)
+      ),
+      !isStale && !data.complete && e("div", { className: "flex items-center gap-2 rounded-lg bg-amber-500/10 border border-amber-500/25 px-3 py-2 text-[12px] text-amber-300" },
+        e(AlertTriangle, { size: 14, className: "shrink-0" }),
+        e("span", null, "前場データが未完備です（11:30バーが揃っていない銘柄があります。再取得を試すか手入力で確認してください）")
+      ),
+      data.stocks.length === 0
+        ? e("div", { className: "text-[12px] text-slate-500 py-2" }, "本日の候補データがありません（休場日、またはActions未実行の可能性）")
+        : e("div", { className: "space-y-1.5" },
+            data.stocks.map((s) => e(DailyPrepRow, { key: s.code4, s, onTranscribe: () => transcribe(s) })))
+    )
+  );
+}
+
 function SizingSection({ onRegister, heldPositions, closed }) {
   const [tab, setTab] = useState("phoenix");
   const [sizing, setSizing] = useState(() => normalizeSizing(lsGet("sizing_v1", DEFAULT_SIZING)));
@@ -1482,6 +1600,7 @@ function SizingSection({ onRegister, heldPositions, closed }) {
   };
 
   return e("div", null,
+    e(DailyPrepPanel, { slots: sizing.slots, setSlots }),
     e("div", { className: "grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 mb-5" },
       e("button", {
         onClick: () => setTab("phoenix"),
