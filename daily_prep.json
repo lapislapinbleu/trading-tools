@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-04T12:25:32.248139+09:00",
+  "generated_at": "2026-08-04T14:31:51.752684+09:00",
   "date": "2026-08-04",
   "complete": true,
   "stocks": [
@@ -28,8 +28,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 130121224075,
-      "day_high": 4578.0,
-      "pm_high": null,
+      "day_high": 4657.0,
+      "pm_high": 4657.0,
       "優先順位": 1
     },
     {
@@ -58,7 +58,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 72726332125,
       "day_high": 3528.0,
-      "pm_high": null,
+      "pm_high": 3496.0,
       "優先順位": 2
     },
     {
@@ -86,8 +86,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 64593072775,
-      "day_high": 3550.0,
-      "pm_high": null,
+      "day_high": 3563.0,
+      "pm_high": 3563.0,
       "優先順位": 3
     },
     {
@@ -115,8 +115,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 41387903450,
-      "day_high": 3956.0,
-      "pm_high": null,
+      "day_high": 3982.0,
+      "pm_high": 3982.0,
       "優先順位": 4
     },
     {
@@ -145,7 +145,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 31969949950,
       "day_high": 6632.0,
-      "pm_high": null,
+      "pm_high": 6565.0,
       "優先順位": 5
     },
     {
@@ -174,7 +174,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 23049018025,
       "day_high": 8168.0,
-      "pm_high": null,
+      "pm_high": 8153.0,
       "優先順位": 6
     },
     {
@@ -203,7 +203,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 22795338025,
       "day_high": 2165.5,
-      "pm_high": null,
+      "pm_high": 2148.5,
       "優先順位": 7
     },
     {
@@ -232,7 +232,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 11369431800,
       "day_high": 7844.0,
-      "pm_high": null,
+      "pm_high": 7748.0,
       "優先順位": 8
     },
     {
@@ -261,7 +261,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 8659015538,
       "day_high": 2246.0,
-      "pm_high": null,
+      "pm_high": 2214.5,
       "優先順位": 9
     },
     {
@@ -290,7 +290,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 6831501975,
       "day_high": 8056.0,
-      "pm_high": null,
+      "pm_high": 8046.0,
       "優先順位": 10
     },
     {
@@ -319,7 +319,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 6320263350,
       "day_high": 6895.0,
-      "pm_high": null,
+      "pm_high": 6833.0,
       "優先順位": 11
     },
     {
@@ -348,7 +348,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 5987408000,
       "day_high": 4830.0,
-      "pm_high": null,
+      "pm_high": 4777.0,
       "優先順位": 12
     },
     {
@@ -377,7 +377,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 5289986462,
       "day_high": 1654.5,
-      "pm_high": null,
+      "pm_high": 1633.5,
       "優先順位": 13
     },
     {
@@ -406,7 +406,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 5280574000,
       "day_high": 3134.0,
-      "pm_high": null,
+      "pm_high": 3101.0,
       "優先順位": 14
     },
     {
@@ -435,7 +435,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 4194523338,
       "day_high": 1896.0,
-      "pm_high": null,
+      "pm_high": 1886.0,
       "優先順位": 15
     },
     {
@@ -464,7 +464,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 3257203625,
       "day_high": 3902.0,
-      "pm_high": null,
+      "pm_high": 3899.0,
       "優先順位": 16
     },
     {
@@ -493,7 +493,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 1747505700,
       "day_high": 5032.0,
-      "pm_high": null,
+      "pm_high": 4974.0,
       "優先順位": 17
     },
     {
@@ -522,7 +522,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 1284654865,
       "day_high": 154.8,
-      "pm_high": null,
+      "pm_high": 153.8,
       "優先順位": 18
     },
     {
@@ -551,7 +551,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 1268067900,
       "day_high": 4204.0,
-      "pm_high": null,
+      "pm_high": 4159.0,
       "優先順位": 19
     },
     {
@@ -580,7 +580,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 868982725,
       "day_high": 7421.0,
-      "pm_high": null,
+      "pm_high": 7385.0,
       "優先順位": 20
     },
     {
@@ -609,7 +609,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 1313163162,
       "day_high": 2214.0,
-      "pm_high": null,
+      "pm_high": 2199.5,
       "優先順位": 21
     },
     {
@@ -638,7 +638,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 925460050,
       "day_high": 8305.0,
-      "pm_high": null,
+      "pm_high": 8248.0,
       "優先順位": 22
     },
     {
@@ -667,7 +667,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 681382575,
       "day_high": 4172.0,
-      "pm_high": null,
+      "pm_high": 4137.0,
       "優先順位": 23
     },
     {
@@ -696,7 +696,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 666471050,
       "day_high": 1732.0,
-      "pm_high": null,
+      "pm_high": 1702.0,
       "優先順位": 24
     },
     {
@@ -725,7 +725,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 527495400,
       "day_high": 1489.0,
-      "pm_high": null,
+      "pm_high": 1478.5,
       "優先順位": 25
     },
     {
@@ -754,7 +754,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 414895900,
       "day_high": 5105.0,
-      "pm_high": null,
+      "pm_high": 5056.0,
       "優先順位": 26
     },
     {
@@ -782,8 +782,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 211954900,
-      "day_high": 3527.0,
-      "pm_high": null,
+      "day_high": 3546.0,
+      "pm_high": 3546.0,
       "優先順位": 27
     }
   ]
