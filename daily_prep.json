@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-08-06T14:55:17.240111+09:00",
+  "generated_at": "2026-08-06T15:06:19.237426+09:00",
   "date": "2026-08-06",
-  "complete": true,
+  "complete": false,
   "stocks": [
     {
       "code4": "5803",
@@ -27,7 +27,7 @@
       "notional_jpy": 929600,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 96955938925,
+      "value_approx_jpy": 96956100825,
       "day_high": 4917.0,
       "pm_high": 4917.0,
       "優先順位": 1
@@ -85,7 +85,7 @@
       "notional_jpy": 821800,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 53895914925,
+      "value_approx_jpy": 53895989375,
       "day_high": 4264.0,
       "pm_high": 4158.0,
       "優先順位": 3
@@ -201,7 +201,7 @@
       "notional_jpy": 906800,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 22581280150,
+      "value_approx_jpy": 22581310200,
       "day_high": 9210.0,
       "pm_high": 9150.0,
       "優先順位": 7
@@ -230,7 +230,7 @@
       "notional_jpy": 881600,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 21079186925,
+      "value_approx_jpy": 21079188350,
       "day_high": 2283.0,
       "pm_high": 2270.0,
       "優先順位": 8
@@ -260,38 +260,9 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 9445345800,
-      "day_high": 7806.0,
-      "pm_high": 7806.0,
+      "day_high": 7813.0,
+      "pm_high": 7813.0,
       "優先順位": 9
-    },
-    {
-      "code4": "5108",
-      "name": "ブリヂストン",
-      "区分": "緑",
-      "sector": "ゴム",
-      "financial": false,
-      "no_market_order": false,
-      "前引け値": 3946.0,
-      "前場安値": 3896.0,
-      "前場高値": 3957.0,
-      "atr14": 6.64,
-      "hist_1130": -0.7311,
-      "gc_state": "負",
-      "d1_sign": "-",
-      "d2_sign": "-",
-      "momentum_hint": -0.7311,
-      "shares": 200,
-      "sl": 3884.2,
-      "tp": 4182.8,
-      "trail_trigger": 4005.2,
-      "risk_jpy": 12368,
-      "notional_jpy": 789200,
-      "tradable": true,
-      "has_1130_bar": true,
-      "value_approx_jpy": 9280506350,
-      "day_high": 3994.0,
-      "pm_high": 3994.0,
-      "優先順位": 10
     },
     {
       "code4": "8308",
@@ -320,6 +291,35 @@
       "value_approx_jpy": 8488317912,
       "day_high": 2362.0,
       "pm_high": 2362.0,
+      "優先順位": 10
+    },
+    {
+      "code4": "5108",
+      "name": "ブリヂストン",
+      "区分": "緑",
+      "sector": "ゴム",
+      "financial": false,
+      "no_market_order": false,
+      "前引け値": 3946.0,
+      "前場安値": 3896.0,
+      "前場高値": 3957.0,
+      "atr14": 6.64,
+      "hist_1130": -0.7311,
+      "gc_state": "負",
+      "d1_sign": "-",
+      "d2_sign": "-",
+      "momentum_hint": -0.7311,
+      "shares": 200,
+      "sl": 3884.2,
+      "tp": 4182.8,
+      "trail_trigger": 4005.2,
+      "risk_jpy": 12368,
+      "notional_jpy": 789200,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 5219110775,
+      "day_high": 3997.0,
+      "pm_high": 3997.0,
       "優先順位": 11
     },
     {
@@ -375,7 +375,7 @@
       "notional_jpy": 992800,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 4737387600,
+      "value_approx_jpy": 4737387075,
       "day_high": 5065.0,
       "pm_high": 4976.0,
       "優先順位": 13
@@ -464,7 +464,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 4056890750,
       "day_high": 1928.5,
-      "pm_high": 1906.0,
+      "pm_high": 1906.5,
       "優先順位": 16
     },
     {
@@ -549,9 +549,9 @@
       "notional_jpy": 756000,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 2207836700,
+      "value_approx_jpy": 2207834125,
       "day_high": 7761.0,
-      "pm_high": 7687.0,
+      "pm_high": 7704.0,
       "優先順位": 19
     },
     {
@@ -579,8 +579,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 1866724195,
-      "day_high": 154.1,
-      "pm_high": 154.1,
+      "day_high": 154.2,
+      "pm_high": 154.2,
       "優先順位": 20
     },
     {
@@ -637,38 +637,9 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 1754345612,
-      "day_high": 2348.5,
-      "pm_high": 2348.5,
+      "day_high": 2355.5,
+      "pm_high": 2355.5,
       "優先順位": 22
-    },
-    {
-      "code4": "7181",
-      "name": "かんぽ生命",
-      "区分": "黄",
-      "sector": "保険",
-      "financial": true,
-      "no_market_order": false,
-      "前引け値": 1723.5,
-      "前場安値": 1719.0,
-      "前場高値": 1740.0,
-      "atr14": 3.0,
-      "hist_1130": -1.4491,
-      "gc_state": "負",
-      "d1_sign": "-",
-      "d2_sign": "-",
-      "momentum_hint": -1.4491,
-      "shares": 500,
-      "sl": 1713.8,
-      "tp": 1826.9,
-      "trail_trigger": 1749.4,
-      "risk_jpy": 4835,
-      "notional_jpy": 861750,
-      "tradable": true,
-      "has_1130_bar": true,
-      "value_approx_jpy": 954191875,
-      "day_high": 1752.0,
-      "pm_high": 1752.0,
-      "優先順位": 23
     },
     {
       "code4": "9302",
@@ -697,7 +668,7 @@
       "value_approx_jpy": 810917975,
       "day_high": 3213.0,
       "pm_high": 3213.0,
-      "優先順位": 24
+      "優先順位": 23
     },
     {
       "code4": "5105",
@@ -724,9 +695,9 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 768529375,
-      "day_high": 4208.0,
-      "pm_high": 4208.0,
-      "優先順位": 25
+      "day_high": 4219.0,
+      "pm_high": 4219.0,
+      "優先順位": 24
     },
     {
       "code4": "9301",
@@ -754,8 +725,8 @@
       "has_1130_bar": true,
       "value_approx_jpy": 446606588,
       "day_high": 1512.5,
-      "pm_high": 1502.0,
-      "優先順位": 26
+      "pm_high": 1502.5,
+      "優先順位": 25
     },
     {
       "code4": "9364",
@@ -784,7 +755,7 @@
       "value_approx_jpy": 312372400,
       "day_high": 5052.0,
       "pm_high": 5002.0,
-      "優先順位": 27
+      "優先順位": 26
     }
   ]
 }
