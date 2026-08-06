@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-06T15:42:04.870950+09:00",
+  "generated_at": "2026-08-06T18:25:13.773356+09:00",
   "date": "2026-08-06",
   "complete": true,
   "stocks": [
@@ -318,8 +318,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 5219110775,
-      "day_high": 4007.0,
-      "pm_high": 4007.0,
+      "day_high": 4009.0,
+      "pm_high": 4009.0,
       "優先順位": 11
     },
     {
@@ -493,7 +493,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 3552889950,
       "day_high": 7038.0,
-      "pm_high": 7007.0,
+      "pm_high": 7010.0,
       "優先順位": 17
     },
     {
