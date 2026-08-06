@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-06T14:34:07.384861+09:00",
+  "generated_at": "2026-08-06T14:36:04.284275+09:00",
   "date": "2026-08-06",
   "complete": true,
   "stocks": [
@@ -115,8 +115,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 53248931675,
-      "day_high": 3986.0,
-      "pm_high": 3986.0,
+      "day_high": 4085.0,
+      "pm_high": 4085.0,
       "優先順位": 4
     },
     {
@@ -174,7 +174,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 29737413250,
       "day_high": 6823.0,
-      "pm_high": 6775.0,
+      "pm_high": 6780.0,
       "優先順位": 6
     },
     {
@@ -261,8 +261,37 @@
       "has_1130_bar": true,
       "value_approx_jpy": 9445345800,
       "day_high": 7796.0,
-      "pm_high": 7768.0,
+      "pm_high": 7781.0,
       "優先順位": 9
+    },
+    {
+      "code4": "5108",
+      "name": "ブリヂストン",
+      "区分": "緑",
+      "sector": "ゴム",
+      "financial": false,
+      "no_market_order": false,
+      "前引け値": 3946.0,
+      "前場安値": 3896.0,
+      "前場高値": 3957.0,
+      "atr14": 6.64,
+      "hist_1130": -0.7311,
+      "gc_state": "負",
+      "d1_sign": "-",
+      "d2_sign": "-",
+      "momentum_hint": -0.7311,
+      "shares": 200,
+      "sl": 3884.2,
+      "tp": 4182.8,
+      "trail_trigger": 4005.2,
+      "risk_jpy": 12368,
+      "notional_jpy": 789200,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 9280506350,
+      "day_high": 3983.0,
+      "pm_high": 3983.0,
+      "優先順位": 10
     },
     {
       "code4": "8308",
@@ -291,35 +320,6 @@
       "value_approx_jpy": 8488317912,
       "day_high": 2362.0,
       "pm_high": 2362.0,
-      "優先順位": 10
-    },
-    {
-      "code4": "5108",
-      "name": "ブリヂストン",
-      "区分": "緑",
-      "sector": "ゴム",
-      "financial": false,
-      "no_market_order": false,
-      "前引け値": 3946.0,
-      "前場安値": 3896.0,
-      "前場高値": 3957.0,
-      "atr14": 6.64,
-      "hist_1130": -0.7311,
-      "gc_state": "負",
-      "d1_sign": "-",
-      "d2_sign": "-",
-      "momentum_hint": -0.7311,
-      "shares": 200,
-      "sl": 3884.2,
-      "tp": 4182.8,
-      "trail_trigger": 4005.2,
-      "risk_jpy": 12368,
-      "notional_jpy": 789200,
-      "tradable": true,
-      "has_1130_bar": true,
-      "value_approx_jpy": 5219110775,
-      "day_high": 3983.0,
-      "pm_high": 3983.0,
       "優先順位": 11
     },
     {
@@ -348,7 +348,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 4850896450,
       "day_high": 4849.0,
-      "pm_high": 4810.0,
+      "pm_high": 4818.0,
       "優先順位": 12
     },
     {
@@ -464,7 +464,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 4056890750,
       "day_high": 1928.5,
-      "pm_high": 1901.5,
+      "pm_high": 1902.0,
       "優先順位": 16
     },
     {
@@ -493,7 +493,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 3552889950,
       "day_high": 7038.0,
-      "pm_high": 6955.0,
+      "pm_high": 6957.0,
       "優先順位": 17
     },
     {
@@ -652,11 +652,11 @@
       "前場安値": 1719.0,
       "前場高値": 1740.0,
       "atr14": 3.0,
-      "hist_1130": -1.4491,
+      "hist_1130": -1.4471,
       "gc_state": "負",
       "d1_sign": "-",
       "d2_sign": "-",
-      "momentum_hint": -1.4491,
+      "momentum_hint": -1.4471,
       "shares": 500,
       "sl": 1713.8,
       "tp": 1826.9,
@@ -665,9 +665,9 @@
       "notional_jpy": 861750,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 954191875,
-      "day_high": 1740.0,
-      "pm_high": 1739.5,
+      "value_approx_jpy": 954192600,
+      "day_high": 1743.5,
+      "pm_high": 1743.5,
       "優先順位": 23
     },
     {
@@ -695,8 +695,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 810917975,
-      "day_high": 3212.0,
-      "pm_high": 3212.0,
+      "day_high": 3213.0,
+      "pm_high": 3213.0,
       "優先順位": 24
     },
     {
@@ -754,7 +754,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 446606588,
       "day_high": 1512.5,
-      "pm_high": 1500.0,
+      "pm_high": 1501.0,
       "優先順位": 26
     },
     {
