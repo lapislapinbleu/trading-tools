@@ -33,13 +33,23 @@ try {
     if ($LASTEXITCODE -ne 0) { Write-Log "warn: git pull failed (continue)" }
 
     $env:PYTHONIOENCODING = "utf-8"
-    $out = & python -X utf8 daily_prep.py --output daily_prep.json 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        Write-Log "ERROR: daily_prep.py exit=$LASTEXITCODE"
+    # 11:30バー(11:30-11:35をカバー)はyfinanceの反映に数分かかることがあるため、
+    # complete=false のときは90秒待って最大2回まで再取得する（2026-08-06の実測を受けた対策）
+    $attempt = 0
+    while ($true) {
+        $attempt++
+        $out = & python -X utf8 daily_prep.py --output daily_prep.json 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Log "ERROR: daily_prep.py exit=$LASTEXITCODE (attempt $attempt)"
+            $out | ForEach-Object { Write-Log "  $_" }
+            exit 1
+        }
         $out | ForEach-Object { Write-Log "  $_" }
-        exit 1
+        $isComplete = ($out -join "`n") -match "complete=True"
+        if ($isComplete -or $attempt -ge 3) { break }
+        Write-Log "complete=false のため90秒後に再取得します (attempt $attempt)"
+        Start-Sleep -Seconds 90
     }
-    $out | ForEach-Object { Write-Log "  $_" }
 
     $check = & python -X utf8 _check_prep_output.py 2>&1
     $checkCode = $LASTEXITCODE

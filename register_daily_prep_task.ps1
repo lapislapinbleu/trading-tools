@@ -29,9 +29,13 @@ $settings = New-ScheduledTaskSettingsSet `
 
 $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
 
+# 実行時刻の根拠: 11:30バー（11:30〜11:35をカバー）はyfinance側の反映に数分かかるため、
+# 11:35ちょうどに実行すると has_1130_bar=false になる（2026-08-06に実測）。11:42/11:52の2本立てとし、
+# 大引け(15:30)後も同様に15:42へ後ろ倒しする。
 $defs = @(
-    @{ Name = "Phoenix DailyPrep Noon";  Time = "11:35"; Desc = "フェニックス昼の準備シート生成（サイジング用・GitHub Actions cronのバックアップではなく主系）" },
-    @{ Name = "Phoenix DailyPrep Close"; Time = "15:35"; Desc = "フェニックス大引け後の準備シート更新（トレール引上げ判定用）" }
+    @{ Name = "Phoenix DailyPrep Noon";   Time = "11:42"; Desc = "フェニックス昼の準備シート生成（サイジング用・主系）" },
+    @{ Name = "Phoenix DailyPrep Noon2";  Time = "11:52"; Desc = "フェニックス昼の準備シート再生成（11:30バー取りこぼしの保険）" },
+    @{ Name = "Phoenix DailyPrep Close";  Time = "15:42"; Desc = "フェニックス大引け後の準備シート更新（トレール引上げ判定用）" }
 )
 
 foreach ($d in $defs) {
