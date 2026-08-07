@@ -273,7 +273,7 @@ def round_stock_numbers(s: dict) -> dict:
     return out
 
 
-def build_output(target_date, stocks: list[dict], all_ok: bool) -> dict:
+def build_output(target_date, stocks: list[dict], all_ok: bool, missing: list[dict] | None = None) -> dict:
     # 優先順位: 緑→黄、同区分内は前場売買代金近似の大きい順
     def sort_key(s):
         cls_rank = 0 if s["区分"] == "緑" else 1
@@ -292,6 +292,8 @@ def build_output(target_date, stocks: list[dict], all_ok: bool) -> dict:
         "generated_at": now_jst.isoformat(),
         "date": target_date.isoformat(),
         "complete": all_ok,
+        # 欠落の内訳をUIに渡す（"11:30バー未達"と"銘柄まるごと取得不可"を区別して表示するため）
+        "missing": missing or [],
         "stocks": ordered,
     }
 
@@ -323,6 +325,7 @@ def main():
         print(f"[WARN] 取得失敗: {missing_tickers}")
 
     stocks = []
+    missing: list[dict] = []   # 銘柄まるごと取得できなかったもの（UIに理由込みで渡す）
     codes_with_1130 = 0
     codes_with_any_today = 0
     for entry in watchlist:
@@ -330,11 +333,13 @@ def main():
         df = bars_by_ticker.get(ticker)
         if df is None or df.empty:
             print(f"[WARN] {entry['code4']} {entry['name']}: データ取得なし")
+            missing.append({"code4": entry["code4"], "name": entry["name"], "reason": "データ取得なし"})
             continue
         df = add_indicators(df)
         row = process_code(entry, df, target_date)
         if row is None:
             print(f"[WARN] {entry['code4']} {entry['name']}: 対象日({target_date})の前場データなし")
+            missing.append({"code4": entry["code4"], "name": entry["name"], "reason": "当日の前場データ未配信"})
             continue
         codes_with_any_today += 1
         if row["has_1130_bar"]:
@@ -344,11 +349,13 @@ def main():
     if codes_with_any_today == 0:
         # 休場日(全銘柄で当日データが空) -> complete:falseで空配列
         print("対象日のデータが全銘柄で空。休場日として空配列を出力します。")
-        output = build_output(target_date, [], False)
+        output = build_output(target_date, [], False, missing)
     else:
         all_ok = (codes_with_1130 == len(watchlist))
-        output = build_output(target_date, stocks, all_ok)
+        output = build_output(target_date, stocks, all_ok, missing)
         print(f"11:30バー完備銘柄数: {codes_with_1130}/{len(watchlist)} (complete={all_ok})")
+        if missing:
+            print(f"[WARN] 欠落銘柄: {[m['code4'] + ' ' + m['name'] for m in missing]}")
 
     out_dir = os.path.dirname(args.output)
     if out_dir:

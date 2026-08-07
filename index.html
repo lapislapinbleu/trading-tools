@@ -1545,9 +1545,27 @@ function Sizing27Section({ onRegister, heldPositions, closed, prep, reloadPrep }
           e(AlertTriangle, { size: 14, className: "shrink-0" }),
           e("span", null, `警告: データ日付（${data.date}）が本日と異なります。古いデータの可能性があります`)
         ),
-        !isStale && !data.complete && e("div", { className: "flex items-center gap-2 rounded-lg bg-amber-500/10 border border-amber-500/25 px-3 py-2 text-[12px] text-amber-300" },
-          e(AlertTriangle, { size: 14, className: "shrink-0" }),
-          e("span", null, "前場データが未完備です（11:30バーが揃っていない銘柄があります。再取得を試すか手入力で確認してください）")
+        !isStale && !data.complete && e("div", { className: "flex items-start gap-2 rounded-lg bg-amber-500/10 border border-amber-500/25 px-3 py-2 text-[12px] text-amber-300" },
+          e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
+          (() => {
+            // 未完備の実態を2種類に分けて表示する:
+            //   (a) 銘柄まるごと取得できず（yfinance側の当日未配信）… missing に理由付きで入る
+            //   (b) 取得できたが11:30バーが未確定（生成が早すぎた場合）… has_1130_bar=false
+            const miss = Array.isArray(data.missing) ? data.missing : [];
+            const noBar = (data.stocks || []).filter((s) => s.has_1130_bar === false);
+            const parts = [];
+            if (miss.length) {
+              parts.push(`未取得${miss.length}銘柄: ${miss.map((m) => `${m.name}(${m.code4})`).join("・")}`);
+            }
+            if (noBar.length) {
+              parts.push(`11:30バー未確定${noBar.length}銘柄: ${noBar.slice(0, 5).map((s) => s.name).join("・")}${noBar.length > 5 ? "ほか" : ""}`);
+            }
+            const detail = parts.length ? parts.join(" / ") : "詳細不明";
+            const advice = noBar.length
+              ? "生成が早すぎた可能性。数分後に再読込してください"
+              : "該当銘柄にシグナルが出たら手入力で確認（他の銘柄はそのまま使えます）";
+            return e("span", null, `${(data.stocks || []).length}/27銘柄を取得。${detail}。${advice}`);
+          })()
         ),
         data.stocks.length === 0 && e("div", { className: "text-[12px] text-slate-500 py-2" }, "本日の候補データがありません（休場日、またはActions未実行の可能性。各行を手入力してください）")
       )
