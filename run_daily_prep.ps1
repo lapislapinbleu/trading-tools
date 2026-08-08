@@ -10,7 +10,8 @@
 # 終了コード: 0=成功(またはデータ無し=休場)、1=失敗
 
 $ErrorActionPreference = "Stop"
-$repo = "C:\Users\ananco\Documents\invest\trading-tools"
+# 置き場所が変わっても動くようスクリプト自身の位置から解決する（2026-08 D:へ移動）
+$repo = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Definition }
 $logDir = Join-Path $repo "logs"
 if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir | Out-Null }
 $log = Join-Path $logDir ("daily_prep_{0}.log" -f (Get-Date -Format "yyyyMMdd"))
@@ -29,7 +30,7 @@ try {
         Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-14) } |
         Remove-Item -Force -ErrorAction SilentlyContinue
 
-    & git pull --rebase --quiet origin main
+    & git pull --rebase --autostash --quiet origin main
     if ($LASTEXITCODE -ne 0) { Write-Log "warn: git pull failed (continue)" }
 
     $env:PYTHONIOENCODING = "utf-8"
@@ -39,8 +40,15 @@ try {
     while ($true) {
         $attempt++
         $out = & python -X utf8 daily_prep.py --output daily_prep.json 2>&1
-        if ($LASTEXITCODE -ne 0) {
-            Write-Log "ERROR: daily_prep.py exit=$LASTEXITCODE (attempt $attempt)"
+        $prepCode = $LASTEXITCODE
+        if ($prepCode -eq 3) {
+            # 休場日(全銘柄で当日データなし)。既存JSONは保持され、pushもしない
+            $out | ForEach-Object { Write-Log "  $_" }
+            Write-Log "skip: 休場日と判断。既存の準備シートを保持しpushしない"
+            exit 0
+        }
+        if ($prepCode -ne 0) {
+            Write-Log "ERROR: daily_prep.py exit=$prepCode (attempt $attempt)"
             $out | ForEach-Object { Write-Log "  $_" }
             exit 1
         }
@@ -73,7 +81,7 @@ try {
     & git commit -q -m ("daily prep sheet update (local) {0}" -f (Get-Date -Format "yyyy-MM-dd HH:mm"))
     $pushed = $false
     for ($i = 1; $i -le 3; $i++) {
-        & git pull --rebase --quiet origin main
+        & git pull --rebase --autostash --quiet origin main
         & git push --quiet origin main
         if ($LASTEXITCODE -eq 0) {
             Write-Log "pushed (attempt $i)"

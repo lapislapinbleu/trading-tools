@@ -347,9 +347,18 @@ def main():
         stocks.append(row)
 
     if codes_with_any_today == 0:
-        # 休場日(全銘柄で当日データが空) -> complete:falseで空配列
-        print("対象日のデータが全銘柄で空。休場日として空配列を出力します。")
+        # 休場日(全銘柄で当日データが空)。既存のJSONを空配列で上書きすると
+        # 前営業日の準備シートを失うため、ファイルがあるときは手を触れずに終了コード3を返す
+        # (呼び出し側 run_daily_prep.ps1 は 3 を「休場日 -> pushしない」として扱う)。
+        print("対象日のデータが全銘柄で空。休場日と判断します。")
+        if os.path.exists(args.output):
+            print(f"既存の {args.output} は上書きしません(前営業日の内容を保持)")
+            sys.exit(3)
         output = build_output(target_date, [], False, missing)
+        with open(args.output, "w", encoding="utf-8") as f:
+            json.dump(output, f, ensure_ascii=False, indent=2)
+        print(f"出力完了: {args.output} (0銘柄・休場日)")
+        sys.exit(3)
     else:
         all_ok = (codes_with_1130 == len(watchlist))
         output = build_output(target_date, stocks, all_ok, missing)

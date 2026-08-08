@@ -6,19 +6,20 @@
 # いずれも「起動時刻を過ぎていたらできるだけ早く実行」を有効化（PC起動が遅れた日の保険）。
 #
 # 実行方法（PowerShellで）:
-#   powershell -ExecutionPolicy Bypass -File C:\Users\ananco\Documents\invest\trading-tools\register_daily_prep_task.ps1
+#   powershell -ExecutionPolicy Bypass -File D:\invest\trading-tools\register_daily_prep_task.ps1
 # 削除したい場合:
 #   Unregister-ScheduledTask -TaskName "Phoenix DailyPrep Noon" -Confirm:$false
 #   Unregister-ScheduledTask -TaskName "Phoenix DailyPrep Close" -Confirm:$false
 
 $ErrorActionPreference = "Stop"
-$script = "C:\Users\ananco\Documents\invest\trading-tools\run_daily_prep.ps1"
+$here = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Definition }
+$script = Join-Path $here "run_daily_prep.ps1"
 if (-not (Test-Path $script)) { throw "run_daily_prep.ps1 が見つかりません: $script" }
 
 $action = New-ScheduledTaskAction `
     -Execute "powershell.exe" `
     -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$script`"" `
-    -WorkingDirectory "C:\Users\ananco\Documents\invest\trading-tools"
+    -WorkingDirectory $here
 
 $settings = New-ScheduledTaskSettingsSet `
     -AllowStartIfOnBatteries `

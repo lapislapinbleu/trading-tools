@@ -33,7 +33,17 @@ jobs:
         run: pip install yfinance pandas pyarrow
 
       - name: Run daily prep sheet generator
-        run: python -X utf8 daily_prep.py --output daily_prep.json
+        run: |
+          set +e
+          python -X utf8 daily_prep.py --output daily_prep.json
+          code=$?
+          set -e
+          # 終了コード3 = 休場日(当日データなし)。既存JSONは保持されるため成功扱いにする
+          if [ "$code" = "3" ]; then
+            echo "休場日のためスキップ（既存の準備シートを保持）"
+            exit 0
+          fi
+          exit $code
 
       - name: Commit and push if changed
         if: always()

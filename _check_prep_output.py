@@ -15,5 +15,12 @@ except Exception as ex:  # noqa: BLE001
     sys.exit(1)
 
 today = datetime.datetime.now().strftime("%Y-%m-%d")
-print(f"date={d.get('date')} today={today} complete={d.get('complete')} stocks={len(d.get('stocks', []))}")
-sys.exit(0 if d.get("date") == today else 2)
+n_stocks = len(d.get("stocks", []))
+print(f"date={d.get('date')} today={today} complete={d.get('complete')} stocks={n_stocks}")
+if d.get("date") != today:
+    sys.exit(2)
+# 当日日付でも銘柄0件なら休場日。空のシートをpushして前営業日の内容を消さない
+if n_stocks == 0:
+    print("銘柄0件のためpushしない(休場日)")
+    sys.exit(2)
+sys.exit(0)
