@@ -268,6 +268,25 @@ const Info = (p) => e(IconBase, p,
   e("line", { key: "3", x1: "12", y1: "8", x2: "12.01", y2: "8" })
 );
 
+// ---- MACD(12,26,9)を1本進める計算（daily_prep.py add_indicators / threshold_prices と同一規約） ----
+// 後場の判定はすべて確定足の終値ベース（§2.2）。EMAは「前回値 + α×(今回終値 − 前回値)」の漸化式なので、
+// 11:30時点の状態(daily_prep.jsonのema12_1130/ema26_1130/signal_1130)があれば、
+// 12:30→12:35→12:40と終値を1つずつ与えるだけで各足のヒストを正確に再現できる。
+const MACD_A12 = 2 / 13, MACD_A26 = 2 / 27, MACD_A9 = 2 / 10;
+
+function macdStep(state, close) {
+  const ema12 = state.ema12 + MACD_A12 * (close - state.ema12);
+  const ema26 = state.ema26 + MACD_A26 * (close - state.ema26);
+  const macd = ema12 - ema26;
+  const signal = state.signal + MACD_A9 * (macd - state.signal);
+  return { ema12, ema26, signal, macd, hist: macd - signal };
+}
+// 次足のヒストがちょうど0になる終値。ヒストは終値の単調増加関数なので、これを超えればGC成立
+function macdGcThreshold(state) {
+  const base = (1 - MACD_A12) * state.ema12 - (1 - MACD_A26) * state.ema26;
+  return (state.signal - base) / (MACD_A12 - MACD_A26);
+}
+
 // A型3銘柄はすべてTOPIX500構成のため細かい呼値を使う（rulebook v1.5 §2.4・§3）
 function tickSize(price) {
   if (price <= 1000) return 0.1;
@@ -1381,7 +1400,8 @@ function PositionsSection({ positions, setPositions, closed, setClosed, prep, ma
 // ---- サイジング一覧UI（rulebook v1.9指揮官指示・2026-08-03: 27銘柄一覧化） ----
 // 行の各種入力(前引け値・前場安値・前場高値・ATR・株数・ref_price・約定値)
 function emptyRowEdits() {
-  return { entry: "", morningLow: "", morningHigh: "", atrManual: "", qty: "", refPrice: "", fillPrice: "" };
+  return { entry: "", morningLow: "", morningHigh: "", atrManual: "", qty: "", refPrice: "", fillPrice: "",
+           c1230: "", c1235: "", c1240: "" };
 }
 
 // 27銘柄の表示行を構築。daily_prep.json取得済みならJSON値で自動入力し優先順位でソート、
@@ -1405,6 +1425,11 @@ function buildSizing27Rows(prepData) {
       momPrice: s && s.mom_price != null ? s.mom_price : null,
       decisionPrice: s && s.decision_price != null ? s.decision_price : null,
       needsMomCheck: s ? !!s.needs_mom_check : false,
+      // 11:30時点のEMA状態（12:35/12:40足まで自前で1本ずつ進めるために使う）
+      ema12: s && s.ema12_1130 != null ? s.ema12_1130 : null,
+      ema26: s && s.ema26_1130 != null ? s.ema26_1130 : null,
+      signal: s && s.signal_1130 != null ? s.signal_1130 : null,
+      hist1130: s && s.hist_1130 != null ? s.hist_1130 : null,
       tradable: s ? !!s.tradable : null, hasBar: s ? !!s.has_1130_bar : null,
       fromJson: !!s,
     };
@@ -1431,6 +1456,72 @@ function rowRiskInfo(rowEdits, result) {
   if (!(basisPrice > 0)) return null;
   const risk = (basisPrice - result.sl) * qty;
   return { qty, risk, basisPrice, isFill };
+}
+
+// ---- 後場のヒスト追跡（12:30 → 12:35 → 12:40 足・rulebook §2.2 Rule③の窓は12:30〜12:45） ----
+// 各足の終値を1つ入れるごとに、その足の確定ヒストと「次の足がGCするために必要な終値」が出る。
+// モメンタムフィルターv3.4は標準GC専用なので、12:30でヒストが負だった後に成立するGCは
+// 新規GC＝モメンタム不問。したがって2本目以降はGC閾値だけを見ればよい。
+const PM_BARS = [
+  { key: "c1230", label: "12:30足の終値（12:35に確定）", entryAt: "12:35足の始値" },
+  { key: "c1235", label: "12:35足の終値（12:40に確定）", entryAt: "12:40足の始値" },
+  { key: "c1240", label: "12:40足の終値（12:45に確定）", entryAt: "12:45足の始値" },
+];
+
+function PmHistTracker({ row, rowEdits, onEdit }) {
+  if (row.ema12 == null || row.ema26 == null || row.signal == null) return null;
+
+  let state = { ema12: row.ema12, ema26: row.ema26, signal: row.signal };
+  let prevHist = row.hist1130;
+  const items = [];
+  let done = null;
+  for (let i = 0; i < PM_BARS.length; i++) {
+    const bar = PM_BARS[i];
+    const threshold = macdGcThreshold(state);
+    const c = parseFloat(rowEdits[bar.key]);
+    if (!Number.isFinite(c) || c <= 0) {
+      items.push({ bar, threshold, hist: null, verdict: null, i });
+      break;
+    }
+    const next = macdStep(state, c);
+    let verdict;
+    if (next.hist > 0) {
+      if (i === 0 && prevHist != null && prevHist > 0) {
+        // 11:30ですでにヒスト正＝標準GC。ここだけモメンタムフィルターが効く
+        verdict = (row.needsMomCheck && next.hist < prevHist)
+          ? { ok: false, text: `棄却: ヒストが縮小（${prevHist.toFixed(2)} → ${next.hist.toFixed(2)}）＝3差分すべてマイナス` }
+          : { ok: true, text: `採用可: 標準GC維持（ヒスト ${next.hist.toFixed(2)}）` };
+      } else {
+        verdict = { ok: true, text: `採用可: 新規GC成立（ヒスト ${prevHist != null ? prevHist.toFixed(2) : "―"} → ${next.hist.toFixed(2)}）／モメンタム不問` };
+      }
+    } else {
+      verdict = { ok: null, text: `未成立（ヒスト ${next.hist.toFixed(2)}・負）` };
+    }
+    items.push({ bar, threshold, hist: next.hist, verdict, i });
+    if (verdict.ok !== null) { done = verdict; break; }
+    state = next;
+    prevHist = next.hist;
+    if (i === PM_BARS.length - 1) done = { ok: false, text: "窓終了（12:45）: 新規GCなし → 当日見送り" };
+  }
+
+  return e("div", { className: "rounded-lg bg-slate-950/40 border border-slate-800 px-3 py-2.5 space-y-2" },
+    e("div", { className: "text-[11.5px] font-semibold text-slate-300" }, "後場ヒスト追跡（12:30→12:35→12:40）"),
+    items.map((it) => e("div", { key: it.bar.key, className: "space-y-1" },
+      e(NumberField, {
+        label: it.bar.label, value: rowEdits[it.bar.key] || "",
+        onChange: (v) => onEdit(it.bar.key, v), placeholder: "確定した終値", suffix: "円",
+      }),
+      it.hist == null
+        ? (it.i > 0 && e("div", { className: "text-[11.5px] text-sky-300 font-mono tabular-nums" },
+            `この足の終値が ¥${fmtPrice(it.threshold)} 超で新規GC成立（エントリーは${it.bar.entryAt}）`))
+        : e("div", {
+            className: `text-[11.5px] font-semibold ${it.verdict.ok === true ? "text-emerald-400" : it.verdict.ok === false ? "text-red-300" : "text-slate-400"}`,
+          }, it.verdict.text)
+    )),
+    done && e("div", {
+      className: `rounded-md px-2.5 py-1.5 text-[12px] font-semibold ${done.ok ? "bg-emerald-500/10 border border-emerald-500/25 text-emerald-300" : "bg-slate-800/60 border border-slate-700 text-slate-300"}`,
+    }, done.ok ? `${done.text} → エントリーは${items[items.length - 1].bar.entryAt}` : done.text)
+  );
 }
 
 function Sizing27Row({ row, rowEdits, result, isOpen, onToggle, onEdit, onRegister, isHeld, atCap, warnings }) {
@@ -1504,6 +1595,7 @@ function Sizing27Row({ row, rowEdits, result, isOpen, onToggle, onEdit, onRegist
           )
         : e("div", { className: "text-[10.5px] text-slate-600" },
             `判定価格は未算出（11:30足が未確定）。12:30足ヒスト<${hintVal}なら見送り注意(d1${row.d1Sign || "?"} d2${row.d2Sign || "?"})`),
+      e(PmHistTracker, { row, rowEdits, onEdit }),
       result && result.error && e("div", { className: "flex items-start gap-2 rounded-lg bg-red-500/10 border border-red-500/25 px-3 py-2 text-[12px] text-red-300" },
         e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
         e("span", null, result.error)
