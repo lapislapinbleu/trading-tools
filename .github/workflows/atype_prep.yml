@@ -1,0 +1,48 @@
+name: A-Type Prep Sheet
+
+on:
+  schedule:
+    # UTC 23:40 / 23:55 (日〜木) = JST 翌日 08:40 / 08:55 (月〜金)。寄り付き前にA型バンドを公開する
+    # 主系はPCのタスクスケジューラ(run_atype_prep.ps1)。これはPCが起動していない日の保険
+    - cron: '40 23 * * 0-4'
+    - cron: '55 23 * * 0-4'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  prep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install yfinance pandas
+
+      - name: Run atype prep sheet generator
+        run: python -X utf8 atype_prep.py --output atype_prep.json
+
+      - name: Commit and push if changed
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add atype_prep.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "atype prep sheet update $(date +'%Y-%m-%d %H:%M')"
+            for i in 1 2 3; do
+              git pull --rebase origin main && git push && break
+              echo "push retry $i"
+              sleep 5
+            done
+          fi

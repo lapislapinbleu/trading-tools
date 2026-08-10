@@ -64,6 +64,8 @@ const TRAIL_MULT = 1.015;
 
 // ---- 昼の準備シート（phoenix-data Actions生成のdaily_prep.jsonを読み込む） ----
 const DAILY_PREP_URL = "daily_prep.json"; // 同一オリジン(GitHub Pages)。生成はこのリポジトリのActions(daily_prep.yml)
+// A型の朝の準備シート（前日終値と+3.5〜5.0%バンド）。生成は atype_prep.py（平日08:40/08:55）
+const ATYPE_PREP_URL = "atype_prep.json";
 
 // ---- localStorage 汎用ヘルパー（Safariプライベートモード等で例外になりうるため try/catch 保護） ----
 function lsGet(key, fallback) {
@@ -111,6 +113,25 @@ function useDailyPrepData() {
       .then((json) => {
         setState({ status: "done", data: json, error: null, fetchedAt: new Date() });
       })
+      .catch((err) => {
+        setState((s) => ({ ...s, status: "error", data: null, error: String((err && err.message) || err) }));
+      });
+  };
+  useEffect(() => { load(); }, []);
+  return [state, load];
+}
+
+// ---- A型の朝の準備シート(atype_prep.json)のフェッチフック（A型タブ専用） ----
+function useAtypePrepData() {
+  const [state, setState] = useState({ status: "idle", data: null, error: null, fetchedAt: null });
+  const load = () => {
+    setState((s) => ({ ...s, status: "loading", error: null }));
+    fetch(`${ATYPE_PREP_URL}?t=${Date.now()}`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((json) => { setState({ status: "done", data: json, error: null, fetchedAt: new Date() }); })
       .catch((err) => {
         setState((s) => ({ ...s, status: "error", data: null, error: String((err && err.message) || err) }));
       });
@@ -197,6 +218,14 @@ function addBusinessDays(dateStr, n) {
     d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
     if (isBusinessDay(d)) count++;
   }
+  return isoOfDate(d);
+}
+// dateStr の直前の営業日を "YYYY-MM-DD" で返す（A型の「前日終値」の鮮度チェック用）
+function prevBusinessDay(dateStr) {
+  let d = parseISODate(dateStr);
+  do {
+    d = new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1);
+  } while (!isBusinessDay(d));
   return isoOfDate(d);
 }
 // "YYYY-MM-DD" → "M/D(曜)" 表示
@@ -504,12 +533,81 @@ function SlippageRow({ refPrice, fillPrice }) {
     `スリッページ（約定−エントリー値）: ${sign}${pct.toFixed(2)}%（${sign}${fmtPrice(diff)}円/株）`);
 }
 
+// ---- A型: 2本目高値の判定バンド（前日終値+3.5〜5.0%・rulebook §3.2 条件2） ----
+// 9:00〜9:29は%計算をしている余裕がないため、atype_prep.json から前日終値を取得して
+// 円建ての帯（呼値に丸めた実際の境界）を先に出しておく。
+function AtypeBandPanel({ prep, onReload, selectedCode, onSelect, c2high }) {
+  const data = prep.data;
+  // 前日終値は「本日の直前の営業日」であるべき。ずれていれば生成が失敗している
+  const expected = prevBusinessDay(todayStr());
+  const isStale = data && data.prev_close_date !== expected;
+  const high = parseFloat(c2high);
+  const judge = (s) => {
+    if (!Number.isFinite(high) || high <= 0) return null;
+    if (high < s.band_low_raw) return { text: "+3.5%未満", tone: "text-slate-500" };
+    if (high > s.band_high_raw) return { text: "+5.0%超", tone: "text-red-300" };
+    return { text: "バンド内 ✓", tone: "text-emerald-400" };
+  };
+
+  return e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800 p-3.5 space-y-2" },
+    e("div", { className: "flex items-center justify-between" },
+      e("span", { className: "text-[13px] font-semibold text-slate-200" }, "2本目高値の判定バンド（自動取得）"),
+      e("button", {
+        onClick: onReload,
+        disabled: prep.status === "loading",
+        className: "rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[12px] font-semibold px-3 py-1.5 disabled:opacity-50",
+      }, prep.status === "loading" ? "読込中…" : "再読込")
+    ),
+    prep.status === "error" && e("div", { className: "flex items-start gap-2 rounded-lg bg-red-500/10 border border-red-500/25 px-3 py-2 text-[12px] text-red-300" },
+      e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
+      e("span", null, `読み込み失敗: ${prep.error}（前日終値×1.035〜1.05を手計算してください）`)
+    ),
+    !data && prep.status === "loading" && e("div", { className: "text-[12px] text-slate-500 py-1" }, "読み込み中…"),
+    data && e(React.Fragment, null,
+      e("div", { className: "text-[11px] text-slate-500" },
+        `基準=${fmtDateWithWeekday(data.prev_close_date)}の終値 ／ 生成 ${fmtGeneratedAt(data.generated_at) || "―"}`),
+      isStale && e("div", { className: "flex items-start gap-2 rounded-lg bg-red-500/15 border border-red-500/40 px-3 py-2 text-[12px] font-semibold text-red-300" },
+        e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
+        e("span", null, `警告: 前日終値が${fmtDateWithWeekday(data.prev_close_date)}のものです（本日の前営業日は${fmtDateWithWeekday(expected)}）。再読込しても直らない場合は手計算してください`)
+      ),
+      e("div", { className: "space-y-1.5" },
+        (data.stocks || []).map((s) => {
+          const j = judge(s);
+          const sel = selectedCode === s.code4;
+          return e("button", {
+            key: s.code4,
+            onClick: () => onSelect(sel ? "" : s.code4),
+            className: `w-full text-left rounded-lg border px-3 py-2 transition-colors ${sel ? "bg-slate-800 border-slate-600" : "bg-slate-900/40 border-slate-800"}`,
+          },
+            e("div", { className: "flex items-baseline justify-between gap-2" },
+              e("span", { className: "text-[13px] font-semibold text-slate-200" }, `${s.name}(${s.code4})`),
+              e("span", { className: "text-[11px] text-slate-500 font-mono tabular-nums" }, `前日終値 ¥${fmtPrice(s.prev_close)}`)
+            ),
+            e("div", { className: "mt-0.5 flex items-baseline justify-between gap-2" },
+              e("span", { className: "text-[15px] font-mono tabular-nums font-semibold text-amber-300" },
+                `¥${fmtPrice(s.band_low)} 〜 ¥${fmtPrice(s.band_high)}`),
+              j && e("span", { className: `text-[12px] font-semibold ${j.tone}` }, j.text)
+            )
+          );
+        })
+      ),
+      (data.missing || []).length > 0 && e("div", { className: "text-[11px] text-amber-300" },
+        `未取得: ${data.missing.map((m) => `${m.name}(${m.code4})`).join("・")}`),
+      e("div", { className: "text-[11px] text-slate-500 leading-relaxed" },
+        "条件1: 1本目始値 > 前日終値 ／ 条件2: 2本目が陽線かつ高値がこの帯に入る ／ 条件3: 3本目が2本目始値を下回ったら成行ショート（§3.2）")
+    )
+  );
+}
+
 function AtypeCalc() {
   const RISK_CAP = 44000, NOTIONAL_CAP = 1000000;
-  const [atypeState, setAtypeState] = usePersistentState("atype_v1", { c2open: "", c2high: "" });
+  const [atypeState, setAtypeState] = usePersistentState("atype_v1", { c2open: "", c2high: "", code: "" });
   const c2open = atypeState.c2open, c2high = atypeState.c2high;
+  const selectedCode = atypeState.code || "";
   const setC2open = (v) => setAtypeState((prev) => ({ ...prev, c2open: v }));
   const setC2high = (v) => setAtypeState((prev) => ({ ...prev, c2high: v }));
+  const setSelectedCode = (v) => setAtypeState((prev) => ({ ...prev, code: v }));
+  const [aprep, reloadAprep] = useAtypePrepData();
 
   const r = useMemo(() => {
     const entry = parseFloat(c2open), spikeHigh = parseFloat(c2high);
@@ -535,6 +633,10 @@ function AtypeCalc() {
       e(Info, { size: 14, className: "shrink-0 mt-0.5" }),
       e("span", null, "発注可能3銘柄: ルネサス(6723)・フジクラ(5803)・村田製作所(6981)。これ以外は発注禁止・記録のみ（§3.1）")
     ),
+    e(AtypeBandPanel, {
+      prep: aprep, onReload: reloadAprep,
+      selectedCode, onSelect: setSelectedCode, c2high,
+    }),
     e("div", { className: "grid grid-cols-1 gap-3" },
       e(NumberField, { id: "atype_c2open", label: "2本目の始値（＝エントリー価格）", value: c2open, onChange: setC2open, placeholder: "例: 1500", suffix: "円" }),
       e(NumberField, { id: "atype_c2high", label: "2本目の高値（スパイク高値）", value: c2high, onChange: setC2high, placeholder: "例: 1545", suffix: "円" })
