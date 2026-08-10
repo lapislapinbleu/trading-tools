@@ -150,6 +150,49 @@ def add_indicators(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+ALPHA_12 = 2.0 / 13.0
+ALPHA_26 = 2.0 / 27.0
+ALPHA_9 = 2.0 / 10.0
+
+
+def threshold_prices(last_bar, hist_1130: float | None) -> dict:
+    """12:30足の「判定価格」を閉じた式で求める（目視でヒストグラムを読まないための数値化）。
+
+    昼休みを挟むため11:30足の次の足は必ず12:30足であり、その間に他の足は無い。
+    したがって12:30足のヒストは、11:30時点のEMA状態と12:30足の終値Cだけで決まる:
+
+        MACD_1230 = (1-a12)*EMA12_1130 - (1-a26)*EMA26_1130 + (a12-a26)*C
+        hist_1230 = (1-a9) * (MACD_1230 - signal_1130)
+
+    a12-a26 > 0 かつ 1-a9 > 0 なので hist_1230 は C の単調増加関数。よって
+      - GC条件      hist_1230 > 0            ⇔ C > gc_price
+      - モメンタム   hist_1230 - hist_1130 ≥ 0 ⇔ C ≥ mom_price
+    という「価格のしきい値」に変換できる。12:35に確定した12:30足の終値をこの数値と
+    比べるだけで判定できるため、指標パネルの目視読み取りが不要になる。
+    """
+    ema12 = last_bar.get("ema12")
+    ema26 = last_bar.get("ema26")
+    sig = last_bar.get("signal")
+    for v in (ema12, ema26, sig):
+        if v is None or pd.isna(v):
+            return {"gc_price": None, "mom_price": None, "signal_1130": None,
+                    "ema12_1130": None, "ema26_1130": None}
+    ema12, ema26, sig = float(ema12), float(ema26), float(sig)
+    slope = ALPHA_12 - ALPHA_26                      # ∂MACD_1230/∂C
+    base = (1 - ALPHA_12) * ema12 - (1 - ALPHA_26) * ema26
+    gc_price = (sig - base) / slope
+    mom_price = None
+    if hist_1130 is not None:
+        mom_price = (sig + hist_1130 / (1 - ALPHA_9) - base) / slope
+    return {
+        "gc_price": gc_price,
+        "mom_price": mom_price,
+        "signal_1130": sig,
+        "ema12_1130": ema12,
+        "ema26_1130": ema26,
+    }
+
+
 def sign_str(x: float | None) -> str | None:
     if x is None or (isinstance(x, float) and math.isnan(x)):
         return None
@@ -215,6 +258,18 @@ def process_code(entry: dict, df: pd.DataFrame, target_date) -> dict | None:
     d1 = (h2 - h1) if (h1 is not None and h2 is not None and not pd.isna(h1) and not pd.isna(h2)) else None
     d2 = (h3 - h2) if (h2 is not None and h3 is not None and not pd.isna(h2) and not pd.isna(h3)) else None
 
+    # 12:30足の判定価格。11:30足が確定していないとEMA状態が1本ずれるため、その場合は出さない
+    th = threshold_prices(last_bar, hist_1130) if has_1130_bar else {
+        "gc_price": None, "mom_price": None, "signal_1130": None, "ema12_1130": None, "ema26_1130": None}
+    # モメンタムフィルターv3.4は3差分すべてが負のときだけ棄却する。d1・d2のどちらかが
+    # 非負なら12:30の値に関係なく通過が確定するので、12:30の確認そのものが不要になる
+    needs_mom_check = bool(
+        hist_1130 is not None and hist_1130 > 0
+        and d1 is not None and d1 < 0
+        and d2 is not None and d2 < 0
+    )
+    decision_price = th["mom_price"] if (needs_mom_check and th["mom_price"] is not None) else th["gc_price"]
+
     value_approx = float((morning["volume"] * (morning["open"] + morning["high"] + morning["low"] + morning["close"]) / 4.0).sum())
 
     sizing = compute_sizing(zenba_close, zenba_low, atr14)
@@ -241,6 +296,14 @@ def process_code(entry: dict, df: pd.DataFrame, target_date) -> dict | None:
         "d1_sign": sign_str(d1),
         "d2_sign": sign_str(d2),
         "momentum_hint": hist_1130,
+        # --- 12:30足の判定を「価格の比較」に変換した値（目視でヒストを読まないため） ---
+        "gc_price": th["gc_price"],            # 12:30終値がこれ超ならヒスト正(GC成立)
+        "mom_price": th["mom_price"],          # 12:30終値がこれ以上ならヒスト単調減少が途切れる
+        "decision_price": decision_price,      # 実際に見るべき1本の価格
+        "needs_mom_check": needs_mom_check,    # falseならモメンタムフィルターは無関係
+        "signal_1130": th["signal_1130"],      # 監査用(手計算で再現できるようにEMA状態も出す)
+        "ema12_1130": th["ema12_1130"],
+        "ema26_1130": th["ema26_1130"],
         "shares": sizing["shares"],
         "sl": sizing["sl"],
         "tp": sizing["tp"],
@@ -264,9 +327,13 @@ def round_stock_numbers(s: dict) -> dict:
     for k in ("atr14",):
         if out.get(k) is not None:
             out[k] = round(out[k], 2)
-    for k in ("hist_1130", "momentum_hint"):
+    for k in ("hist_1130", "momentum_hint", "signal_1130", "ema12_1130", "ema26_1130"):
         if out.get(k) is not None:
             out[k] = round(out[k], 4)
+    # 判定価格は呼値未満の精度を出しても意味がないが、境界の誤判定を避けるため小数2桁は残す
+    for k in ("gc_price", "mom_price", "decision_price"):
+        if out.get(k) is not None:
+            out[k] = round(out[k], 2)
     for k in ("risk_jpy", "notional_jpy", "value_approx_jpy"):
         if out.get(k) is not None:
             out[k] = round(out[k])

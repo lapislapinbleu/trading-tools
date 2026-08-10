@@ -1400,6 +1400,11 @@ function buildSizing27Rows(prepData) {
       gcState: s ? s.gc_state : null,
       d1Sign: s ? s.d1_sign : null, d2Sign: s ? s.d2_sign : null,
       momentumHint: s && s.momentum_hint != null ? s.momentum_hint : null,
+      // 12:30足の判定を価格比較に変換した値（daily_prep.py threshold_prices）
+      gcPrice: s && s.gc_price != null ? s.gc_price : null,
+      momPrice: s && s.mom_price != null ? s.mom_price : null,
+      decisionPrice: s && s.decision_price != null ? s.decision_price : null,
+      needsMomCheck: s ? !!s.needs_mom_check : false,
       tradable: s ? !!s.tradable : null, hasBar: s ? !!s.has_1130_bar : null,
       fromJson: !!s,
     };
@@ -1453,7 +1458,11 @@ function Sizing27Row({ row, rowEdits, result, isOpen, onToggle, onEdit, onRegist
         row.gcState && e("span", {
           className: `shrink-0 rounded-md border px-1.5 py-0.5 text-[10.5px] ${isGcNeg ? "border-slate-700 bg-slate-800/60 text-slate-400" : "border-emerald-500/25 bg-emerald-500/10 text-emerald-300"}`,
         }, isGcNeg ? "新規GC待ち" : "GC正"),
-        isHeld && e("span", { className: "shrink-0 rounded-md border border-sky-500/25 bg-sky-500/10 px-1.5 py-0.5 text-[10.5px] text-sky-300" }, "保有中")
+        isHeld && e("span", { className: "shrink-0 rounded-md border border-sky-500/25 bg-sky-500/10 px-1.5 py-0.5 text-[10.5px] text-sky-300" }, "保有中"),
+        // 12:35に確定する12:30足の終値をこの数値と比べるだけで採否が決まる（ヒストの目視読み取り不要）
+        row.decisionPrice != null && e("span", {
+          className: "shrink-0 rounded-md border border-sky-500/25 bg-sky-500/10 px-1.5 py-0.5 text-[10.5px] font-mono tabular-nums text-sky-300",
+        }, `12:30終値 ≥ ${fmtPrice(row.decisionPrice)}`)
       ),
       e("div", { className: "flex items-center gap-2 shrink-0" },
         e("span", { className: "text-[12px] font-mono tabular-nums text-slate-300" }, riskInfo ? `${fmt(riskInfo.qty)}株` : "―"),
@@ -1471,8 +1480,26 @@ function Sizing27Row({ row, rowEdits, result, isOpen, onToggle, onEdit, onRegist
         e(NumberField, { label: "前場高値（ATR推定用）", value: rowEdits.morningHigh, onChange: (v) => onEdit("morningHigh", v), placeholder: "例: 4830", suffix: "円" }),
         e(NumberField, { label: "ATR（円・実測値／JSON自動入力・上書き可）", value: rowEdits.atrManual, onChange: (v) => onEdit("atrManual", v), placeholder: "TradingView等", suffix: "円" })
       ),
-      e("div", { className: "text-[10.5px] text-slate-600" },
-        `12:30足ヒスト<${hintVal}なら見送り注意(d1,d2マイナス時: ${row.d1Sign || "?"}${row.d2Sign || "?"})`),
+      // ヒストグラムの目視読み取りをやめ、12:30足終値と「判定価格」の大小比較に置き換える。
+      // 昼休みを挟むため11:30足の次は必ず12:30足であり、12:30のヒストは11:30時点のEMAと
+      // 12:30終値だけで決まる（daily_prep.py threshold_prices・過去1,604サンプルで100%一致）。
+      row.decisionPrice != null
+        ? e("div", { className: "rounded-lg bg-sky-500/5 border border-sky-500/20 px-3 py-2 space-y-1" },
+            e("div", { className: "text-[11.5px] font-semibold text-sky-300" }, "12:30足（12:35確定）の終値で判定"),
+            e("div", { className: "text-[11.5px] text-slate-300 font-mono tabular-nums" },
+              `GC維持/成立: ¥${fmtPrice(row.gcPrice)} 超`),
+            row.needsMomCheck
+              ? e("div", { className: "text-[11.5px] text-slate-300 font-mono tabular-nums" },
+                  `モメンタム通過: ¥${fmtPrice(row.momPrice)} 以上`)
+              : e("div", { className: "text-[11px] text-slate-500" },
+                  `モメンタムフィルターは適用外（d1${row.d1Sign || "?"}/d2${row.d2Sign || "?"}のため3差分すべて負になり得ない）`),
+            e("div", { className: "text-[12px] font-semibold text-sky-200 font-mono tabular-nums pt-0.5" },
+              `→ 判定価格 ¥${fmtPrice(row.decisionPrice)} 以上で条件クリア`),
+            e("div", { className: "text-[10.5px] text-slate-600" },
+              `参考: 11:30ヒスト ${hintVal}（d1${row.d1Sign || "?"} d2${row.d2Sign || "?"}）`)
+          )
+        : e("div", { className: "text-[10.5px] text-slate-600" },
+            `判定価格は未算出（11:30足が未確定）。12:30足ヒスト<${hintVal}なら見送り注意(d1${row.d1Sign || "?"} d2${row.d2Sign || "?"})`),
       result && result.error && e("div", { className: "flex items-start gap-2 rounded-lg bg-red-500/10 border border-red-500/25 px-3 py-2 text-[12px] text-red-300" },
         e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
         e("span", null, result.error)
