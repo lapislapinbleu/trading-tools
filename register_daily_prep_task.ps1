@@ -6,7 +6,7 @@
 # いずれも「起動時刻を過ぎていたらできるだけ早く実行」を有効化（PC起動が遅れた日の保険）。
 #
 # 実行方法（PowerShellで）:
-#   powershell -ExecutionPolicy Bypass -File D:\invest\trading-tools\register_daily_prep_task.ps1
+#   powershell -ExecutionPolicy Bypass -File C:\trading-tools\register_daily_prep_task.ps1
 # 削除したい場合:
 #   Unregister-ScheduledTask -TaskName "Phoenix DailyPrep Noon" -Confirm:$false
 #   Unregister-ScheduledTask -TaskName "Phoenix DailyPrep Close" -Confirm:$false

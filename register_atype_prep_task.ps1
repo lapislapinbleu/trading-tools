@@ -5,7 +5,7 @@
 #   Phoenix ATypePrep Morning2  08:55  再生成（yfinance未応答時の保険）
 #
 # 実行方法（PowerShellで）:
-#   powershell -ExecutionPolicy Bypass -File D:\invest\trading-tools\register_atype_prep_task.ps1
+#   powershell -ExecutionPolicy Bypass -File C:\trading-tools\register_atype_prep_task.ps1
 # 削除したい場合:
 #   Unregister-ScheduledTask -TaskName "Phoenix ATypePrep Morning" -Confirm:$false
 
