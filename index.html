@@ -1491,8 +1491,12 @@ function Sizing27Row({ row, rowEdits, result, isOpen, onToggle, onEdit, onRegist
             row.needsMomCheck
               ? e("div", { className: "text-[11.5px] text-slate-300 font-mono tabular-nums" },
                   `モメンタム通過: ¥${fmtPrice(row.momPrice)} 以上`)
-              : e("div", { className: "text-[11px] text-slate-500" },
-                  `モメンタムフィルターは適用外（d1${row.d1Sign || "?"}/d2${row.d2Sign || "?"}のため3差分すべて負になり得ない）`),
+              // 「適用外」には2通りある。理由を取り違えないよう分けて表示する
+              : (isGcNeg
+                  ? e("div", { className: "text-[11px] text-slate-500" },
+                      "モメンタムフィルターは標準GC専用のため対象外（現在ヒスト負＝Rule③の新規GC判定）")
+                  : e("div", { className: "text-[11px] text-emerald-400/80" },
+                      `モメンタムフィルターは通過確定（d1${row.d1Sign || "?"} d2${row.d2Sign || "?"}＝3差分すべて負になり得ない）。12:30ヒストの確認は不要`)),
             e("div", { className: "text-[12px] font-semibold text-sky-200 font-mono tabular-nums pt-0.5" },
               `→ 判定価格 ¥${fmtPrice(row.decisionPrice)} 以上で条件クリア`),
             e("div", { className: "text-[10.5px] text-slate-600" },
