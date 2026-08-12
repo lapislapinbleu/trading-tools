@@ -1,14 +1,8 @@
 {
-  "generated_at": "2026-08-12T13:28:56.340756+09:00",
+  "generated_at": "2026-08-12T13:52:03.769507+09:00",
   "date": "2026-08-12",
-  "complete": false,
-  "missing": [
-    {
-      "code4": "9364",
-      "name": "上組",
-      "reason": "データ取得なし"
-    }
-  ],
+  "complete": true,
+  "missing": [],
   "stocks": [
     {
       "code4": "5803",
@@ -21,18 +15,18 @@
       "前場安値": 5306.0,
       "前場高値": 5603.0,
       "atr14": 30.07,
-      "hist_1130": 8.982,
+      "hist_1130": 8.9968,
       "gc_state": "正",
       "d1_sign": "+",
       "d2_sign": "+",
-      "momentum_hint": 8.982,
-      "gc_price": 5463.38,
-      "mom_price": 5604.12,
-      "decision_price": 5463.38,
+      "momentum_hint": 8.9968,
+      "gc_price": 5463.16,
+      "mom_price": 5604.14,
+      "decision_price": 5463.16,
       "needs_mom_check": false,
-      "signal_1130": 7.9984,
-      "ema12_1130": 5560.2045,
-      "ema26_1130": 5543.2241,
+      "signal_1130": 7.9864,
+      "ema12_1130": 5560.1703,
+      "ema26_1130": 5543.187,
       "shares": 100,
       "sl": 5275.9,
       "tp": 5933.9,
@@ -41,7 +35,7 @@
       "notional_jpy": 559800,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 197295058100,
+      "value_approx_jpy": 197462645925,
       "day_high": 5758.0,
       "pm_high": 5758.0,
       "優先順位": 1
@@ -186,8 +180,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 29555481325,
-      "day_high": 3883.0,
-      "pm_high": 3883.0,
+      "day_high": 3887.0,
+      "pm_high": 3887.0,
       "優先順位": 5
     },
     {
@@ -294,8 +288,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 18022309425,
-      "day_high": 2266.5,
-      "pm_high": 2266.5,
+      "day_high": 2276.0,
+      "pm_high": 2276.0,
       "優先順位": 8
     },
     {
@@ -381,18 +375,18 @@
       "前場安値": 5140.0,
       "前場高値": 5427.0,
       "atr14": 21.64,
-      "hist_1130": -0.0082,
+      "hist_1130": -0.0085,
       "gc_state": "負",
       "d1_sign": "+",
       "d2_sign": "+",
-      "momentum_hint": -0.0082,
+      "momentum_hint": -0.0085,
       "gc_price": 5179.81,
       "mom_price": 5179.68,
       "decision_price": 5179.81,
       "needs_mom_check": false,
-      "signal_1130": 1.6177,
+      "signal_1130": 1.6185,
       "ema12_1130": 5178.2084,
-      "ema26_1130": 5176.599,
+      "ema26_1130": 5176.5984,
       "shares": 100,
       "sl": 5118.4,
       "tp": 5505.6,
@@ -475,7 +469,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 8369933012,
       "day_high": 2364.5,
-      "pm_high": 2339.5,
+      "pm_high": 2348.0,
       "優先順位": 13
     },
     {
@@ -583,7 +577,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 4800138838,
       "day_high": 1718.0,
-      "pm_high": 1706.5,
+      "pm_high": 1708.5,
       "優先順位": 16
     },
     {
@@ -619,7 +613,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 4761679762,
       "day_high": 1874.0,
-      "pm_high": 1869.5,
+      "pm_high": 1872.0,
       "優先順位": 17
     },
     {
@@ -727,7 +721,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 1957796950,
       "day_high": 4986.0,
-      "pm_high": 4924.0,
+      "pm_high": 4928.0,
       "優先順位": 20
     },
     {
@@ -869,7 +863,7 @@
       "notional_jpy": 964000,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 1245838600,
+      "value_approx_jpy": 1245838225,
       "day_high": 2465.0,
       "pm_high": 2416.5,
       "優先順位": 24
@@ -911,6 +905,42 @@
       "優先順位": 25
     },
     {
+      "code4": "9364",
+      "name": "上組",
+      "区分": "黄",
+      "sector": "倉庫運輸",
+      "financial": false,
+      "no_market_order": true,
+      "前引け値": 5025.0,
+      "前場安値": 5024.0,
+      "前場高値": 5069.0,
+      "atr14": 4.57,
+      "hist_1130": -1.9568,
+      "gc_state": "負",
+      "d1_sign": "+",
+      "d2_sign": "+",
+      "momentum_hint": -1.9568,
+      "gc_price": 5051.04,
+      "mom_price": 5020.38,
+      "decision_price": 5051.04,
+      "needs_mom_check": false,
+      "signal_1130": -2.7893,
+      "ema12_1130": 5030.9181,
+      "ema26_1130": 5035.6641,
+      "shares": 200,
+      "sl": 5008.9,
+      "tp": 5326.5,
+      "trail_trigger": 5100.4,
+      "risk_jpy": 3215,
+      "notional_jpy": 1005000,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 382513575,
+      "day_high": 5069.0,
+      "pm_high": 5030.0,
+      "優先順位": 26
+    },
+    {
       "code4": "9302",
       "name": "三井倉庫",
       "区分": "黄",
@@ -943,8 +973,8 @@
       "has_1130_bar": true,
       "value_approx_jpy": 239766750,
       "day_high": 3335.0,
-      "pm_high": 3323.0,
-      "優先順位": 26
+      "pm_high": 3326.0,
+      "優先順位": 27
     }
   ]
 }
