@@ -1,8 +1,14 @@
 {
-  "generated_at": "2026-08-12T13:22:50.248346+09:00",
+  "generated_at": "2026-08-12T13:28:56.340756+09:00",
   "date": "2026-08-12",
-  "complete": true,
-  "missing": [],
+  "complete": false,
+  "missing": [
+    {
+      "code4": "9364",
+      "name": "上組",
+      "reason": "データ取得なし"
+    }
+  ],
   "stocks": [
     {
       "code4": "5803",
@@ -180,8 +186,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 29555481325,
-      "day_high": 3878.0,
-      "pm_high": 3878.0,
+      "day_high": 3883.0,
+      "pm_high": 3883.0,
       "優先順位": 5
     },
     {
@@ -288,45 +294,9 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 18022309425,
-      "day_high": 2266.0,
-      "pm_high": 2266.0,
+      "day_high": 2266.5,
+      "pm_high": 2266.5,
       "優先順位": 8
-    },
-    {
-      "code4": "5108",
-      "name": "ブリヂストン",
-      "区分": "緑",
-      "sector": "ゴム",
-      "financial": false,
-      "no_market_order": false,
-      "前引け値": 4209.0,
-      "前場安値": 4206.0,
-      "前場高値": 4319.0,
-      "atr14": 8.21,
-      "hist_1130": 0.5984,
-      "gc_state": "正",
-      "d1_sign": "-",
-      "d2_sign": "-",
-      "momentum_hint": 0.5984,
-      "gc_price": 4199.7,
-      "mom_price": 4209.08,
-      "decision_price": 4209.08,
-      "needs_mom_check": true,
-      "signal_1130": -21.2697,
-      "ema12_1130": 4226.3991,
-      "ema26_1130": 4247.0704,
-      "shares": 200,
-      "sl": 4193.4,
-      "tp": 4461.5,
-      "trail_trigger": 4272.1,
-      "risk_jpy": 3125,
-      "notional_jpy": 841800,
-      "tradable": true,
-      "has_1130_bar": true,
-      "value_approx_jpy": 15668588025,
-      "day_high": 4319.0,
-      "pm_high": 4236.0,
-      "優先順位": 9
     },
     {
       "code4": "8766",
@@ -362,7 +332,7 @@
       "value_approx_jpy": 11015290125,
       "day_high": 7837.0,
       "pm_high": 7778.0,
-      "優先順位": 10
+      "優先順位": 9
     },
     {
       "code4": "5101",
@@ -398,7 +368,7 @@
       "value_approx_jpy": 10245917125,
       "day_high": 8291.0,
       "pm_high": 7902.0,
-      "優先順位": 11
+      "優先順位": 10
     },
     {
       "code4": "5711",
@@ -434,43 +404,43 @@
       "value_approx_jpy": 10100952575,
       "day_high": 5427.0,
       "pm_high": 5229.0,
-      "優先順位": 12
+      "優先順位": 11
     },
     {
-      "code4": "8630",
-      "name": "SOMPO",
+      "code4": "5108",
+      "name": "ブリヂストン",
       "区分": "緑",
-      "sector": "保険",
-      "financial": true,
+      "sector": "ゴム",
+      "financial": false,
       "no_market_order": false,
-      "前引け値": 6951.0,
-      "前場安値": 6951.0,
-      "前場高値": 7022.0,
-      "atr14": 9.79,
-      "hist_1130": -3.6907,
-      "gc_state": "負",
+      "前引け値": 4209.0,
+      "前場安値": 4206.0,
+      "前場高値": 4319.0,
+      "atr14": 8.14,
+      "hist_1130": 0.6032,
+      "gc_state": "正",
       "d1_sign": "-",
       "d2_sign": "-",
-      "momentum_hint": -3.6907,
-      "gc_price": 7007.2,
-      "mom_price": 6949.37,
-      "decision_price": 7007.2,
-      "needs_mom_check": false,
-      "signal_1130": -6.4838,
-      "ema12_1130": 6970.3862,
-      "ema26_1130": 6980.5607,
-      "shares": 100,
-      "sl": 6930.1,
-      "tp": 7368.1,
-      "trail_trigger": 7055.3,
-      "risk_jpy": 2085,
-      "notional_jpy": 695100,
+      "momentum_hint": 0.6032,
+      "gc_price": 4199.54,
+      "mom_price": 4208.99,
+      "decision_price": 4208.99,
+      "needs_mom_check": true,
+      "signal_1130": -21.2989,
+      "ema12_1130": 4226.3203,
+      "ema26_1130": 4247.0159,
+      "shares": 200,
+      "sl": 4193.4,
+      "tp": 4461.5,
+      "trail_trigger": 4272.1,
+      "risk_jpy": 3125,
+      "notional_jpy": 841800,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 9307262250,
-      "day_high": 7022.0,
-      "pm_high": 6979.0,
-      "優先順位": 13
+      "value_approx_jpy": 9443365475,
+      "day_high": 4319.0,
+      "pm_high": 4236.0,
+      "優先順位": 12
     },
     {
       "code4": "8308",
@@ -506,7 +476,7 @@
       "value_approx_jpy": 8369933012,
       "day_high": 2364.5,
       "pm_high": 2339.5,
-      "優先順位": 14
+      "優先順位": 13
     },
     {
       "code4": "7182",
@@ -542,7 +512,7 @@
       "value_approx_jpy": 5517571975,
       "day_high": 3138.0,
       "pm_high": 3138.0,
-      "優先順位": 15
+      "優先順位": 14
     },
     {
       "code4": "8725",
@@ -577,8 +547,8 @@
       "has_1130_bar": true,
       "value_approx_jpy": 5110895750,
       "day_high": 4886.0,
-      "pm_high": 4850.0,
-      "優先順位": 16
+      "pm_high": 4851.0,
+      "優先順位": 15
     },
     {
       "code4": "8309",
@@ -613,8 +583,8 @@
       "has_1130_bar": true,
       "value_approx_jpy": 4800138838,
       "day_high": 1718.0,
-      "pm_high": 1706.0,
-      "優先順位": 17
+      "pm_high": 1706.5,
+      "優先順位": 16
     },
     {
       "code4": "8750",
@@ -649,8 +619,8 @@
       "has_1130_bar": true,
       "value_approx_jpy": 4761679762,
       "day_high": 1874.0,
-      "pm_high": 1869.0,
-      "優先順位": 18
+      "pm_high": 1869.5,
+      "優先順位": 17
     },
     {
       "code4": "8729",
@@ -686,6 +656,42 @@
       "value_approx_jpy": 4228725016,
       "day_high": 155.0,
       "pm_high": 154.7,
+      "優先順位": 18
+    },
+    {
+      "code4": "8630",
+      "name": "SOMPO",
+      "区分": "緑",
+      "sector": "保険",
+      "financial": true,
+      "no_market_order": false,
+      "前引け値": 6951.0,
+      "前場安値": 6951.0,
+      "前場高値": 7022.0,
+      "atr14": 9.79,
+      "hist_1130": -3.6907,
+      "gc_state": "負",
+      "d1_sign": "-",
+      "d2_sign": "-",
+      "momentum_hint": -3.6907,
+      "gc_price": 7007.2,
+      "mom_price": 6949.37,
+      "decision_price": 7007.2,
+      "needs_mom_check": false,
+      "signal_1130": -6.4838,
+      "ema12_1130": 6970.3862,
+      "ema26_1130": 6980.5607,
+      "shares": 100,
+      "sl": 6930.1,
+      "tp": 7368.1,
+      "trail_trigger": 7055.3,
+      "risk_jpy": 2085,
+      "notional_jpy": 695100,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 4181628950,
+      "day_high": 7022.0,
+      "pm_high": 6980.0,
       "優先順位": 19
     },
     {
@@ -699,18 +705,18 @@
       "前場安値": 4905.0,
       "前場高値": 4986.0,
       "atr14": 10.64,
-      "hist_1130": -4.5804,
+      "hist_1130": -4.5706,
       "gc_state": "負",
       "d1_sign": "-",
       "d2_sign": "-",
-      "momentum_hint": -4.5804,
-      "gc_price": 4975.07,
-      "mom_price": 4903.3,
-      "decision_price": 4975.07,
+      "momentum_hint": -4.5706,
+      "gc_price": 4974.94,
+      "mom_price": 4903.32,
+      "decision_price": 4974.94,
       "needs_mom_check": false,
-      "signal_1130": 0.9532,
-      "ema12_1130": 4921.0248,
-      "ema26_1130": 4924.6519,
+      "signal_1130": 0.9531,
+      "ema12_1130": 4921.0072,
+      "ema26_1130": 4924.6247,
       "shares": 200,
       "sl": 4890.3,
       "tp": 5200.4,
@@ -719,9 +725,9 @@
       "notional_jpy": 981200,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 1957799300,
+      "value_approx_jpy": 1957796950,
       "day_high": 4986.0,
-      "pm_high": 4921.0,
+      "pm_high": 4924.0,
       "優先順位": 20
     },
     {
@@ -863,7 +869,7 @@
       "notional_jpy": 964000,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 1245838225,
+      "value_approx_jpy": 1245838600,
       "day_high": 2465.0,
       "pm_high": 2416.5,
       "優先順位": 24
@@ -905,42 +911,6 @@
       "優先順位": 25
     },
     {
-      "code4": "9364",
-      "name": "上組",
-      "区分": "黄",
-      "sector": "倉庫運輸",
-      "financial": false,
-      "no_market_order": true,
-      "前引け値": 5025.0,
-      "前場安値": 5024.0,
-      "前場高値": 5069.0,
-      "atr14": 4.57,
-      "hist_1130": -1.9568,
-      "gc_state": "負",
-      "d1_sign": "+",
-      "d2_sign": "+",
-      "momentum_hint": -1.9568,
-      "gc_price": 5051.04,
-      "mom_price": 5020.38,
-      "decision_price": 5051.04,
-      "needs_mom_check": false,
-      "signal_1130": -2.7893,
-      "ema12_1130": 5030.9181,
-      "ema26_1130": 5035.6641,
-      "shares": 200,
-      "sl": 5008.9,
-      "tp": 5326.5,
-      "trail_trigger": 5100.4,
-      "risk_jpy": 3215,
-      "notional_jpy": 1005000,
-      "tradable": true,
-      "has_1130_bar": true,
-      "value_approx_jpy": 382513575,
-      "day_high": 5069.0,
-      "pm_high": 5029.0,
-      "優先順位": 26
-    },
-    {
       "code4": "9302",
       "name": "三井倉庫",
       "区分": "黄",
@@ -973,8 +943,8 @@
       "has_1130_bar": true,
       "value_approx_jpy": 239766750,
       "day_high": 3335.0,
-      "pm_high": 3319.0,
-      "優先順位": 27
+      "pm_high": 3323.0,
+      "優先順位": 26
     }
   ]
 }
