@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-13T13:32:06.215508+09:00",
+  "generated_at": "2026-08-13T13:56:49.586908+09:00",
   "date": "2026-08-13",
   "complete": true,
   "missing": [],
@@ -15,18 +15,18 @@
       "前場安値": 5741.0,
       "前場高値": 5988.0,
       "atr14": 29.93,
-      "hist_1130": -4.4744,
+      "hist_1130": -4.4745,
       "gc_state": "負",
       "d1_sign": "+",
       "d2_sign": "+",
-      "momentum_hint": -4.4744,
-      "gc_price": 5916.88,
+      "momentum_hint": -4.4745,
+      "gc_price": 5916.89,
       "mom_price": 5846.77,
-      "decision_price": 5916.88,
+      "decision_price": 5916.89,
       "needs_mom_check": false,
-      "signal_1130": 13.0231,
+      "signal_1130": 13.0235,
       "ema12_1130": 5852.8563,
-      "ema26_1130": 5844.3076,
+      "ema26_1130": 5844.3073,
       "shares": 100,
       "sl": 5711.1,
       "tp": 6209.5,
@@ -77,42 +77,6 @@
       "優先順位": 2
     },
     {
-      "code4": "5016",
-      "name": "JX金属",
-      "区分": "緑",
-      "sector": "非鉄金属",
-      "financial": false,
-      "no_market_order": false,
-      "前引け値": 3926.0,
-      "前場安値": 3892.0,
-      "前場高値": 4002.0,
-      "atr14": 15.57,
-      "hist_1130": -1.9259,
-      "gc_state": "負",
-      "d1_sign": "+",
-      "d2_sign": "+",
-      "momentum_hint": -1.9259,
-      "gc_price": 3950.83,
-      "mom_price": 3920.65,
-      "decision_price": 3950.83,
-      "needs_mom_check": false,
-      "signal_1130": 2.7504,
-      "ema12_1130": 3925.9225,
-      "ema26_1130": 3925.098,
-      "shares": 200,
-      "sl": 3876.4,
-      "tp": 4161.6,
-      "trail_trigger": 3984.9,
-      "risk_jpy": 9914,
-      "notional_jpy": 785200,
-      "tradable": true,
-      "has_1130_bar": true,
-      "value_approx_jpy": 78884013550,
-      "day_high": 4002.0,
-      "pm_high": 3915.0,
-      "優先順位": 3
-    },
-    {
       "code4": "8306",
       "name": "三菱UFJ",
       "区分": "緑",
@@ -145,7 +109,43 @@
       "has_1130_bar": true,
       "value_approx_jpy": 45334357625,
       "day_high": 3677.0,
-      "pm_high": 3664.0,
+      "pm_high": 3670.0,
+      "優先順位": 3
+    },
+    {
+      "code4": "5016",
+      "name": "JX金属",
+      "区分": "緑",
+      "sector": "非鉄金属",
+      "financial": false,
+      "no_market_order": false,
+      "前引け値": 3926.0,
+      "前場安値": 3892.0,
+      "前場高値": 4002.0,
+      "atr14": 15.57,
+      "hist_1130": -1.9259,
+      "gc_state": "負",
+      "d1_sign": "+",
+      "d2_sign": "+",
+      "momentum_hint": -1.9259,
+      "gc_price": 3950.83,
+      "mom_price": 3920.65,
+      "decision_price": 3950.83,
+      "needs_mom_check": false,
+      "signal_1130": 2.7504,
+      "ema12_1130": 3925.9225,
+      "ema26_1130": 3925.098,
+      "shares": 200,
+      "sl": 3876.4,
+      "tp": 4161.6,
+      "trail_trigger": 3984.9,
+      "risk_jpy": 9914,
+      "notional_jpy": 785200,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 41369696750,
+      "day_high": 4002.0,
+      "pm_high": 3915.0,
       "優先順位": 4
     },
     {
@@ -217,7 +217,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 27934308175,
       "day_high": 8683.0,
-      "pm_high": 8657.0,
+      "pm_high": 8665.0,
       "優先順位": 6
     },
     {
@@ -253,7 +253,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 27896329525,
       "day_high": 6927.0,
-      "pm_high": 6899.0,
+      "pm_high": 6906.0,
       "優先順位": 7
     },
     {
@@ -288,8 +288,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 22521736100,
-      "day_high": 7622.0,
-      "pm_high": 7606.0,
+      "day_high": 7625.0,
+      "pm_high": 7625.0,
       "優先順位": 8
     },
     {
@@ -325,7 +325,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 20875617075,
       "day_high": 10010.0,
-      "pm_high": 9849.0,
+      "pm_high": 9873.0,
       "優先順位": 9
     },
     {
@@ -361,7 +361,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 9156273025,
       "day_high": 3209.0,
-      "pm_high": 3193.0,
+      "pm_high": 3197.0,
       "優先順位": 10
     },
     {
@@ -397,7 +397,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 7190323488,
       "day_high": 2413.5,
-      "pm_high": 2398.5,
+      "pm_high": 2401.0,
       "優先順位": 11
     },
     {
@@ -469,7 +469,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 5135391150,
       "day_high": 5463.0,
-      "pm_high": 5281.0,
+      "pm_high": 5289.0,
       "優先順位": 13
     },
     {
@@ -505,7 +505,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 5077746150,
       "day_high": 4853.0,
-      "pm_high": 4825.0,
+      "pm_high": 4826.0,
       "優先順位": 14
     },
     {
@@ -541,7 +541,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 4681991525,
       "day_high": 1883.0,
-      "pm_high": 1873.5,
+      "pm_high": 1874.0,
       "優先順位": 15
     },
     {
@@ -576,8 +576,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 4470636775,
-      "day_high": 7015.0,
-      "pm_high": 6998.0,
+      "day_high": 7016.0,
+      "pm_high": 7016.0,
       "優先順位": 16
     },
     {
@@ -613,7 +613,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 3832472812,
       "day_high": 1746.5,
-      "pm_high": 1729.0,
+      "pm_high": 1732.0,
       "優先順位": 17
     },
     {
@@ -649,7 +649,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 2634438658,
       "day_high": 155.2,
-      "pm_high": 153.4,
+      "pm_high": 153.9,
       "優先順位": 18
     },
     {
@@ -663,18 +663,18 @@
       "前場安値": 7572.0,
       "前場高値": 7839.0,
       "atr14": 21.29,
-      "hist_1130": 3.0125,
+      "hist_1130": 3.0112,
       "gc_state": "正",
       "d1_sign": "+",
       "d2_sign": "+",
-      "momentum_hint": 3.0125,
-      "gc_price": 7533.01,
+      "momentum_hint": 3.0112,
+      "gc_price": 7533.02,
       "mom_price": 7580.21,
-      "decision_price": 7533.01,
+      "decision_price": 7533.02,
       "needs_mom_check": false,
-      "signal_1130": -41.2511,
+      "signal_1130": -41.247,
       "ema12_1130": 7606.2774,
-      "ema26_1130": 7644.5161,
+      "ema26_1130": 7644.5132,
       "shares": 100,
       "sl": 7549.2,
       "tp": 8044.3,
@@ -683,9 +683,9 @@
       "notional_jpy": 758900,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 2552812050,
+      "value_approx_jpy": 2552816500,
       "day_high": 7839.0,
-      "pm_high": 7648.0,
+      "pm_high": 7662.0,
       "優先順位": 19
     },
     {
@@ -699,18 +699,18 @@
       "前場安値": 4882.0,
       "前場高値": 4964.0,
       "atr14": 8.57,
-      "hist_1130": -0.1532,
+      "hist_1130": -0.1533,
       "gc_state": "負",
       "d1_sign": "-",
       "d2_sign": "-",
-      "momentum_hint": -0.1532,
+      "momentum_hint": -0.1533,
       "gc_price": 4898.7,
       "mom_price": 4896.3,
       "decision_price": 4898.7,
       "needs_mom_check": false,
-      "signal_1130": -7.2459,
+      "signal_1130": -7.2456,
       "ema12_1130": 4903.6498,
-      "ema26_1130": 4911.049,
+      "ema26_1130": 4911.0488,
       "shares": 200,
       "sl": 4867.3,
       "tp": 5188.7,
@@ -721,7 +721,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 1678078675,
       "day_high": 4964.0,
-      "pm_high": 4927.0,
+      "pm_high": 4932.0,
       "優先順位": 20
     },
     {
@@ -756,8 +756,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 2163784125,
-      "day_high": 3813.0,
-      "pm_high": 3812.0,
+      "day_high": 3815.0,
+      "pm_high": 3815.0,
       "優先順位": 21
     },
     {
@@ -829,7 +829,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 1204939325,
       "day_high": 9650.0,
-      "pm_high": 9514.0,
+      "pm_high": 9537.0,
       "優先順位": 23
     },
     {
@@ -864,8 +864,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 1037137738,
-      "day_high": 1664.5,
-      "pm_high": 1664.5,
+      "day_high": 1665.5,
+      "pm_high": 1665.5,
       "優先順位": 24
     },
     {
@@ -937,7 +937,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 267597875,
       "day_high": 5057.0,
-      "pm_high": 5033.0,
+      "pm_high": 5034.0,
       "優先順位": 26
     },
     {
