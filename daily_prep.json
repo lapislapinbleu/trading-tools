@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-13T13:26:44.556294+09:00",
+  "generated_at": "2026-08-13T13:32:06.215508+09:00",
   "date": "2026-08-13",
   "complete": true,
   "missing": [],
@@ -77,6 +77,42 @@
       "優先順位": 2
     },
     {
+      "code4": "5016",
+      "name": "JX金属",
+      "区分": "緑",
+      "sector": "非鉄金属",
+      "financial": false,
+      "no_market_order": false,
+      "前引け値": 3926.0,
+      "前場安値": 3892.0,
+      "前場高値": 4002.0,
+      "atr14": 15.57,
+      "hist_1130": -1.9259,
+      "gc_state": "負",
+      "d1_sign": "+",
+      "d2_sign": "+",
+      "momentum_hint": -1.9259,
+      "gc_price": 3950.83,
+      "mom_price": 3920.65,
+      "decision_price": 3950.83,
+      "needs_mom_check": false,
+      "signal_1130": 2.7504,
+      "ema12_1130": 3925.9225,
+      "ema26_1130": 3925.098,
+      "shares": 200,
+      "sl": 3876.4,
+      "tp": 4161.6,
+      "trail_trigger": 3984.9,
+      "risk_jpy": 9914,
+      "notional_jpy": 785200,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 78884013550,
+      "day_high": 4002.0,
+      "pm_high": 3915.0,
+      "優先順位": 3
+    },
+    {
       "code4": "8306",
       "name": "三菱UFJ",
       "区分": "緑",
@@ -109,43 +145,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 45334357625,
       "day_high": 3677.0,
-      "pm_high": 3661.0,
-      "優先順位": 3
-    },
-    {
-      "code4": "5016",
-      "name": "JX金属",
-      "区分": "緑",
-      "sector": "非鉄金属",
-      "financial": false,
-      "no_market_order": false,
-      "前引け値": 3926.0,
-      "前場安値": 3892.0,
-      "前場高値": 4002.0,
-      "atr14": 15.57,
-      "hist_1130": -1.9259,
-      "gc_state": "負",
-      "d1_sign": "+",
-      "d2_sign": "+",
-      "momentum_hint": -1.9259,
-      "gc_price": 3950.83,
-      "mom_price": 3920.65,
-      "decision_price": 3950.83,
-      "needs_mom_check": false,
-      "signal_1130": 2.7504,
-      "ema12_1130": 3925.9225,
-      "ema26_1130": 3925.098,
-      "shares": 200,
-      "sl": 3876.4,
-      "tp": 4161.6,
-      "trail_trigger": 3984.9,
-      "risk_jpy": 9914,
-      "notional_jpy": 785200,
-      "tradable": true,
-      "has_1130_bar": true,
-      "value_approx_jpy": 41369696750,
-      "day_high": 4002.0,
-      "pm_high": 3915.0,
+      "pm_high": 3664.0,
       "優先順位": 4
     },
     {
@@ -217,7 +217,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 27934308175,
       "day_high": 8683.0,
-      "pm_high": 8655.0,
+      "pm_high": 8657.0,
       "優先順位": 6
     },
     {
@@ -253,7 +253,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 27896329525,
       "day_high": 6927.0,
-      "pm_high": 6895.0,
+      "pm_high": 6899.0,
       "優先順位": 7
     },
     {
@@ -289,7 +289,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 22521736100,
       "day_high": 7622.0,
-      "pm_high": 7601.0,
+      "pm_high": 7606.0,
       "優先順位": 8
     },
     {
@@ -361,7 +361,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 9156273025,
       "day_high": 3209.0,
-      "pm_high": 3182.0,
+      "pm_high": 3193.0,
       "優先順位": 10
     },
     {
@@ -397,7 +397,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 7190323488,
       "day_high": 2413.5,
-      "pm_high": 2397.5,
+      "pm_high": 2398.5,
       "優先順位": 11
     },
     {
@@ -469,7 +469,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 5135391150,
       "day_high": 5463.0,
-      "pm_high": 5271.0,
+      "pm_high": 5281.0,
       "優先順位": 13
     },
     {
@@ -503,9 +503,9 @@
       "notional_jpy": 958000,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 5077751650,
+      "value_approx_jpy": 5077746150,
       "day_high": 4853.0,
-      "pm_high": 4824.0,
+      "pm_high": 4825.0,
       "優先順位": 14
     },
     {
@@ -541,7 +541,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 4681991525,
       "day_high": 1883.0,
-      "pm_high": 1871.0,
+      "pm_high": 1873.5,
       "優先順位": 15
     },
     {
@@ -577,7 +577,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 4470636775,
       "day_high": 7015.0,
-      "pm_high": 6990.0,
+      "pm_high": 6998.0,
       "優先順位": 16
     },
     {
@@ -611,9 +611,9 @@
       "notional_jpy": 858250,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 3832500412,
+      "value_approx_jpy": 3832472812,
       "day_high": 1746.5,
-      "pm_high": 1728.5,
+      "pm_high": 1729.0,
       "優先順位": 17
     },
     {
@@ -735,18 +735,18 @@
       "前場安値": 3762.0,
       "前場高値": 3810.0,
       "atr14": 8.21,
-      "hist_1130": -0.1759,
+      "hist_1130": -0.1675,
       "gc_state": "負",
       "d1_sign": "-",
       "d2_sign": "-",
-      "momentum_hint": -0.1759,
-      "gc_price": 3792.75,
-      "mom_price": 3789.99,
-      "decision_price": 3792.75,
+      "momentum_hint": -0.1675,
+      "gc_price": 3792.64,
+      "mom_price": 3790.02,
+      "decision_price": 3792.64,
       "needs_mom_check": false,
-      "signal_1130": 0.203,
-      "ema12_1130": 3790.5208,
-      "ema26_1130": 3790.4936,
+      "signal_1130": 0.205,
+      "ema12_1130": 3790.5059,
+      "ema26_1130": 3790.4684,
       "shares": 200,
       "sl": 3750.6,
       "tp": 4013.2,
@@ -755,7 +755,7 @@
       "notional_jpy": 757200,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 4763832575,
+      "value_approx_jpy": 2163784125,
       "day_high": 3813.0,
       "pm_high": 3812.0,
       "優先順位": 21
@@ -829,7 +829,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 1204939325,
       "day_high": 9650.0,
-      "pm_high": 9513.0,
+      "pm_high": 9514.0,
       "優先順位": 23
     },
     {
@@ -865,7 +865,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 1037137738,
       "day_high": 1664.5,
-      "pm_high": 1663.5,
+      "pm_high": 1664.5,
       "優先順位": 24
     },
     {
@@ -901,7 +901,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 582292775,
       "day_high": 1520.5,
-      "pm_high": 1497.5,
+      "pm_high": 1498.0,
       "優先順位": 25
     },
     {
