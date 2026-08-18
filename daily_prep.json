@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-18T16:25:24.237332+09:00",
+  "generated_at": "2026-08-18T16:49:01.229696+09:00",
   "date": "2026-08-18",
   "complete": true,
   "missing": [],
@@ -35,7 +35,7 @@
       "notional_jpy": 595400,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 263456568975,
+      "value_approx_jpy": 263025651225,
       "day_high": 6433.0,
       "pm_high": 6085.0,
       "優先順位": 1
@@ -107,7 +107,7 @@
       "notional_jpy": 737800,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 50914798850,
+      "value_approx_jpy": 50914779550,
       "day_high": 3709.0,
       "pm_high": 3685.0,
       "優先順位": 3
@@ -179,7 +179,7 @@
       "notional_jpy": 974800,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 36025954062,
+      "value_approx_jpy": 36026210125,
       "day_high": 2584.0,
       "pm_high": 2459.0,
       "優先順位": 5
@@ -458,7 +458,7 @@
       "needs_mom_check": false,
       "signal_1130": -3.447,
       "ema12_1130": 5324.6785,
-      "ema26_1130": 5344.5825,
+      "ema26_1130": 5344.5826,
       "shares": 100,
       "sl": 5223.4,
       "tp": 5593.6,
@@ -755,7 +755,7 @@
       "notional_jpy": 958800,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 1723945400,
+      "value_approx_jpy": 1723945100,
       "day_high": 9840.0,
       "pm_high": 9614.0,
       "優先順位": 21
@@ -791,7 +791,7 @@
       "notional_jpy": 755200,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 1227585450,
+      "value_approx_jpy": 1227584950,
       "day_high": 3800.0,
       "pm_high": 3792.0,
       "優先順位": 22
@@ -899,7 +899,7 @@
       "notional_jpy": 912000,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 575790362,
+      "value_approx_jpy": 575788788,
       "day_high": 1527.0,
       "pm_high": 1524.5,
       "優先順位": 25
@@ -935,7 +935,7 @@
       "notional_jpy": 981000,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 470271975,
+      "value_approx_jpy": 470272275,
       "day_high": 4914.0,
       "pm_high": 4913.0,
       "優先順位": 26
