@@ -1,8 +1,14 @@
 {
-  "generated_at": "2026-08-18T12:30:10.268534+09:00",
+  "generated_at": "2026-08-18T12:49:45.419539+09:00",
   "date": "2026-08-18",
-  "complete": true,
-  "missing": [],
+  "complete": false,
+  "missing": [
+    {
+      "code4": "7182",
+      "name": "ゆうちょ",
+      "reason": "データ取得なし"
+    }
+  ],
   "stocks": [
     {
       "code4": "5803",
@@ -365,42 +371,6 @@
       "優先順位": 10
     },
     {
-      "code4": "7182",
-      "name": "ゆうちょ",
-      "区分": "緑",
-      "sector": "銀行",
-      "financial": true,
-      "no_market_order": false,
-      "前引け値": 3347.0,
-      "前場安値": 3284.0,
-      "前場高値": 3360.0,
-      "atr14": 6.5,
-      "hist_1130": -2.1341,
-      "gc_state": "負",
-      "d1_sign": "-",
-      "d2_sign": "-",
-      "momentum_hint": -2.1341,
-      "gc_price": 3383.78,
-      "mom_price": 3350.34,
-      "decision_price": 3383.78,
-      "needs_mom_check": false,
-      "signal_1130": 11.3848,
-      "ema12_1130": 3348.4389,
-      "ema26_1130": 3339.1883,
-      "shares": 300,
-      "sl": 3274.0,
-      "tp": 3547.8,
-      "trail_trigger": 3397.2,
-      "risk_jpy": 21912,
-      "notional_jpy": 1004100,
-      "tradable": true,
-      "has_1130_bar": true,
-      "value_approx_jpy": 8907940150,
-      "day_high": 3360.0,
-      "pm_high": null,
-      "優先順位": 11
-    },
-    {
       "code4": "8630",
       "name": "SOMPO",
       "区分": "緑",
@@ -434,7 +404,7 @@
       "value_approx_jpy": 7117965750,
       "day_high": 6749.0,
       "pm_high": null,
-      "優先順位": 12
+      "優先順位": 11
     },
     {
       "code4": "5711",
@@ -470,7 +440,7 @@
       "value_approx_jpy": 6862868550,
       "day_high": 5516.0,
       "pm_high": null,
-      "優先順位": 13
+      "優先順位": 12
     },
     {
       "code4": "8309",
@@ -506,7 +476,7 @@
       "value_approx_jpy": 6060795962,
       "day_high": 1762.0,
       "pm_high": null,
-      "優先順位": 14
+      "優先順位": 13
     },
     {
       "code4": "8725",
@@ -542,7 +512,7 @@
       "value_approx_jpy": 5929273800,
       "day_high": 4988.0,
       "pm_high": null,
-      "優先順位": 15
+      "優先順位": 14
     },
     {
       "code4": "5108",
@@ -578,7 +548,7 @@
       "value_approx_jpy": 4284255025,
       "day_high": 4094.0,
       "pm_high": null,
-      "優先順位": 16
+      "優先順位": 15
     },
     {
       "code4": "8729",
@@ -614,7 +584,7 @@
       "value_approx_jpy": 3603351062,
       "day_high": 156.7,
       "pm_high": null,
-      "優先順位": 17
+      "優先順位": 16
     },
     {
       "code4": "8750",
@@ -650,7 +620,7 @@
       "value_approx_jpy": 3119596788,
       "day_high": 1855.0,
       "pm_high": null,
-      "優先順位": 18
+      "優先順位": 17
     },
     {
       "code4": "8795",
@@ -686,7 +656,7 @@
       "value_approx_jpy": 1584172875,
       "day_high": 4950.0,
       "pm_high": null,
-      "優先順位": 19
+      "優先順位": 18
     },
     {
       "code4": "5101",
@@ -722,7 +692,7 @@
       "value_approx_jpy": 1578582450,
       "day_high": 7764.0,
       "pm_high": null,
-      "優先順位": 20
+      "優先順位": 19
     },
     {
       "code4": "5714",
@@ -758,7 +728,7 @@
       "value_approx_jpy": 1723945400,
       "day_high": 9840.0,
       "pm_high": null,
-      "優先順位": 21
+      "優先順位": 20
     },
     {
       "code4": "5105",
@@ -794,7 +764,7 @@
       "value_approx_jpy": 1227585450,
       "day_high": 3800.0,
       "pm_high": null,
-      "優先順位": 22
+      "優先順位": 21
     },
     {
       "code4": "5110",
@@ -830,7 +800,7 @@
       "value_approx_jpy": 1063681075,
       "day_high": 2357.0,
       "pm_high": null,
-      "優先順位": 23
+      "優先順位": 22
     },
     {
       "code4": "7181",
@@ -864,9 +834,9 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 1033696912,
-      "day_high": 1689.5,
+      "day_high": 1690.5,
       "pm_high": null,
-      "優先順位": 24
+      "優先順位": 23
     },
     {
       "code4": "9301",
@@ -902,7 +872,7 @@
       "value_approx_jpy": 575790362,
       "day_high": 1527.0,
       "pm_high": null,
-      "優先順位": 25
+      "優先順位": 24
     },
     {
       "code4": "9364",
@@ -936,9 +906,9 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 470271975,
-      "day_high": 4905.0,
+      "day_high": 4914.0,
       "pm_high": null,
-      "優先順位": 26
+      "優先順位": 25
     },
     {
       "code4": "9302",
@@ -974,7 +944,7 @@
       "value_approx_jpy": 168263475,
       "day_high": 3355.0,
       "pm_high": null,
-      "優先順位": 27
+      "優先順位": 26
     }
   ]
 }
