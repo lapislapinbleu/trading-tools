@@ -16,6 +16,9 @@ $logDir = Join-Path $repo "logs"
 if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir | Out-Null }
 $log = Join-Path $logDir ("daily_prep_{0}.log" -f (Get-Date -Format "yyyyMMdd"))
 
+# リモート(GitHub Actions)が勝手に更新してよい生成物。これ以外に差分があるときは自動同期しない
+$GENERATED = @("daily_prep.json", "atype_prep.json")
+
 function Write-Log($msg) {
     $line = "[{0}] {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $msg
     Add-Content -Path $log -Value $line -Encoding utf8
@@ -30,8 +33,18 @@ try {
         Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-14) } |
         Remove-Item -Force -ErrorAction SilentlyContinue
 
-    & git pull --rebase --autostash --quiet origin main
-    if ($LASTEXITCODE -ne 0) { Write-Log "warn: git pull failed (continue)" }
+    . (Join-Path $repo "_git_sync.ps1")
+    Set-GitSafeEnv -Repo $repo
+    $repaired = Repair-GitState
+    if ($repaired) { Write-Log ("warn: " + $repaired) }
+
+    & git fetch --quiet origin main
+    if ($LASTEXITCODE -ne 0) {
+        Write-Log "warn: git fetch failed (continue)"
+    } else {
+        $sync = Sync-ToRemote -Generated $GENERATED
+        if (-not $sync.ok) { Write-Log ("warn: " + $sync.reason) }
+    }
 
     $env:PYTHONIOENCODING = "utf-8"
     # 11:30バー(11:30-11:35をカバー)はyfinanceの反映に数分かかることがあるため、
@@ -39,8 +52,9 @@ try {
     $attempt = 0
     while ($true) {
         $attempt++
-        $out = & python -X utf8 daily_prep.py --output daily_prep.json 2>&1
-        $prepCode = $LASTEXITCODE
+        $run = Invoke-Native { python -X utf8 daily_prep.py --output daily_prep.json }
+        $out = $run.output
+        $prepCode = $run.code
         if ($prepCode -eq 3) {
             # 休場日(全銘柄で当日データなし)。既存JSONは保持され、pushもしない
             $out | ForEach-Object { Write-Log "  $_" }
@@ -59,8 +73,9 @@ try {
         Start-Sleep -Seconds 90
     }
 
-    $check = & python -X utf8 _check_prep_output.py 2>&1
-    $checkCode = $LASTEXITCODE
+    $checkRun = Invoke-Native { python -X utf8 _check_prep_output.py }
+    $check = $checkRun.output
+    $checkCode = $checkRun.code
     $check | ForEach-Object { Write-Log "  $_" }
     if ($checkCode -eq 2) {
         Write-Log "skip: 当日データではない（休場日など）。pushしない"
@@ -71,30 +86,13 @@ try {
         exit 1
     }
 
-    & git add daily_prep.json
-    & git diff --cached --quiet
-    if ($LASTEXITCODE -eq 0) {
-        Write-Log "no changes to commit"
-        exit 0
-    }
-
-    & git commit -q -m ("daily prep sheet update (local) {0}" -f (Get-Date -Format "yyyy-MM-dd HH:mm"))
-    $pushed = $false
-    for ($i = 1; $i -le 3; $i++) {
-        & git pull --rebase --autostash --quiet origin main
-        & git push --quiet origin main
-        if ($LASTEXITCODE -eq 0) {
-            Write-Log "pushed (attempt $i)"
-            $pushed = $true
-            break
-        }
-        Write-Log "push retry $i"
-        Start-Sleep -Seconds 5
-    }
-    if (-not $pushed) {
-        Write-Log "ERROR: push failed"
+    $msg = "daily prep sheet update (local) {0}" -f (Get-Date -Format "yyyy-MM-dd HH:mm")
+    $pub = Publish-Generated -File "daily_prep.json" -Generated $GENERATED -Message $msg -Log { param($m) Write-Log $m }
+    if (-not $pub.ok) {
+        Write-Log ("ERROR: " + $pub.reason)
         exit 1
     }
+    Write-Log $pub.reason
 
     Write-Log "=== done ==="
     exit 0

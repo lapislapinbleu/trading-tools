@@ -14,6 +14,9 @@ $logDir = Join-Path $repo "logs"
 if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir | Out-Null }
 $log = Join-Path $logDir ("atype_prep_{0}.log" -f (Get-Date -Format "yyyyMMdd"))
 
+# リモート(GitHub Actions)が勝手に更新してよい生成物。これ以外に差分があるときは自動同期しない
+$GENERATED = @("daily_prep.json", "atype_prep.json")
+
 function Write-Log($msg) {
     $line = "[{0}] {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $msg
     Add-Content -Path $log -Value $line -Encoding utf8
@@ -28,16 +31,27 @@ try {
         Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-14) } |
         Remove-Item -Force -ErrorAction SilentlyContinue
 
-    & git pull --rebase --autostash --quiet origin main
-    if ($LASTEXITCODE -ne 0) { Write-Log "warn: git pull failed (continue)" }
+    . (Join-Path $repo "_git_sync.ps1")
+    Set-GitSafeEnv -Repo $repo
+    $repaired = Repair-GitState
+    if ($repaired) { Write-Log ("warn: " + $repaired) }
+
+    & git fetch --quiet origin main
+    if ($LASTEXITCODE -ne 0) {
+        Write-Log "warn: git fetch failed (continue)"
+    } else {
+        $sync = Sync-ToRemote -Generated $GENERATED
+        if (-not $sync.ok) { Write-Log ("warn: " + $sync.reason) }
+    }
 
     $env:PYTHONIOENCODING = "utf-8"
     # yfinance側が一時的に応答しないことがあるため最大3回まで再取得する
     $attempt = 0
     while ($true) {
         $attempt++
-        $out = & python -X utf8 atype_prep.py --output atype_prep.json 2>&1
-        $code = $LASTEXITCODE
+        $run = Invoke-Native { python -X utf8 atype_prep.py --output atype_prep.json }
+        $out = $run.output
+        $code = $run.code
         $out | ForEach-Object { Write-Log "  $_" }
         if ($code -eq 0) { break }
         if ($attempt -ge 3) {
@@ -48,30 +62,13 @@ try {
         Start-Sleep -Seconds 60
     }
 
-    & git add atype_prep.json
-    & git diff --cached --quiet
-    if ($LASTEXITCODE -eq 0) {
-        Write-Log "no changes to commit"
-        exit 0
-    }
-
-    & git commit -q -m ("atype prep sheet update {0}" -f (Get-Date -Format "yyyy-MM-dd HH:mm"))
-    $pushed = $false
-    for ($i = 1; $i -le 3; $i++) {
-        & git pull --rebase --autostash --quiet origin main
-        & git push --quiet origin main
-        if ($LASTEXITCODE -eq 0) {
-            Write-Log "pushed (attempt $i)"
-            $pushed = $true
-            break
-        }
-        Write-Log "push retry $i"
-        Start-Sleep -Seconds 5
-    }
-    if (-not $pushed) {
-        Write-Log "ERROR: push failed"
+    $msg = "atype prep sheet update (local) {0}" -f (Get-Date -Format "yyyy-MM-dd HH:mm")
+    $pub = Publish-Generated -File "atype_prep.json" -Generated $GENERATED -Message $msg -Log { param($m) Write-Log $m }
+    if (-not $pub.ok) {
+        Write-Log ("ERROR: " + $pub.reason)
         exit 1
     }
+    Write-Log $pub.reason
 
     Write-Log "=== done ==="
     exit 0

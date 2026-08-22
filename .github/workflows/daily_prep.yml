@@ -53,11 +53,29 @@ jobs:
           git add daily_prep.json
           if git diff --cached --quiet; then
             echo "No changes to commit"
-          else
-            git commit -m "daily prep sheet update $(date +'%Y-%m-%d %H:%M')"
-            for i in 1 2 3; do
-              git pull --rebase origin main && git push && break
-              echo "push retry $i"
-              sleep 5
-            done
+            exit 0
           fi
+          # ローカルPC側のタスクスケジューラも同じJSONを更新するため push が弾かれうる。
+          # rebaseするとコンフリクトして止まるので、リモートに合わせ直して生成物を載せ替える
+          cp daily_prep.json /tmp/pending.json
+          MSG="daily prep sheet update $(date +'%Y-%m-%d %H:%M')"
+          git commit -m "$MSG"
+          for i in 1 2 3 4; do
+            if git push; then
+              echo "pushed (attempt $i)"
+              exit 0
+            fi
+            echo "push rejected (attempt $i) - reapplying on top of remote"
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/pending.json daily_prep.json
+            git add daily_prep.json
+            if git diff --cached --quiet; then
+              echo "remote already has identical content"
+              exit 0
+            fi
+            git commit -m "$MSG"
+            sleep 5
+          done
+          echo "push failed"
+          exit 1
