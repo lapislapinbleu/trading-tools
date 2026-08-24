@@ -1,8 +1,14 @@
 {
-  "generated_at": "2026-08-24T15:42:05.436020+09:00",
+  "generated_at": "2026-08-24T16:41:05.037336+09:00",
   "date": "2026-08-24",
-  "complete": true,
-  "missing": [],
+  "complete": false,
+  "missing": [
+    {
+      "code4": "8766",
+      "name": "東京海上",
+      "reason": "データ取得なし"
+    }
+  ],
   "stocks": [
     {
       "code4": "5803",
@@ -14,28 +20,28 @@
       "前引け値": 5065.0,
       "前場安値": 5016.0,
       "前場高値": 5325.0,
-      "atr14": 26.86,
-      "hist_1130": 2.2602,
+      "atr14": 26.64,
+      "hist_1130": 2.2613,
       "gc_state": "正",
       "d1_sign": "+",
       "d2_sign": "+",
-      "momentum_hint": 2.2602,
-      "gc_price": 5025.52,
+      "momentum_hint": 2.2613,
+      "gc_price": 5025.51,
       "mom_price": 5060.94,
-      "decision_price": 5025.52,
+      "decision_price": 5025.51,
       "needs_mom_check": false,
-      "signal_1130": -25.7699,
-      "ema12_1130": 5075.6882,
-      "ema26_1130": 5099.198,
+      "signal_1130": -25.7737,
+      "ema12_1130": 5075.6883,
+      "ema26_1130": 5099.2007,
       "shares": 200,
-      "sl": 4989.1,
+      "sl": 4989.4,
       "tp": 5368.9,
       "trail_trigger": 5141.0,
-      "risk_jpy": 15171,
+      "risk_jpy": 15129,
       "notional_jpy": 1013000,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 160381024875,
+      "value_approx_jpy": 160380421125,
       "day_high": 5325.0,
       "pm_high": 5027.0,
       "優先順位": 1
@@ -60,7 +66,7 @@
       "mom_price": 3795.43,
       "decision_price": 3905.63,
       "needs_mom_check": false,
-      "signal_1130": 27.4734,
+      "signal_1130": 27.4735,
       "ema12_1130": 3798.4898,
       "ema26_1130": 3778.049,
       "shares": 200,
@@ -71,7 +77,7 @@
       "notional_jpy": 762000,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 68314763250,
+      "value_approx_jpy": 68314753350,
       "day_high": 3885.0,
       "pm_high": 3790.0,
       "優先順位": 2
@@ -87,18 +93,18 @@
       "前場安値": 3621.0,
       "前場高値": 3859.0,
       "atr14": 25.21,
-      "hist_1130": 0.3909,
+      "hist_1130": 0.3913,
       "gc_state": "正",
       "d1_sign": "+",
       "d2_sign": "+",
-      "momentum_hint": 0.3909,
-      "gc_price": 3656.53,
+      "momentum_hint": 0.3913,
+      "gc_price": 3656.52,
       "mom_price": 3662.65,
-      "decision_price": 3656.53,
+      "decision_price": 3656.52,
       "needs_mom_check": false,
-      "signal_1130": -24.8041,
+      "signal_1130": -24.8054,
       "ema12_1130": 3684.0966,
-      "ema26_1130": 3708.5098,
+      "ema26_1130": 3708.5107,
       "shares": 200,
       "sl": 3595.8,
       "tp": 3894.4,
@@ -194,7 +200,7 @@
       "前引け値": 8125.0,
       "前場安値": 8056.0,
       "前場高値": 8217.0,
-      "atr14": 15.71,
+      "atr14": 15.64,
       "hist_1130": 8.1781,
       "gc_state": "正",
       "d1_sign": "+",
@@ -215,7 +221,7 @@
       "notional_jpy": 812500,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 23396669350,
+      "value_approx_jpy": 23396680825,
       "day_high": 8217.0,
       "pm_high": 8136.0,
       "優先順位": 6
@@ -251,7 +257,7 @@
       "notional_jpy": 659300,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 22948226375,
+      "value_approx_jpy": 22948224725,
       "day_high": 6660.0,
       "pm_high": 6604.0,
       "優先順位": 7
@@ -287,7 +293,7 @@
       "notional_jpy": 585800,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 14343724800,
+      "value_approx_jpy": 14343700775,
       "day_high": 5893.0,
       "pm_high": 5810.0,
       "優先順位": 8
@@ -303,18 +309,18 @@
       "前場安値": 2140.5,
       "前場高値": 2204.0,
       "atr14": 8.14,
-      "hist_1130": -0.6593,
+      "hist_1130": -0.6592,
       "gc_state": "負",
       "d1_sign": "+",
       "d2_sign": "+",
-      "momentum_hint": -0.6593,
+      "momentum_hint": -0.6592,
       "gc_price": 2182.5,
       "mom_price": 2172.17,
       "decision_price": 2182.5,
       "needs_mom_check": false,
-      "signal_1130": -1.4572,
+      "signal_1130": -1.4574,
       "ema12_1130": 2176.2037,
-      "ema26_1130": 2178.3201,
+      "ema26_1130": 2178.3203,
       "shares": 400,
       "sl": 2132.4,
       "tp": 2306.0,
@@ -329,42 +335,6 @@
       "優先順位": 9
     },
     {
-      "code4": "8766",
-      "name": "東京海上",
-      "区分": "緑",
-      "sector": "保険",
-      "financial": true,
-      "no_market_order": false,
-      "前引け値": 7309.0,
-      "前場安値": 7245.0,
-      "前場高値": 7346.0,
-      "atr14": 15.43,
-      "hist_1130": 3.8557,
-      "gc_state": "正",
-      "d1_sign": "-",
-      "d2_sign": "-",
-      "momentum_hint": 3.8557,
-      "gc_price": 7264.41,
-      "mom_price": 7324.82,
-      "decision_price": 7324.82,
-      "needs_mom_check": true,
-      "signal_1130": 0.6999,
-      "ema12_1130": 7308.5105,
-      "ema26_1130": 7303.955,
-      "shares": 100,
-      "sl": 7223.1,
-      "tp": 7747.5,
-      "trail_trigger": 7418.6,
-      "risk_jpy": 8593,
-      "notional_jpy": 730900,
-      "tradable": true,
-      "has_1130_bar": true,
-      "value_approx_jpy": 8927723375,
-      "day_high": 7346.0,
-      "pm_high": 7313.0,
-      "優先順位": 10
-    },
-    {
       "code4": "8725",
       "name": "MS&AD",
       "区分": "緑",
@@ -375,18 +345,18 @@
       "前場安値": 4859.0,
       "前場高値": 4946.0,
       "atr14": 9.36,
-      "hist_1130": 6.1038,
+      "hist_1130": 6.1037,
       "gc_state": "正",
       "d1_sign": "-",
       "d2_sign": "-",
-      "momentum_hint": 6.1038,
+      "momentum_hint": 6.1037,
       "gc_price": 4840.45,
       "mom_price": 4936.09,
       "decision_price": 4936.09,
       "needs_mom_check": true,
-      "signal_1130": 0.6788,
+      "signal_1130": 0.6789,
       "ema12_1130": 4910.6657,
-      "ema26_1130": 4903.8832,
+      "ema26_1130": 4903.8831,
       "shares": 200,
       "sl": 4844.2,
       "tp": 5221.6,
@@ -398,7 +368,7 @@
       "value_approx_jpy": 8275375300,
       "day_high": 4946.0,
       "pm_high": 4931.0,
-      "優先順位": 11
+      "優先順位": 10
     },
     {
       "code4": "8308",
@@ -434,7 +404,7 @@
       "value_approx_jpy": 7164862225,
       "day_high": 2409.0,
       "pm_high": 2377.0,
-      "優先順位": 12
+      "優先順位": 11
     },
     {
       "code4": "8729",
@@ -470,7 +440,7 @@
       "value_approx_jpy": 5715890659,
       "day_high": 161.0,
       "pm_high": 161.0,
-      "優先順位": 13
+      "優先順位": 12
     },
     {
       "code4": "8750",
@@ -506,7 +476,7 @@
       "value_approx_jpy": 4640489962,
       "day_high": 1791.5,
       "pm_high": 1785.5,
-      "優先順位": 14
+      "優先順位": 13
     },
     {
       "code4": "8630",
@@ -542,7 +512,7 @@
       "value_approx_jpy": 4279318725,
       "day_high": 6770.0,
       "pm_high": 6730.0,
-      "優先順位": 15
+      "優先順位": 14
     },
     {
       "code4": "8309",
@@ -578,7 +548,7 @@
       "value_approx_jpy": 4275439100,
       "day_high": 1735.0,
       "pm_high": 1716.0,
-      "優先順位": 16
+      "優先順位": 15
     },
     {
       "code4": "7182",
@@ -614,7 +584,7 @@
       "value_approx_jpy": 3607220225,
       "day_high": 3168.0,
       "pm_high": 3168.0,
-      "優先順位": 17
+      "優先順位": 16
     },
     {
       "code4": "5108",
@@ -647,10 +617,10 @@
       "notional_jpy": 825600,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 2451681850,
+      "value_approx_jpy": 2451681725,
       "day_high": 4154.0,
       "pm_high": 4153.0,
-      "優先順位": 18
+      "優先順位": 17
     },
     {
       "code4": "8795",
@@ -663,18 +633,18 @@
       "前場安値": 4675.0,
       "前場高値": 4797.0,
       "atr14": 8.0,
-      "hist_1130": 5.7559,
+      "hist_1130": 5.756,
       "gc_state": "正",
       "d1_sign": "-",
       "d2_sign": "-",
-      "momentum_hint": 5.7559,
+      "momentum_hint": 5.756,
       "gc_price": 4640.65,
       "mom_price": 4730.85,
       "decision_price": 4730.85,
       "needs_mom_check": true,
-      "signal_1130": -10.178,
+      "signal_1130": -10.1783,
       "ema12_1130": 4716.9148,
-      "ema26_1130": 4721.3369,
+      "ema26_1130": 4721.3371,
       "shares": 200,
       "sl": 4660.8,
       "tp": 5007.4,
@@ -686,7 +656,7 @@
       "value_approx_jpy": 1982045525,
       "day_high": 4797.0,
       "pm_high": 4734.0,
-      "優先順位": 19
+      "優先順位": 18
     },
     {
       "code4": "5101",
@@ -722,7 +692,7 @@
       "value_approx_jpy": 1763542400,
       "day_high": 7760.0,
       "pm_high": 7760.0,
-      "優先順位": 20
+      "優先順位": 19
     },
     {
       "code4": "5714",
@@ -758,7 +728,7 @@
       "value_approx_jpy": 4500545375,
       "day_high": 10515.0,
       "pm_high": 10385.0,
-      "優先順位": 21
+      "優先順位": 20
     },
     {
       "code4": "5105",
@@ -794,7 +764,7 @@
       "value_approx_jpy": 2173292275,
       "day_high": 3856.0,
       "pm_high": 3856.0,
-      "優先順位": 22
+      "優先順位": 21
     },
     {
       "code4": "5110",
@@ -830,7 +800,7 @@
       "value_approx_jpy": 1067652838,
       "day_high": 2360.0,
       "pm_high": 2339.0,
-      "優先順位": 23
+      "優先順位": 22
     },
     {
       "code4": "7181",
@@ -866,7 +836,7 @@
       "value_approx_jpy": 788898588,
       "day_high": 1653.5,
       "pm_high": 1645.5,
-      "優先順位": 24
+      "優先順位": 23
     },
     {
       "code4": "9301",
@@ -902,7 +872,7 @@
       "value_approx_jpy": 384123312,
       "day_high": 1539.5,
       "pm_high": 1539.5,
-      "優先順位": 25
+      "優先順位": 24
     },
     {
       "code4": "9364",
@@ -914,7 +884,7 @@
       "前引け値": 4871.0,
       "前場安値": 4852.0,
       "前場高値": 4885.0,
-      "atr14": 3.79,
+      "atr14": 3.64,
       "hist_1130": 0.485,
       "gc_state": "正",
       "d1_sign": "+",
@@ -924,9 +894,9 @@
       "mom_price": 4870.97,
       "decision_price": 4863.37,
       "needs_mom_check": false,
-      "signal_1130": 0.9427,
+      "signal_1130": 0.9428,
       "ema12_1130": 4868.1255,
-      "ema26_1130": 4866.6978,
+      "ema26_1130": 4866.6977,
       "shares": 200,
       "sl": 4837.4,
       "tp": 5163.3,
@@ -935,10 +905,10 @@
       "notional_jpy": 974200,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 324070900,
+      "value_approx_jpy": 324069700,
       "day_high": 4889.0,
       "pm_high": 4889.0,
-      "優先順位": 26
+      "優先順位": 25
     },
     {
       "code4": "9302",
@@ -971,10 +941,10 @@
       "notional_jpy": 999900,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 197004525,
+      "value_approx_jpy": 197004550,
       "day_high": 3340.0,
-      "pm_high": 3338.0,
-      "優先順位": 27
+      "pm_high": 3340.0,
+      "優先順位": 26
     }
   ]
 }
