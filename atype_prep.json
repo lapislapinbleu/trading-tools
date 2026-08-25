@@ -1,11 +1,17 @@
 {
-  "generated_at": "2026-08-26T08:40:07.645774+09:00",
+  "generated_at": "2026-08-26T08:52:52.036854+09:00",
   "prev_close_date": "2026-08-25",
   "band_pct": [
     0.035,
     0.05
   ],
-  "missing": [],
+  "missing": [
+    {
+      "code4": "6723",
+      "name": "ルネサス",
+      "reason": "データ取得なし"
+    }
+  ],
   "stocks": [
     {
       "code4": "5803",
@@ -16,17 +22,6 @@
       "band_high_raw": 5556.6,
       "band_low": 5478.0,
       "band_high": 5556.0,
-      "tick": 1.0
-    },
-    {
-      "code4": "6723",
-      "name": "ルネサス",
-      "prev_close": 3402.0,
-      "prev_close_date": "2026-08-25",
-      "band_low_raw": 3521.07,
-      "band_high_raw": 3572.1,
-      "band_low": 3522.0,
-      "band_high": 3572.0,
       "tick": 1.0
     },
     {
