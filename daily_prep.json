@@ -1,14 +1,8 @@
 {
-  "generated_at": "2026-08-25T12:26:41.628337+09:00",
+  "generated_at": "2026-08-25T12:34:22.007555+09:00",
   "date": "2026-08-25",
-  "complete": false,
-  "missing": [
-    {
-      "code4": "8316",
-      "name": "三井住友FG",
-      "reason": "データ取得なし"
-    }
-  ],
+  "complete": true,
+  "missing": [],
   "stocks": [
     {
       "code4": "5803",
@@ -263,6 +257,42 @@
       "優先順位": 7
     },
     {
+      "code4": "8316",
+      "name": "三井住友FG",
+      "区分": "緑",
+      "sector": "銀行",
+      "financial": true,
+      "no_market_order": false,
+      "前引け値": 6604.0,
+      "前場安値": 6572.0,
+      "前場高値": 6648.0,
+      "atr14": 9.0,
+      "hist_1130": 1.9085,
+      "gc_state": "正",
+      "d1_sign": "+",
+      "d2_sign": "+",
+      "momentum_hint": 1.9085,
+      "gc_price": 6574.47,
+      "mom_price": 6604.38,
+      "decision_price": 6574.47,
+      "needs_mom_check": false,
+      "signal_1130": -0.357,
+      "ema12_1130": 6596.9569,
+      "ema26_1130": 6595.4054,
+      "shares": 100,
+      "sl": 6552.2,
+      "tp": 7000.2,
+      "trail_trigger": 6703.1,
+      "risk_jpy": 5181,
+      "notional_jpy": 660400,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 15932733475,
+      "day_high": 6648.0,
+      "pm_high": null,
+      "優先順位": 8
+    },
+    {
       "code4": "8766",
       "name": "東京海上",
       "区分": "緑",
@@ -296,7 +326,7 @@
       "value_approx_jpy": 11826331375,
       "day_high": 7442.0,
       "pm_high": null,
-      "優先順位": 8
+      "優先順位": 9
     },
     {
       "code4": "8308",
@@ -332,7 +362,7 @@
       "value_approx_jpy": 5881348238,
       "day_high": 2405.0,
       "pm_high": null,
-      "優先順位": 9
+      "優先順位": 10
     },
     {
       "code4": "5711",
@@ -368,7 +398,7 @@
       "value_approx_jpy": 5839696725,
       "day_high": 5772.0,
       "pm_high": null,
-      "優先順位": 10
+      "優先順位": 11
     },
     {
       "code4": "8725",
@@ -404,7 +434,7 @@
       "value_approx_jpy": 4896532575,
       "day_high": 5060.0,
       "pm_high": null,
-      "優先順位": 11
+      "優先順位": 12
     },
     {
       "code4": "8309",
@@ -440,7 +470,7 @@
       "value_approx_jpy": 3547485875,
       "day_high": 1728.0,
       "pm_high": null,
-      "優先順位": 12
+      "優先順位": 13
     },
     {
       "code4": "8750",
@@ -476,7 +506,7 @@
       "value_approx_jpy": 3287378350,
       "day_high": 1810.0,
       "pm_high": null,
-      "優先順位": 13
+      "優先順位": 14
     },
     {
       "code4": "8729",
@@ -512,7 +542,7 @@
       "value_approx_jpy": 3286123168,
       "day_high": 163.0,
       "pm_high": null,
-      "優先順位": 14
+      "優先順位": 15
     },
     {
       "code4": "8630",
@@ -548,7 +578,7 @@
       "value_approx_jpy": 3084983275,
       "day_high": 6868.0,
       "pm_high": null,
-      "優先順位": 15
+      "優先順位": 16
     },
     {
       "code4": "5108",
@@ -584,7 +614,7 @@
       "value_approx_jpy": 3082823625,
       "day_high": 4169.0,
       "pm_high": null,
-      "優先順位": 16
+      "優先順位": 17
     },
     {
       "code4": "7182",
@@ -620,7 +650,7 @@
       "value_approx_jpy": 2787979525,
       "day_high": 3191.0,
       "pm_high": null,
-      "優先順位": 17
+      "優先順位": 18
     },
     {
       "code4": "5101",
@@ -656,7 +686,7 @@
       "value_approx_jpy": 2441351750,
       "day_high": 7531.0,
       "pm_high": null,
-      "優先順位": 18
+      "優先順位": 19
     },
     {
       "code4": "8795",
@@ -692,7 +722,7 @@
       "value_approx_jpy": 1657822625,
       "day_high": 4808.0,
       "pm_high": null,
-      "優先順位": 19
+      "優先順位": 20
     },
     {
       "code4": "5105",
@@ -728,7 +758,7 @@
       "value_approx_jpy": 3613948925,
       "day_high": 3810.0,
       "pm_high": null,
-      "優先順位": 20
+      "優先順位": 21
     },
     {
       "code4": "5714",
@@ -764,7 +794,7 @@
       "value_approx_jpy": 2598922750,
       "day_high": 10265.0,
       "pm_high": null,
-      "優先順位": 21
+      "優先順位": 22
     },
     {
       "code4": "5110",
@@ -800,7 +830,7 @@
       "value_approx_jpy": 2139352588,
       "day_high": 2325.0,
       "pm_high": null,
-      "優先順位": 22
+      "優先順位": 23
     },
     {
       "code4": "7181",
@@ -836,7 +866,7 @@
       "value_approx_jpy": 668325938,
       "day_high": 1669.5,
       "pm_high": null,
-      "優先順位": 23
+      "優先順位": 24
     },
     {
       "code4": "9301",
@@ -872,7 +902,7 @@
       "value_approx_jpy": 524418912,
       "day_high": 1553.5,
       "pm_high": null,
-      "優先順位": 24
+      "優先順位": 25
     },
     {
       "code4": "9302",
@@ -908,7 +938,7 @@
       "value_approx_jpy": 198960250,
       "day_high": 3363.0,
       "pm_high": null,
-      "優先順位": 25
+      "優先順位": 26
     },
     {
       "code4": "9364",
@@ -944,7 +974,7 @@
       "value_approx_jpy": 186265575,
       "day_high": 4926.0,
       "pm_high": null,
-      "優先順位": 26
+      "優先順位": 27
     }
   ]
 }
