@@ -618,15 +618,20 @@ function AtypeBandPanel({ prep, onReload, selectedCode, onSelect, c2high }) {
   );
 }
 
-function AtypeCalc() {
+function AtypeCalc({ atypeLog, setAtypeLog }) {
   const RISK_CAP = 44000, NOTIONAL_CAP = 1000000;
-  const [atypeState, setAtypeState] = usePersistentState("atype_v1", { c2open: "", c2high: "", code: "" });
-  const c2open = atypeState.c2open, c2high = atypeState.c2high;
+  const [atypeState, setAtypeState] = usePersistentState("atype_v1", { c2open: "", c2high: "", code: "", fill: "" });
+  const c2open = atypeState.c2open, c2high = atypeState.c2high, fill = atypeState.fill || "";
   const selectedCode = atypeState.code || "";
   const setC2open = (v) => setAtypeState((prev) => ({ ...prev, c2open: v }));
   const setC2high = (v) => setAtypeState((prev) => ({ ...prev, c2high: v }));
+  const setFill = (v) => setAtypeState((prev) => ({ ...prev, fill: v }));
   const setSelectedCode = (v) => setAtypeState((prev) => ({ ...prev, code: v }));
   const [aprep, reloadAprep] = useAtypePrepData();
+  const [recordError, setRecordError] = useState("");
+
+  // rulebook §3.2「1日1件・最速確定優先」。当日すでに記録済みなら以降は記録のみに落とす
+  const todaysEntry = (atypeLog || []).find((a) => a.entryDate === todayStr());
 
   const r = useMemo(() => {
     const entry = parseFloat(c2open), spikeHigh = parseFloat(c2high);
@@ -641,11 +646,38 @@ function AtypeCalc() {
     const finalShares = Math.min(sharesByRisk, sharesByNotional);
     if (finalShares <= 0) return { error: "建玉代金上限に対して株価が高すぎます（100株単位で売建不可）。見送り推奨。" };
     const binding = sharesByRisk <= sharesByNotional ? "risk" : "notional";
+    // 実際の約定値がSLトリガー以上だと、売建成立と同時にSLへ刺さる（2026-08-17に発生）。
+    // 逆指値ではなく指値で出した・板が飛んだ等で起こるため、約定値を入れたら必ず検査する。
+    const fillPrice = parseFloat(fill);
+    const fillOk = Number.isFinite(fillPrice) && fillPrice > 0;
+    const slBreached = fillOk && fillPrice >= sl;
+    const slFixed = slBreached ? Math.round((fillPrice + tick) * 100) / 100 : null;
+    // §3.4の停止条件は「約定価格 − 2本目始値」の乖離。ショートなので **2本目始値より安く約定＝不利**。
+    // slipYen を「不利側の円数」に統一する（＋＝不利、−＝有利）。
+    const slipYen = fillOk ? entry - fillPrice : null;
     return {
       tick, sl, tp, riskPerShare, sharesByRisk, sharesByNotional, finalShares, binding,
       positionValue: finalShares * entry, maxLoss: finalShares * riskPerShare, maxGain: finalShares * (entry - tp),
+      fillPrice: fillOk ? fillPrice : null, slBreached, slFixed, slipYen,
+      slipTicks: fillOk ? slipYen / tick : null,
     };
-  }, [c2open, c2high]);
+  }, [c2open, c2high, fill]);
+
+  const recordTrade = () => {
+    setRecordError("");
+    if (!r || r.error) return;
+    if (!selectedCode) { setRecordError("銘柄を選択してください（バンド表の行をタップ）"); return; }
+    if (todaysEntry) { setRecordError("本日は既に1件記録済みです（§3.2 1日1件）。以降のシグナルは発注せず記録のみ"); return; }
+    const info = (aprep.data && (aprep.data.stocks || []).find((s) => s.code4 === selectedCode)) || null;
+    setAtypeLog((prev) => [...(prev || []), {
+      id: genId(), code: selectedCode, name: info ? info.name : selectedCode,
+      entryDate: todayStr(), qty: r.finalShares,
+      c2open: parseFloat(c2open), c2high: parseFloat(c2high),
+      slPrice: r.slBreached ? r.slFixed : r.sl, tpPrice: r.tp,
+      fillPrice: r.fillPrice, closeDate: "", closePrice: null, pnl: null,
+      note: r.slBreached ? "約定値がSLトリガー以上のためSLを約定値+1呼値へ置直し" : "",
+    }]);
+  };
 
   return e("div", { className: "space-y-5" },
     e("div", { className: "flex items-start gap-2 rounded-xl bg-slate-900/60 border border-slate-800 px-3.5 py-3 text-[12px] text-slate-400" },
@@ -656,9 +688,15 @@ function AtypeCalc() {
       prep: aprep, onReload: reloadAprep,
       selectedCode, onSelect: setSelectedCode, c2high,
     }),
+    todaysEntry && e("div", { className: "flex items-start gap-2 rounded-xl bg-amber-500/10 border border-amber-500/25 px-3.5 py-3 text-[12.5px] text-amber-300" },
+      e(AlertTriangle, { size: 16, className: "shrink-0 mt-0.5" }),
+      e("span", null, `本日は ${todaysEntry.name}（${todaysEntry.code}）で1件成立済み。`,
+        e("b", null, "以降のシグナルは発注せず記録のみ"), "（§3.2 1日1件・最速確定優先）")
+    ),
     e("div", { className: "grid grid-cols-1 gap-3" },
-      e(NumberField, { id: "atype_c2open", label: "2本目の始値（＝エントリー価格）", value: c2open, onChange: setC2open, placeholder: "例: 1500", suffix: "円" }),
-      e(NumberField, { id: "atype_c2high", label: "2本目の高値（スパイク高値）", value: c2high, onChange: setC2high, placeholder: "例: 1545", suffix: "円" })
+      e(NumberField, { id: "atype_c2open", label: "2本目の始値（＝逆指値トリガー＝ref_price）", value: c2open, onChange: setC2open, placeholder: "例: 1500", suffix: "円" }),
+      e(NumberField, { id: "atype_c2high", label: "2本目の高値（スパイク高値）", value: c2high, onChange: setC2high, placeholder: "例: 1545", suffix: "円" }),
+      e(NumberField, { id: "atype_fill", label: "実際の約定値（発注後に入力・任意）", value: fill, onChange: setFill, placeholder: "任意", suffix: "円" })
     ),
     r && r.error && e("div", { className: "flex items-start gap-2 rounded-xl bg-red-500/10 border border-red-500/25 px-3.5 py-3 text-[13px] text-red-300" },
       e(AlertTriangle, { size: 16, className: "shrink-0 mt-0.5" }),
@@ -681,6 +719,43 @@ function AtypeCalc() {
       e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800 px-4 py-1" },
         e(ResultRow, { label: "最大損失（SL到達時）", value: `−¥${fmt(r.maxLoss)}`, tone: "risk" }),
         e(ResultRow, { label: "想定利益（TP到達時）", value: `+¥${fmt(r.maxGain)}`, tone: "good" })
+      ),
+      // 発注テンプレート。「指値で出す」と約定値がSLトリガーを上回りうるため、必ず逆指値＋成行で出す
+      e("div", { className: "rounded-xl bg-emerald-500/5 border border-emerald-500/25 px-4 py-3 space-y-1.5" },
+        e("div", { className: "text-[12px] font-semibold text-emerald-300" }, "発注テンプレート（IFD-OCO）"),
+        e("div", { className: "text-[12.5px] text-slate-300 font-mono tabular-nums leading-relaxed" },
+          `IFD1  売建 逆指値 ¥${fmtPrice(parseFloat(c2open))} 以下で成行 × ${fmt(r.finalShares)}株`, e("br"),
+          `IFD2  OCO1 買埋 指値 ¥${fmtPrice(r.tp)}（TP・不成）`, e("br"),
+          `      OCO2 ¥${fmtPrice(r.sl)} 以上で成行（SL）`
+        ),
+        e("div", { className: "text-[11px] text-slate-500 leading-relaxed" },
+          "指値でのエントリーは禁止（約定値がSLトリガーを上回ると成立と同時に損切りになる）。当日中に決済（§3.3）")
+      ),
+      r.fillPrice && e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800 px-4 py-1" },
+        e(ResultRow, {
+          label: "エントリー実効コスト（2本目始値比）",
+          value: `¥${fmtPrice(Math.abs(r.slipYen))}（${Math.abs(r.slipTicks).toFixed(1)}ティック${r.slipYen > 0 ? "不利" : r.slipYen < 0 ? "有利" : ""}）`,
+          tone: r.slipTicks > 1 ? "risk" : "muted",
+        }),
+        r.slipTicks > 1 && e(ResultRow, {
+          label: "§3.4 停止条件",
+          value: "1ティック超の不利。月次集計で平均を確認",
+          tone: "risk",
+        })
+      ),
+      r.slBreached && e("div", { className: "flex items-start gap-2 rounded-xl bg-red-500/10 border border-red-500/25 px-3.5 py-3 text-[12.5px] text-red-300" },
+        e(AlertTriangle, { size: 16, className: "shrink-0 mt-0.5" }),
+        e("span", null,
+          `約定値 ¥${fmtPrice(r.fillPrice)} がSLトリガー ¥${fmtPrice(r.sl)} 以上です。このままでは成立と同時に損切りになります。`,
+          e("b", null, ` SLを ¥${fmtPrice(r.slFixed)}（約定値+1呼値）へ置き直してください。`))
+      ),
+      e("div", { className: "space-y-2" },
+        recordError && e("div", { className: "rounded-xl bg-red-500/10 border border-red-500/25 px-3.5 py-2.5 text-[12.5px] text-red-300" }, recordError),
+        e("button", {
+          onClick: recordTrade,
+          disabled: !!todaysEntry,
+          className: "w-full rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[13px] font-semibold py-2.5 disabled:opacity-40",
+        }, todaysEntry ? "本日は記録済み（1日1件）" : "この内容でA型トレードを記録する")
       )
     )
   );
@@ -930,7 +1005,7 @@ function ClosedHistoryPanel({ closed, open, onToggle }) {
   );
 }
 
-function computeRegistrationWarnings(form, positions, closed) {
+function computeRegistrationWarnings(form, positions, closed, slot) {
   const code = normalizeCode(form.code);
   const qty = parseFloat(form.qty);
   const entryPrice = parseFloat(form.entryPrice);
@@ -954,9 +1029,13 @@ function computeRegistrationWarnings(form, positions, closed) {
   if (heldCodes.includes(code)) {
     warnings.push(`重複: ${code}${info ? "（" + info.name + "）" : ""}は保有中の建玉と重複しています`);
   }
-  const postCount = positions.length + 1;
-  if (postCount > MAX_POSITIONS) {
-    warnings.push(`登録後の保有数が${postCount}件になり、同時保有上限${MAX_POSITIONS}件を超えます`);
+  // 枠は当日1件目の登録時に凍結された値で判定する（同日中に決済で空いた枠は再充当しない・§2.2 手順1）
+  if (slot && slot.remaining <= 0) {
+    warnings.push(slot.frozen
+      ? `本日の枠を使い切っています（12:30時点の保有${slot.base}件＋本日${slot.used}件）。同日中に空いた枠は再充当しません`
+      : `同時保有上限${MAX_POSITIONS}件に達しています`);
+  } else if (positions.length + 1 > MAX_POSITIONS) {
+    warnings.push(`登録後の保有数が${positions.length + 1}件になり、同時保有上限${MAX_POSITIONS}件を超えます`);
   }
 
   const existingMaxLossSum = positions.reduce((sum, p) => sum + effectivePositionMaxLoss(p), 0);
@@ -1034,10 +1113,22 @@ function closedToCsvRow(c) {
     c.closeDate, numOrEmpty(c.closePrice), numOrEmpty(c.pnl), c.note || "",
   ].map(csvEscape).join(",");
 }
-function buildCsv(positions, closed) {
+// A型の記録行。rulebook §3.4 の停止条件（約定価格 − 2本目始値 の平均が1ティック超で停止）を
+// 判定するには「2本目始値＝ref_price」の保存が必須。フェニックスの建玉行とは別 type にして、
+// 枠カウント・日次損失計算に混ざらないようにする。
+function atypeToCsvRow(a) {
+  return [
+    "atype", a.id, a.code, a.name, "", a.entryDate, numOrEmpty(a.qty), numOrEmpty(a.c2open),
+    numOrEmpty(a.slPrice), numOrEmpty(a.tpPrice), "",
+    numOrEmpty(a.c2open), numOrEmpty(a.fillPrice), numOrEmpty(a.c2high), "",
+    a.closeDate || "", numOrEmpty(a.closePrice), numOrEmpty(a.pnl), a.note || "",
+  ].map(csvEscape).join(",");
+}
+function buildCsv(positions, closed, atype) {
   const lines = [CSV_HEADER.join(",")];
   positions.forEach((p) => lines.push(positionToCsvRow(p)));
   closed.forEach((c) => lines.push(closedToCsvRow(c)));
+  (atype || []).forEach((a) => lines.push(atypeToCsvRow(a)));
   return lines.join("\r\n");
 }
 
@@ -1084,6 +1175,7 @@ function parseBackupCsv(text) {
   };
   const positions = [];
   const closed = [];
+  const atype = [];
   for (let i = 1; i < rows.length; i++) {
     const cols = rows[i];
     if (cols.length !== CSV_HEADER.length) {
@@ -1114,14 +1206,93 @@ function parseBackupCsv(text) {
         throw new Error(`${i + 1}行目: closed行の closeDate・closePrice・pnl が不正です。`);
       }
       closed.push({ ...base, closeDate, closePrice, pnl });
+    } else if (type === "atype") {
+      atype.push({
+        id: base.id, code, name: name || code, entryDate, qty,
+        c2open: entryPrice, c2high: numOrNull(morningCloseS),
+        slPrice: numOrNull(slPriceS), tpPrice: numOrNull(tpPriceS),
+        fillPrice: numOrNull(fillPriceS),
+        closeDate: closeDate || "", closePrice: numOrNull(closePriceS), pnl: numOrNull(pnlS),
+        note: note || "",
+      });
     } else {
-      throw new Error(`${i + 1}行目: type列が position/closed のいずれでもありません（${type}）。`);
+      throw new Error(`${i + 1}行目: type列が position/closed/atype のいずれでもありません（${type}）。`);
     }
   }
-  return { positions, closed };
+  return { positions, closed, atype };
 }
 
-function BackupPanel({ positions, setPositions, closed, setClosed }) {
+// A型の記録一覧（rulebook §3.4 の停止条件を月次で集計できるよう、2本目始値・約定値・損益を保存する）
+function AtypeLogPanel({ atypeLog, setAtypeLog }) {
+  const [open, setOpen] = useState(false);
+  const [settling, setSettling] = useState(null);
+  const [exitPrice, setExitPrice] = useState("");
+  const log = atypeLog || [];
+  const openCount = log.filter((a) => !a.closeDate).length;
+
+  const settle = (a) => {
+    const px = parseFloat(exitPrice);
+    if (!(px > 0)) return;
+    const base = Number.isFinite(a.fillPrice) && a.fillPrice > 0 ? a.fillPrice : a.c2open;
+    const pnl = Math.round((base - px) * a.qty);   // ショートなので 建値 − 返済値
+    setAtypeLog((prev) => prev.map((x) => (x.id === a.id
+      ? { ...x, closeDate: todayStr(), closePrice: px, pnl } : x)));
+    setSettling(null); setExitPrice("");
+  };
+  const remove = (a) => {
+    if (!window.confirm(`${a.name}（${a.entryDate}）のA型記録を削除しますか？`)) return;
+    setAtypeLog((prev) => prev.filter((x) => x.id !== a.id));
+  };
+
+  return e("div", { className: "rounded-xl bg-slate-900/60 border border-slate-800" },
+    e("button", {
+      onClick: () => setOpen((o) => !o),
+      className: "w-full flex items-center justify-between px-3.5 py-3 text-[13px] font-medium text-slate-300",
+    },
+      e("span", null, `A型の記録 ${open ? "▲" : "▼"}`),
+      e("span", { className: "text-[11px] text-slate-500 font-mono tabular-nums" },
+        `${log.length}件${openCount ? `（未決済${openCount}）` : ""}`)
+    ),
+    open && e("div", { className: "px-3.5 pb-3.5 space-y-2" },
+      log.length === 0 && e("div", { className: "text-[12px] text-slate-500" },
+        "記録がありません。A型タブの「この内容でA型トレードを記録する」から保存します"),
+      log.slice().reverse().map((a) => e("div", {
+        key: a.id,
+        className: "rounded-lg bg-slate-950/60 border border-slate-800 px-3 py-2.5 space-y-1",
+      },
+        e("div", { className: "flex items-baseline justify-between gap-2" },
+          e("span", { className: "text-[12.5px] font-semibold text-slate-200" }, `${a.name}(${a.code})`),
+          e("span", { className: "text-[11px] text-slate-500 font-mono tabular-nums" }, a.entryDate)
+        ),
+        e("div", { className: "text-[11.5px] text-slate-400 font-mono tabular-nums" },
+          `${fmt(a.qty)}株 2本目始値 ¥${fmtPrice(a.c2open)}`,
+          Number.isFinite(a.fillPrice) ? ` → 約定 ¥${fmtPrice(a.fillPrice)}` : "",
+          ` ／ SL ¥${fmtPrice(a.slPrice)} TP ¥${fmtPrice(a.tpPrice)}`
+        ),
+        a.closeDate
+          ? e("div", { className: `text-[12.5px] font-mono tabular-nums font-semibold ${a.pnl >= 0 ? "text-emerald-400" : "text-red-300"}` },
+              `${a.closeDate} 返済 ¥${fmtPrice(a.closePrice)} → ${a.pnl >= 0 ? "+" : "−"}¥${fmt(Math.abs(a.pnl))}`)
+          : (settling === a.id
+              ? e("div", { className: "flex items-center gap-2" },
+                  e("input", {
+                    type: "number", inputMode: "decimal", value: exitPrice,
+                    onChange: (ev) => setExitPrice(ev.target.value), placeholder: "返済値",
+                    className: "flex-1 rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-[13px] text-slate-50 outline-none focus:border-amber-500/70",
+                  }),
+                  e("button", { onClick: () => settle(a), className: "rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[12px] px-3 py-2" }, "確定"),
+                  e("button", { onClick: () => { setSettling(null); setExitPrice(""); }, className: "rounded-lg border border-slate-700 text-slate-400 text-[12px] px-3 py-2" }, "取消")
+                )
+              : e("div", { className: "flex items-center gap-2" },
+                  e("button", { onClick: () => { setSettling(a.id); setExitPrice(""); }, className: "rounded-lg border border-slate-700 text-slate-300 text-[12px] px-3 py-1.5" }, "返済を記録"),
+                  e("button", { onClick: () => remove(a), className: "rounded-lg border border-slate-800 text-slate-500 text-[12px] px-3 py-1.5" }, "削除")
+                )),
+        a.note && e("div", { className: "text-[11px] text-amber-300" }, a.note)
+      ))
+    )
+  );
+}
+
+function BackupPanel({ positions, setPositions, closed, setClosed, atypeLog, setAtypeLog }) {
   const [open, setOpen] = useState(false);
   const [exportText, setExportText] = useState("");
   const [importText, setImportText] = useState("");
@@ -1129,11 +1300,11 @@ function BackupPanel({ positions, setPositions, closed, setClosed }) {
   const fileInputRef = useRef(null);
 
   const doExport = () => {
-    setExportText(buildCsv(positions, closed));
+    setExportText(buildCsv(positions, closed, atypeLog));
   };
 
   const doDownloadCsv = () => {
-    const csv = buildCsv(positions, closed);
+    const csv = buildCsv(positions, closed, atypeLog);
     const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -1157,6 +1328,8 @@ function BackupPanel({ positions, setPositions, closed, setClosed }) {
       return false;
     }
     if (!window.confirm("現在のデータを上書きします。よろしいですか？")) return false;
+    lsSet("atype_log_v1", result.atype || []);
+    if (setAtypeLog) setAtypeLog(result.atype || []);
     lsSet("positions_v1", result.positions);
     lsSet("closed_v1", result.closed);
     setPositions(result.positions);
@@ -1246,7 +1419,7 @@ function BackupPanel({ positions, setPositions, closed, setClosed }) {
   );
 }
 
-function PositionsSection({ positions, setPositions, closed, setClosed, prep, maxHighSeen }) {
+function PositionsSection({ positions, setPositions, closed, setClosed, prep, maxHighSeen, atypeLog, setAtypeLog, slot, onSlotUsed }) {
   const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState({ ...DEFAULT_POSITION_FORM, entryDate: todayStr() });
   const [editingId, setEditingId] = useState(null);
@@ -1270,6 +1443,8 @@ function PositionsSection({ positions, setPositions, closed, setClosed, prep, ma
       refPrice: parseFloat(form.refPrice), fillPrice: parseFloat(form.fillPrice),
       morningClose: parseFloat(form.morningClose), morningLow: parseFloat(form.morningLow),
     });
+    // 当日エントリーとして登録した場合だけ枠を1つ消費する（過去日の記録補完では消費しない）
+    if ((form.entryDate || todayStr()) === todayStr() && onSlotUsed) onSlotUsed();
     setPositions((prev) => [...prev, newPos]);
     setForm({ ...DEFAULT_POSITION_FORM, entryDate: todayStr() });
     setFormOpen(false);
@@ -1341,7 +1516,7 @@ function PositionsSection({ positions, setPositions, closed, setClosed, prep, ma
     setSettlePrice("");
   };
 
-  const warnings = useMemo(() => computeRegistrationWarnings(form, positions, closed), [form, positions, closed]);
+  const warnings = useMemo(() => computeRegistrationWarnings(form, positions, closed, slot), [form, positions, closed, slot]);
 
   // トレール引上げが必要な建玉件数（サマリーバッジ用。trail_check_ui_spec.md）
   const generatedAt = prep && prep.data ? prep.data.generated_at : null;
@@ -1393,7 +1568,8 @@ function PositionsSection({ positions, setPositions, closed, setClosed, prep, ma
           }))
         ),
     e(ClosedHistoryPanel, { closed, open: closedOpen, onToggle: () => setClosedOpen((o) => !o) }),
-    e(BackupPanel, { positions, setPositions, closed, setClosed })
+    e(AtypeLogPanel, { atypeLog, setAtypeLog }),
+    e(BackupPanel, { positions, setPositions, closed, setClosed, atypeLog, setAtypeLog })
   );
 }
 
@@ -1639,7 +1815,39 @@ function Sizing27Row({ row, rowEdits, result, isOpen, onToggle, onEdit, onRegist
   );
 }
 
-function Sizing27Section({ onRegister, heldPositions, closed, prep, reloadPrep }) {
+// 当日の発注枠の表示（rulebook v1.10 §2.2 手順1）。枠は当日1件目の登録時に凍結され、
+// 同日中に決済でポジションが減っても残枠は戻らない。
+function SlotBudgetPanel({ slot, heldCount, onReset }) {
+  if (!slot) return null;
+  const empty = slot.remaining <= 0;
+  return e("div", {
+    className: `rounded-xl border px-3.5 py-2.5 space-y-1 ${empty
+      ? "bg-red-500/10 border-red-500/25"
+      : "bg-slate-900/60 border-slate-800"}`,
+  },
+    e("div", { className: "flex items-baseline justify-between gap-2" },
+      e("span", { className: "text-[12px] text-slate-400" }, "本日の発注可能枠"),
+      e("span", {
+        className: `text-[15px] font-mono tabular-nums font-semibold ${empty ? "text-red-300" : "text-emerald-400"}`,
+      }, `残り ${slot.remaining} / ${MAX_POSITIONS}枠`)
+    ),
+    e("div", { className: "text-[11px] text-slate-500 font-mono tabular-nums" },
+      slot.frozen
+        ? `12:30時点の保有 ${slot.base}件（凍結済）＋ 本日発注 ${slot.used}件／現在の保有 ${heldCount}件`
+        : `保有 ${slot.base}件（本日1件目の登録時に枠を凍結します）`
+    ),
+    slot.frozen && e("div", { className: "flex items-center justify-between gap-2 pt-0.5" },
+      e("span", { className: "text-[11px] text-slate-500 leading-relaxed" },
+        "同日中に決済で空いた枠は再充当しません（§2.2 手順1）"),
+      e("button", {
+        onClick: onReset,
+        className: "shrink-0 rounded-lg border border-slate-700 text-slate-400 text-[11px] px-2.5 py-1",
+      }, "枠を数え直す")
+    )
+  );
+}
+
+function Sizing27Section({ onRegister, heldPositions, closed, prep, reloadPrep, slot, resetSlotBudget }) {
   const [edits, setEdits] = useState(() => {
     const stored = lsGet("sizing27_v1", null);
     return (stored && stored.date === todayStr() && stored.edits) ? stored.edits : {};
@@ -1685,7 +1893,8 @@ function Sizing27Section({ onRegister, heldPositions, closed, prep, reloadPrep }
   };
 
   const heldCodes = useMemo(() => new Set((heldPositions || []).map((p) => normalizeCode(p.code))), [heldPositions]);
-  const atCap = (heldPositions || []).length >= MAX_POSITIONS;
+  // 当日の残枠が0なら発注不可（保有数ではなく凍結された枠で判定する。rulebook §2.2 手順1）
+  const atCap = !slot || slot.remaining <= 0;
 
   const results = useMemo(() => {
     const out = {};
@@ -1705,10 +1914,10 @@ function Sizing27Section({ onRegister, heldPositions, closed, prep, reloadPrep }
       const qty = rowEffectiveQty(ed, r);
       const fillPrice = parseFloat(ed.fillPrice);
       const entryPrice = fillPrice > 0 ? fillPrice : parseFloat(ed.entry);
-      out[row.code] = computeRegistrationWarnings({ code: row.code, qty, entryPrice, slPrice: r.sl }, heldPositions, closed);
+      out[row.code] = computeRegistrationWarnings({ code: row.code, qty, entryPrice, slPrice: r.sl }, heldPositions, closed, slot);
     });
     return out;
-  }, [rows, edits, results, heldPositions, closed]);
+  }, [rows, edits, results, heldPositions, closed, slot]);
 
   const registerRow = (row) => {
     setRegisterError("");
@@ -1718,8 +1927,13 @@ function Sizing27Section({ onRegister, heldPositions, closed, prep, reloadPrep }
       setRegisterError(`${row.name}（${row.code}）は既に保有中です。重複登録はできません`);
       return;
     }
-    if ((heldPositions || []).length >= MAX_POSITIONS) {
-      setRegisterError(`保有上限${MAX_POSITIONS}件に達しているため、これ以上登録できません`);
+    if (!slot || slot.remaining <= 0) {
+      setRegisterError(
+        slot && slot.frozen
+          ? `本日の枠は使い切りました（12:30時点の保有${slot.base}件＋本日${slot.used}件＝${MAX_POSITIONS}枠）。` +
+            `同日中に決済で空いた枠は再充当しません（§2.2）`
+          : `保有上限${MAX_POSITIONS}件に達しているため、これ以上登録できません`
+      );
       return;
     }
     const ed = edits[row.code] || emptyRowEdits();
@@ -1800,7 +2014,7 @@ function Sizing27Section({ onRegister, heldPositions, closed, prep, reloadPrep }
       e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
       e("span", null, registerError)
     ),
-    e("div", { className: "text-[11px] text-slate-500" }, `保有中 ${(heldPositions || []).length} / ${MAX_POSITIONS}件`),
+    e(SlotBudgetPanel, { slot, heldCount: (heldPositions || []).length, onReset: resetSlotBudget }),
     e("div", { className: "space-y-2" },
       rows.map((row) => e(Sizing27Row, {
         key: row.code,
@@ -1823,7 +2037,7 @@ function Sizing27Section({ onRegister, heldPositions, closed, prep, reloadPrep }
   );
 }
 
-function SizingSection({ onRegister, heldPositions, closed, prep, reloadPrep }) {
+function SizingSection({ onRegister, heldPositions, closed, prep, reloadPrep, slot, resetSlotBudget, atypeLog, setAtypeLog }) {
   const [tab, setTab] = useState("phoenix");
 
   return e("div", null,
@@ -1839,9 +2053,9 @@ function SizingSection({ onRegister, heldPositions, closed, prep, reloadPrep }) 
     ),
     // 両タブとも常時マウントしCSSで表示切替（フェニックス側のfetch状態・編集内容をタブ切替で失わないため）
     e("div", { className: tab === "phoenix" ? "" : "hidden" },
-      e(Sizing27Section, { onRegister, heldPositions, closed, prep, reloadPrep })),
+      e(Sizing27Section, { onRegister, heldPositions, closed, prep, reloadPrep, slot, resetSlotBudget })),
     e("div", { className: tab === "atype" ? "" : "hidden" },
-      e(AtypeCalc, null)),
+      e(AtypeCalc, { atypeLog, setAtypeLog })),
     e("div", { className: "mt-6 flex items-start gap-2 rounded-xl bg-slate-900/50 border border-slate-800 px-3.5 py-3 text-[12px] text-slate-500" },
       e(Info, { size: 14, className: "shrink-0 mt-0.5" }),
       e("span", null, "フェニックス同時保有最大5枠（セクター上限3・金融上限4）・1日損失上限15.4万円／A型1日1件・上限8.8万円／合算24.2万円で当日全システム停止。")
@@ -1873,6 +2087,12 @@ function App() {
   const [prep, reloadPrep] = useDailyPrepData();
   // 建玉ごとの観測最高値（トレール引上げ判定用。建玉idキー・rulebook v1.9 §2.3）
   const [maxHighSeen, setMaxHighSeen] = usePersistentState("trail_max_high_v1", {});
+  // A型の記録（rulebook §3.2 1日1件・§3.4 停止条件の判定に必要な2本目始値を保存する）
+  const [atypeLog, setAtypeLog] = usePersistentState("atype_log_v1", []);
+  // 当日の発注枠（rulebook v1.10 §2.2 手順1「枠は12:30時点で確定し、同日中に決済で
+  // 空いた枠は再充当しない」）。当日1件目の登録時に base=その時点の保有数 を凍結し、
+  // 以後は保有数が減っても残枠を戻さない。
+  const [slotBudget, setSlotBudget] = usePersistentState("slot_budget_v1", null);
 
   // JSON読込のたび（prep.data更新時）・建玉構成が変わるたびに、建玉ごとのmax_high_seenを
   // 累積更新する。更新規則: date > entryDate なら day_high、date == entryDate なら pm_high
@@ -1907,8 +2127,34 @@ function App() {
     });
   }, [positions, prep.data]);
 
+  // 当日の枠。まだ当日1件目を登録していなければ base は「現在の保有数」（＝これから凍結される値）。
+  const today = todayStr();
+  const slot = useMemo(() => {
+    const frozen = slotBudget && slotBudget.date === today;
+    const base = frozen ? slotBudget.base : positions.length;
+    const used = frozen ? slotBudget.used : 0;
+    return { frozen, base, used, remaining: Math.max(0, MAX_POSITIONS - base - used) };
+  }, [slotBudget, positions.length, today]);
+
+  const resetSlotBudget = () => {
+    if (!window.confirm(
+      "本日の枠を現在の保有数で数え直します。\n\n" +
+      "ルール上、同日中に決済で空いた枠は再充当しません（rulebook §2.2）。" +
+      "誤登録を取り消した場合など、例外的なときだけ使ってください。"
+    )) return;
+    setSlotBudget({ date: today, base: positions.length, used: 0 });
+  };
+
+  // 枠を1つ消費する（当日1件目なら、その時点の保有数を base として凍結する）
+  const consumeSlot = () => {
+    setSlotBudget((prev) => (prev && prev.date === today)
+      ? { ...prev, used: prev.used + 1 }
+      : { date: today, base: positions.length, used: 1 });
+  };
+
   const handleRegister = (fields) => {
     const pos = buildPosition(fields);
+    consumeSlot();
     setPositions((prev) => [...prev, pos]);
     setNotice({ text: `${pos.name}（${pos.code}）を登録しました`, key: genId() });
     setTopTab("positions");
@@ -1937,9 +2183,9 @@ function App() {
       // 両タブを常時マウントしCSSで表示切替（サイジング側はdaily_prep.jsonのfetch状態・
       // 27行の編集内容を保持するため、トップタブ切替のたびに再マウントしない）
       e("div", { className: topTab === "sizing" ? "" : "hidden" },
-        e(SizingSection, { onRegister: handleRegister, heldPositions: positions, closed, prep, reloadPrep })),
+        e(SizingSection, { onRegister: handleRegister, heldPositions: positions, closed, prep, reloadPrep, slot, resetSlotBudget, atypeLog, setAtypeLog })),
       e("div", { className: topTab === "positions" ? "" : "hidden" },
-        e(PositionsSection, { positions, setPositions, closed, setClosed, prep, maxHighSeen }))
+        e(PositionsSection, { positions, setPositions, closed, setClosed, prep, maxHighSeen, atypeLog, setAtypeLog, slot, onSlotUsed: consumeSlot }))
     )
   );
 }
