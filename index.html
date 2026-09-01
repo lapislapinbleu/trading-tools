@@ -381,6 +381,14 @@ function estimateAtrYen(code, en, ml, mh) {
 }
 
 // 建玉オブジェクトの共通生成（フェニックス直接登録・建玉管理タブの手動登録の両方から使用）
+// 当日枠（rulebook v1.10 §2.2 手順1）の判定境界。12:30より前の決済は「12:30時点の保有数」から
+// 自然に外れるので当日枠に含まれる。12:30以降の決済は枠を戻さない（同日再充当の禁止）。
+const ORDER_WINDOW_START_MIN = 12 * 60 + 30;
+function settleWindowNow() {
+  const d = new Date();
+  return (d.getHours() * 60 + d.getMinutes()) < ORDER_WINDOW_START_MIN ? "am" : "pm";
+}
+
 function buildPosition(fields) {
   const code = normalizeCode(fields.code);
   const info = WATCHLIST[code];
@@ -1029,10 +1037,10 @@ function computeRegistrationWarnings(form, positions, closed, slot) {
   if (heldCodes.includes(code)) {
     warnings.push(`重複: ${code}${info ? "（" + info.name + "）" : ""}は保有中の建玉と重複しています`);
   }
-  // 枠は当日1件目の登録時に凍結された値で判定する（同日中に決済で空いた枠は再充当しない・§2.2 手順1）
+  // 残枠 = 5 − 保有数 − 本日12:30以降に決済した件数（§2.2 手順1・同日再充当の禁止）
   if (slot && slot.remaining <= 0) {
-    warnings.push(slot.frozen
-      ? `本日の枠を使い切っています（12:30時点の保有${slot.base}件＋本日${slot.used}件）。同日中に空いた枠は再充当しません`
+    warnings.push(slot.pmCount > 0
+      ? `本日の枠を使い切っています（保有${slot.held}件＋12:30以降の決済${slot.pmCount}件）。12:30以降に空いた枠は再充当しません`
       : `同時保有上限${MAX_POSITIONS}件に達しています`);
   } else if (positions.length + 1 > MAX_POSITIONS) {
     warnings.push(`登録後の保有数が${positions.length + 1}件になり、同時保有上限${MAX_POSITIONS}件を超えます`);
@@ -1107,8 +1115,10 @@ function positionToCsvRow(p) {
 }
 function closedToCsvRow(c) {
   return [
+    // closed行では slPrice/tpPrice は未使用。trailArmed列は settleWindow("am"/"pm") の保存に転用する
+    // （当日枠の計算に使う。列数・列順は既存フォーマットのまま変えない）
     "closed", c.id, c.code, c.name, c.sector || "", c.entryDate, numOrEmpty(c.qty), numOrEmpty(c.entryPrice),
-    "", "", "",
+    "", "", c.settleWindow || "",
     numOrEmpty(c.refPrice), numOrEmpty(c.fillPrice), numOrEmpty(c.morningClose), numOrEmpty(c.morningLow),
     c.closeDate, numOrEmpty(c.closePrice), numOrEmpty(c.pnl), c.note || "",
   ].map(csvEscape).join(",");
@@ -1205,7 +1215,10 @@ function parseBackupCsv(text) {
       if (!closeDate || !Number.isFinite(closePrice) || !Number.isFinite(pnl)) {
         throw new Error(`${i + 1}行目: closed行の closeDate・closePrice・pnl が不正です。`);
       }
-      closed.push({ ...base, closeDate, closePrice, pnl });
+      closed.push({
+        ...base, closeDate, closePrice, pnl,
+        settleWindow: (trailArmedS === "am" || trailArmedS === "pm") ? trailArmedS : null,
+      });
     } else if (type === "atype") {
       atype.push({
         id: base.id, code, name: name || code, entryDate, qty,
@@ -1419,7 +1432,7 @@ function BackupPanel({ positions, setPositions, closed, setClosed, atypeLog, set
   );
 }
 
-function PositionsSection({ positions, setPositions, closed, setClosed, prep, maxHighSeen, atypeLog, setAtypeLog, slot, onSlotUsed }) {
+function PositionsSection({ positions, setPositions, closed, setClosed, prep, maxHighSeen, atypeLog, setAtypeLog, slot }) {
   const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState({ ...DEFAULT_POSITION_FORM, entryDate: todayStr() });
   const [editingId, setEditingId] = useState(null);
@@ -1443,8 +1456,6 @@ function PositionsSection({ positions, setPositions, closed, setClosed, prep, ma
       refPrice: parseFloat(form.refPrice), fillPrice: parseFloat(form.fillPrice),
       morningClose: parseFloat(form.morningClose), morningLow: parseFloat(form.morningLow),
     });
-    // 当日エントリーとして登録した場合だけ枠を1つ消費する（過去日の記録補完では消費しない）
-    if ((form.entryDate || todayStr()) === todayStr() && onSlotUsed) onSlotUsed();
     setPositions((prev) => [...prev, newPos]);
     setForm({ ...DEFAULT_POSITION_FORM, entryDate: todayStr() });
     setFormOpen(false);
@@ -1504,6 +1515,9 @@ function PositionsSection({ positions, setPositions, closed, setClosed, prep, ma
     const record = {
       id: genId(), code: pos.code, name: pos.name, sector: pos.sector,
       entryDate: pos.entryDate, closeDate: todayStr(), qty: pos.qty,
+      // 枠計算用。"am"=12:30前の決済（当日枠に戻る）／"pm"=12:30以降（戻らない）。
+      // 既定は操作時刻で判定し、記録が遅れたときはサイジングタブの枠パネルから切り替えられる。
+      settleWindow: settleWindowNow(),
       entryPrice: pos.entryPrice, closePrice, pnl, note: pos.note || "",
       refPrice: Number.isFinite(pos.refPrice) ? pos.refPrice : null,
       fillPrice: Number.isFinite(pos.fillPrice) ? pos.fillPrice : null,
@@ -1815,13 +1829,15 @@ function Sizing27Row({ row, rowEdits, result, isOpen, onToggle, onEdit, onRegist
   );
 }
 
-// 当日の発注枠の表示（rulebook v1.10 §2.2 手順1）。枠は当日1件目の登録時に凍結され、
-// 同日中に決済でポジションが減っても残枠は戻らない。
-function SlotBudgetPanel({ slot, heldCount, onReset }) {
+// 当日の発注枠の表示（rulebook v1.10 §2.2 手順1）。
+//   残枠 = 5 − 現在の保有数 − 本日12:30以降に決済した件数
+// 12:30より前の決済は「12:30時点の保有数」に含まれないので枠に戻る（同時保有上限としての本来の挙動）。
+// 12:30以降の決済は枠を戻さない（発注窓の中で空いたスロットの再充当を禁止）。
+function SlotBudgetPanel({ slot, onSetSettleWindow }) {
   if (!slot) return null;
   const empty = slot.remaining <= 0;
   return e("div", {
-    className: `rounded-xl border px-3.5 py-2.5 space-y-1 ${empty
+    className: `rounded-xl border px-3.5 py-2.5 space-y-1.5 ${empty
       ? "bg-red-500/10 border-red-500/25"
       : "bg-slate-900/60 border-slate-800"}`,
   },
@@ -1832,22 +1848,27 @@ function SlotBudgetPanel({ slot, heldCount, onReset }) {
       }, `残り ${slot.remaining} / ${MAX_POSITIONS}枠`)
     ),
     e("div", { className: "text-[11px] text-slate-500 font-mono tabular-nums" },
-      slot.frozen
-        ? `12:30時点の保有 ${slot.base}件（凍結済）＋ 本日発注 ${slot.used}件／現在の保有 ${heldCount}件`
-        : `保有 ${slot.base}件（本日1件目の登録時に枠を凍結します）`
+      `保有 ${slot.held}件`,
+      slot.pmCount > 0 ? ` ＋ 本日12:30以降の決済 ${slot.pmCount}件（枠は戻さない）` : ""
     ),
-    slot.frozen && e("div", { className: "flex items-center justify-between gap-2 pt-0.5" },
-      e("span", { className: "text-[11px] text-slate-500 leading-relaxed" },
-        "同日中に決済で空いた枠は再充当しません（§2.2 手順1）"),
-      e("button", {
-        onClick: onReset,
-        className: "shrink-0 rounded-lg border border-slate-700 text-slate-400 text-[11px] px-2.5 py-1",
-      }, "枠を数え直す")
+    slot.pmCount > 0 && e("div", { className: "space-y-1 pt-0.5" },
+      e("div", { className: "text-[11px] text-slate-500 leading-relaxed" },
+        "12:30以降に決済した建玉は §2.2 手順1 により当日枠へ戻しません。前場の決済を後から記録した場合は「前場だった」に切り替えてください。"),
+      slot.pmClosed.map((c) => e("div", {
+        key: c.id,
+        className: "flex items-center justify-between gap-2 rounded-lg bg-slate-950/50 border border-slate-800 px-2.5 py-1.5",
+      },
+        e("span", { className: "text-[11.5px] text-slate-400 truncate" }, `${c.name}（${c.code}）`),
+        e("button", {
+          onClick: () => onSetSettleWindow && onSetSettleWindow(c.id, "am"),
+          className: "shrink-0 rounded-lg border border-slate-700 text-slate-400 text-[11px] px-2.5 py-1",
+        }, "前場だった")
+      ))
     )
   );
 }
 
-function Sizing27Section({ onRegister, heldPositions, closed, prep, reloadPrep, slot, resetSlotBudget }) {
+function Sizing27Section({ onRegister, heldPositions, closed, prep, reloadPrep, slot, onSetSettleWindow }) {
   const [edits, setEdits] = useState(() => {
     const stored = lsGet("sizing27_v1", null);
     return (stored && stored.date === todayStr() && stored.edits) ? stored.edits : {};
@@ -1929,9 +1950,9 @@ function Sizing27Section({ onRegister, heldPositions, closed, prep, reloadPrep, 
     }
     if (!slot || slot.remaining <= 0) {
       setRegisterError(
-        slot && slot.frozen
-          ? `本日の枠は使い切りました（12:30時点の保有${slot.base}件＋本日${slot.used}件＝${MAX_POSITIONS}枠）。` +
-            `同日中に決済で空いた枠は再充当しません（§2.2）`
+        slot && slot.pmCount > 0
+          ? `本日の枠は使い切りました（保有${slot.held}件＋12:30以降の決済${slot.pmCount}件＝${MAX_POSITIONS}枠）。` +
+            `12:30以降に決済で空いた枠は再充当しません（§2.2 手順1）`
           : `保有上限${MAX_POSITIONS}件に達しているため、これ以上登録できません`
       );
       return;
@@ -2014,7 +2035,7 @@ function Sizing27Section({ onRegister, heldPositions, closed, prep, reloadPrep, 
       e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
       e("span", null, registerError)
     ),
-    e(SlotBudgetPanel, { slot, heldCount: (heldPositions || []).length, onReset: resetSlotBudget }),
+    e(SlotBudgetPanel, { slot, onSetSettleWindow }),
     e("div", { className: "space-y-2" },
       rows.map((row) => e(Sizing27Row, {
         key: row.code,
@@ -2037,7 +2058,7 @@ function Sizing27Section({ onRegister, heldPositions, closed, prep, reloadPrep, 
   );
 }
 
-function SizingSection({ onRegister, heldPositions, closed, prep, reloadPrep, slot, resetSlotBudget, atypeLog, setAtypeLog }) {
+function SizingSection({ onRegister, heldPositions, closed, prep, reloadPrep, slot, onSetSettleWindow, atypeLog, setAtypeLog }) {
   const [tab, setTab] = useState("phoenix");
 
   return e("div", null,
@@ -2053,7 +2074,7 @@ function SizingSection({ onRegister, heldPositions, closed, prep, reloadPrep, sl
     ),
     // 両タブとも常時マウントしCSSで表示切替（フェニックス側のfetch状態・編集内容をタブ切替で失わないため）
     e("div", { className: tab === "phoenix" ? "" : "hidden" },
-      e(Sizing27Section, { onRegister, heldPositions, closed, prep, reloadPrep, slot, resetSlotBudget })),
+      e(Sizing27Section, { onRegister, heldPositions, closed, prep, reloadPrep, slot, onSetSettleWindow })),
     e("div", { className: tab === "atype" ? "" : "hidden" },
       e(AtypeCalc, { atypeLog, setAtypeLog })),
     e("div", { className: "mt-6 flex items-start gap-2 rounded-xl bg-slate-900/50 border border-slate-800 px-3.5 py-3 text-[12px] text-slate-500" },
@@ -2089,10 +2110,11 @@ function App() {
   const [maxHighSeen, setMaxHighSeen] = usePersistentState("trail_max_high_v1", {});
   // A型の記録（rulebook §3.2 1日1件・§3.4 停止条件の判定に必要な2本目始値を保存する）
   const [atypeLog, setAtypeLog] = usePersistentState("atype_log_v1", []);
-  // 当日の発注枠（rulebook v1.10 §2.2 手順1「枠は12:30時点で確定し、同日中に決済で
-  // 空いた枠は再充当しない」）。当日1件目の登録時に base=その時点の保有数 を凍結し、
-  // 以後は保有数が減っても残枠を戻さない。
-  const [slotBudget, setSlotBudget] = usePersistentState("slot_budget_v1", null);
+  // 当日の発注枠は rulebook v1.10 §2.2 手順1 に従う。
+  //   当日枠 = 5 − 12:30時点の保有数 ／ 残枠 = 当日枠 − 当日の発注数
+  // これは「12:30より前の決済は枠に戻り、12:30以降の決済は戻らない」と等価なので、
+  //   残枠 = 5 − 現在の保有数 − 本日12:30以降に決済した件数
+  // として算出する。この形なら前場の決済を後から記録しても枠が正しく戻る。
 
   // JSON読込のたび（prep.data更新時）・建玉構成が変わるたびに、建玉ごとのmax_high_seenを
   // 累積更新する。更新規則: date > entryDate なら day_high、date == entryDate なら pm_high
@@ -2127,34 +2149,22 @@ function App() {
     });
   }, [positions, prep.data]);
 
-  // 当日の枠。まだ当日1件目を登録していなければ base は「現在の保有数」（＝これから凍結される値）。
   const today = todayStr();
   const slot = useMemo(() => {
-    const frozen = slotBudget && slotBudget.date === today;
-    const base = frozen ? slotBudget.base : positions.length;
-    const used = frozen ? slotBudget.used : 0;
-    return { frozen, base, used, remaining: Math.max(0, MAX_POSITIONS - base - used) };
-  }, [slotBudget, positions.length, today]);
+    const closedTodayPm = closed.filter((c) => c.closeDate === today && c.settleWindow === "pm");
+    return {
+      held: positions.length, pmCount: closedTodayPm.length, pmClosed: closedTodayPm,
+      remaining: Math.max(0, MAX_POSITIONS - positions.length - closedTodayPm.length),
+    };
+  }, [positions.length, closed, today]);
 
-  const resetSlotBudget = () => {
-    if (!window.confirm(
-      "本日の枠を現在の保有数で数え直します。\n\n" +
-      "ルール上、同日中に決済で空いた枠は再充当しません（rulebook §2.2）。" +
-      "誤登録を取り消した場合など、例外的なときだけ使ってください。"
-    )) return;
-    setSlotBudget({ date: today, base: positions.length, used: 0 });
-  };
-
-  // 枠を1つ消費する（当日1件目なら、その時点の保有数を base として凍結する）
-  const consumeSlot = () => {
-    setSlotBudget((prev) => (prev && prev.date === today)
-      ? { ...prev, used: prev.used + 1 }
-      : { date: today, base: positions.length, used: 1 });
+  // 前場の決済を後場になってから記録した場合に、当日枠へ戻すための切替
+  const setSettleWindow = (id, win) => {
+    setClosed((prev) => prev.map((c) => (c.id === id ? { ...c, settleWindow: win } : c)));
   };
 
   const handleRegister = (fields) => {
     const pos = buildPosition(fields);
-    consumeSlot();
     setPositions((prev) => [...prev, pos]);
     setNotice({ text: `${pos.name}（${pos.code}）を登録しました`, key: genId() });
     setTopTab("positions");
@@ -2183,9 +2193,9 @@ function App() {
       // 両タブを常時マウントしCSSで表示切替（サイジング側はdaily_prep.jsonのfetch状態・
       // 27行の編集内容を保持するため、トップタブ切替のたびに再マウントしない）
       e("div", { className: topTab === "sizing" ? "" : "hidden" },
-        e(SizingSection, { onRegister: handleRegister, heldPositions: positions, closed, prep, reloadPrep, slot, resetSlotBudget, atypeLog, setAtypeLog })),
+        e(SizingSection, { onRegister: handleRegister, heldPositions: positions, closed, prep, reloadPrep, slot, onSetSettleWindow: setSettleWindow, atypeLog, setAtypeLog })),
       e("div", { className: topTab === "positions" ? "" : "hidden" },
-        e(PositionsSection, { positions, setPositions, closed, setClosed, prep, maxHighSeen, atypeLog, setAtypeLog, slot, onSlotUsed: consumeSlot }))
+        e(PositionsSection, { positions, setPositions, closed, setClosed, prep, maxHighSeen, atypeLog, setAtypeLog, slot }))
     )
   );
 }
