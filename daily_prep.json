@@ -1,14 +1,8 @@
 {
-  "generated_at": "2026-09-03T17:05:40.964663+09:00",
+  "generated_at": "2026-09-03T20:38:45.091649+09:00",
   "date": "2026-09-03",
-  "complete": false,
-  "missing": [
-    {
-      "code4": "9302",
-      "name": "三井倉庫",
-      "reason": "データ取得なし"
-    }
-  ],
+  "complete": true,
+  "missing": [],
   "stocks": [
     {
       "code4": "5803",
@@ -945,6 +939,42 @@
       "day_high": 4889.0,
       "pm_high": 4871.0,
       "優先順位": 26
+    },
+    {
+      "code4": "9302",
+      "name": "三井倉庫",
+      "区分": "黄",
+      "sector": "倉庫運輸",
+      "financial": false,
+      "no_market_order": true,
+      "前引け値": 3327.0,
+      "前場安値": 3306.0,
+      "前場高値": 3334.0,
+      "atr14": 3.36,
+      "hist_1130": 0.5944,
+      "gc_state": "正",
+      "d1_sign": "-",
+      "d2_sign": "-",
+      "momentum_hint": 0.5944,
+      "gc_price": 3322.14,
+      "mom_price": 3331.46,
+      "decision_price": 3331.46,
+      "needs_mom_check": true,
+      "signal_1130": 1.3542,
+      "ema12_1130": 3327.7834,
+      "ema26_1130": 3325.8349,
+      "shares": 300,
+      "sl": 3296.0,
+      "tp": 3526.6,
+      "trail_trigger": 3376.9,
+      "risk_jpy": 9294,
+      "notional_jpy": 998100,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 157831925,
+      "day_high": 3337.0,
+      "pm_high": 3337.0,
+      "優先順位": 27
     }
   ]
 }
