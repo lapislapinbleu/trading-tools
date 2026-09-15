@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-15T15:42:04.220694+09:00",
+  "generated_at": "2026-09-15T16:58:20.386384+09:00",
   "date": "2026-09-15",
   "complete": true,
   "missing": [],
@@ -685,7 +685,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 1133274800,
       "day_high": 6737.0,
-      "pm_high": 6715.0,
+      "pm_high": 6720.0,
       "優先順位": 19
     },
     {
@@ -757,7 +757,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 1671326400,
       "day_high": 3789.0,
-      "pm_high": 3703.0,
+      "pm_high": 3705.0,
       "優先順位": 21
     },
     {
@@ -829,7 +829,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 1009359950,
       "day_high": 8956.0,
-      "pm_high": 8926.0,
+      "pm_high": 8930.0,
       "優先順位": 23
     },
     {
