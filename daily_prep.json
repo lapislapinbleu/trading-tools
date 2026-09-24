@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T15:42:08.017063+09:00",
+  "generated_at": "2026-09-24T16:45:22.406429+09:00",
   "date": "2026-09-24",
   "complete": true,
   "missing": [],
@@ -540,8 +540,8 @@
       "tradable": true,
       "has_1130_bar": true,
       "value_approx_jpy": 7406400600,
-      "day_high": 3802.0,
-      "pm_high": 3802.0,
+      "day_high": 3807.0,
+      "pm_high": 3807.0,
       "優先順位": 15
     },
     {
