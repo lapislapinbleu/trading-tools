@@ -1,38 +1,43 @@
 {
-  "generated_at": "2026-09-25T10:58:04.158738+09:00",
-  "prev_close_date": "2026-09-24",
+  "generated_at": "2026-09-28T08:40:06.520312+09:00",
+  "prev_close_date": "2026-09-25",
   "band_pct": [
     0.035,
     0.05
   ],
-  "missing": [
-    {
-      "code4": "6981",
-      "name": "村田製作所",
-      "reason": "データ取得なし"
-    }
-  ],
+  "missing": [],
   "stocks": [
     {
       "code4": "5803",
       "name": "フジクラ",
-      "prev_close": 4911.0,
-      "prev_close_date": "2026-09-24",
-      "band_low_raw": 5082.88,
-      "band_high_raw": 5156.55,
-      "band_low": 5083.0,
-      "band_high": 5156.0,
+      "prev_close": 4986.0,
+      "prev_close_date": "2026-09-25",
+      "band_low_raw": 5160.51,
+      "band_high_raw": 5235.3,
+      "band_low": 5161.0,
+      "band_high": 5235.0,
       "tick": 1.0
     },
     {
       "code4": "6723",
       "name": "ルネサス",
-      "prev_close": 3490.0,
-      "prev_close_date": "2026-09-24",
-      "band_low_raw": 3612.15,
-      "band_high_raw": 3664.5,
-      "band_low": 3613.0,
-      "band_high": 3664.0,
+      "prev_close": 3478.0,
+      "prev_close_date": "2026-09-25",
+      "band_low_raw": 3599.73,
+      "band_high_raw": 3651.9,
+      "band_low": 3600.0,
+      "band_high": 3651.0,
+      "tick": 1.0
+    },
+    {
+      "code4": "6981",
+      "name": "村田製作所",
+      "prev_close": 8022.0,
+      "prev_close_date": "2026-09-25",
+      "band_low_raw": 8302.77,
+      "band_high_raw": 8423.1,
+      "band_low": 8303.0,
+      "band_high": 8423.0,
       "tick": 1.0
     }
   ]
