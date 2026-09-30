@@ -927,10 +927,35 @@ function TrailCheckRow({ pos, trailTrigger, maxHighSeen, generatedAt, onToggleTr
   );
 }
 
+// 株式分割の調整（2026-10-01新設）。
+// 建玉管理ツールは分割に非対応で、保有中に分割されると株数・建値・SL/TPが分割前のまま残る。
+// 2026-09-29の三井住友FG(1:2)で −337,100円（ちょうど−50%）の偽損失が発生した。
+// 東京海上(1:15)のような大型分割では建玉代金の上限チェックも壊れる。
+// ratio=n（1株がn株になる）で、株数を n倍、価格系を 1/n にする。
+function applySplitToPosition(pos, ratio) {
+  const n = Number(ratio);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  const div = (v) => (Number.isFinite(v) ? Math.round((v / n) * 100) / 100 : v);
+  const note = [pos.note, `${todayStr()} 分割1:${n}調整（${pos.qty}株@${pos.entryPrice}→${pos.qty * n}株@${div(pos.entryPrice)}）`]
+    .filter(Boolean).join(" / ");
+  return {
+    ...pos,
+    qty: pos.qty * n,
+    entryPrice: div(pos.entryPrice),
+    slPrice: div(pos.slPrice),
+    tpPrice: div(pos.tpPrice),
+    refPrice: div(pos.refPrice),
+    fillPrice: div(pos.fillPrice),
+    morningClose: div(pos.morningClose),
+    morningLow: div(pos.morningLow),
+    note,
+  };
+}
+
 function PositionCard({
   pos, isEditing, editForm, onEditField, onStartEdit, onCancelEdit, onSaveEdit, onToggleTrail,
   isSettling, settlePrice, onSettlePriceChange, onStartSettle, onCancelSettle, onConfirmSettle,
-  maxHighSeen, generatedAt,
+  maxHighSeen, generatedAt, onSplit,
 }) {
   if (isEditing) {
     return e("div", { className: "rounded-xl bg-slate-900/60 border border-amber-500/30 p-3.5 space-y-2.5" },
@@ -1006,6 +1031,10 @@ function PositionCard({
       e("button", { onClick: onStartEdit, className: "flex-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-[12.5px] font-semibold py-2.5" }, "編集"),
       e("button", { onClick: onStartSettle, className: "flex-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-[12.5px] font-semibold py-2.5" }, "決済")
     ),
+    e("button", {
+      onClick: onSplit,
+      className: "w-full rounded-lg border border-slate-800 text-slate-500 text-[11.5px] py-1.5",
+    }, "分割調整（保有中に株式分割があったとき）"),
     isSettling && e("div", { className: "rounded-lg bg-slate-950/60 border border-slate-800 p-3 space-y-2.5" },
       e(NumberField, { label: "決済単価", value: settlePrice, onChange: onSettlePriceChange, placeholder: "例: 4900", suffix: "円" }),
       e("div", { className: "flex gap-2" },
@@ -1556,6 +1585,38 @@ function PositionsSection({ positions, setPositions, closed, setClosed, prep, ma
     setPositions((prev) => prev.map((p) => (p.id === id ? { ...p, trailArmed: !p.trailArmed } : p)));
   };
 
+  // 保有中に株式分割があったときの調整（2026-09-29の三井住友FG1:2・東京海上1:15で必要になった）
+  const splitPosition = (pos) => {
+    const raw = window.prompt(
+      `${pos.name}（${pos.code}）の分割比率を入力してください。
+` +
+      `1株が何株になったか（例: 1対2なら 2、1対15なら 15）。
+
+` +
+      `現在: ${fmt(pos.qty)}株 @¥${fmtPrice(pos.entryPrice)}`, "");
+    if (raw === null) return;
+    const next = applySplitToPosition(pos, raw);
+    if (!next) { window.alert("比率が不正です。正の数を入力してください"); return; }
+    if (!window.confirm(
+      `${pos.name}をこう調整します。よろしいですか？
+
+` +
+      `株数  ${fmt(pos.qty)} → ${fmt(next.qty)}
+` +
+      `建値  ¥${fmtPrice(pos.entryPrice)} → ¥${fmtPrice(next.entryPrice)}
+` +
+      `SL    ¥${fmtPrice(pos.slPrice)} → ¥${fmtPrice(next.slPrice)}
+` +
+      `TP    ¥${fmtPrice(pos.tpPrice)} → ¥${fmtPrice(next.tpPrice)}
+
+` +
+      `建玉代金は ¥${fmt(pos.qty * pos.entryPrice)} のまま変わりません。
+` +
+      `SBI側の建玉も分割後の株数になっているか必ず確認してください。`
+    )) return;
+    setPositions((prev) => prev.map((p) => (p.id === pos.id ? next : p)));
+  };
+
   const startEdit = (pos) => {
     setEditingId(pos.id);
     setEditForm({
@@ -1662,6 +1723,7 @@ function PositionsSection({ positions, setPositions, closed, setClosed, prep, ma
             onCancelEdit: cancelEdit,
             onSaveEdit: saveEdit,
             onToggleTrail: () => toggleTrail(pos.id),
+            onSplit: () => splitPosition(pos),
             isSettling: settlingId === pos.id,
             settlePrice,
             onSettlePriceChange: setSettlePrice,
