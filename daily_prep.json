@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-30T11:52:03.958511+09:00",
+  "generated_at": "2026-09-30T15:42:07.309176+09:00",
   "date": "2026-09-30",
   "complete": true,
   "missing": [],
@@ -35,9 +35,9 @@
       "notional_jpy": 522900,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 103634289875,
-      "day_high": 5248.0,
-      "pm_high": null,
+      "value_approx_jpy": 103878484175,
+      "day_high": 5252.0,
+      "pm_high": 5252.0,
       "優先順位": 1
     },
     {
@@ -71,9 +71,9 @@
       "notional_jpy": 727000,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 49837991575,
-      "day_high": 3639.0,
-      "pm_high": null,
+      "value_approx_jpy": 50035008575,
+      "day_high": 3705.0,
+      "pm_high": 3705.0,
       "優先順位": 2
     },
     {
@@ -107,9 +107,9 @@
       "notional_jpy": 767800,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 34335766575,
-      "day_high": 3839.0,
-      "pm_high": null,
+      "value_approx_jpy": 34388744775,
+      "day_high": 3879.0,
+      "pm_high": 3879.0,
       "優先順位": 3
     },
     {
@@ -143,9 +143,9 @@
       "notional_jpy": 869200,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 28146841850,
-      "day_high": 8723.0,
-      "pm_high": null,
+      "value_approx_jpy": 28311120650,
+      "day_high": 8903.0,
+      "pm_high": 8903.0,
       "優先順位": 4
     },
     {
@@ -179,9 +179,9 @@
       "notional_jpy": 1024500,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 26560588675,
-      "day_high": 3415.0,
-      "pm_high": null,
+      "value_approx_jpy": 26671218475,
+      "day_high": 3485.0,
+      "pm_high": 3485.0,
       "優先順位": 5
     },
     {
@@ -215,9 +215,9 @@
       "notional_jpy": 713800,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 25800040625,
-      "day_high": 3600.0,
-      "pm_high": null,
+      "value_approx_jpy": 25940698625,
+      "day_high": 3611.0,
+      "pm_high": 3611.0,
       "優先順位": 6
     },
     {
@@ -251,9 +251,9 @@
       "notional_jpy": 903600,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 16298348300,
-      "day_high": 2264.0,
-      "pm_high": null,
+      "value_approx_jpy": 16327037600,
+      "day_high": 2324.5,
+      "pm_high": 2324.5,
       "優先順位": 7
     },
     {
@@ -287,9 +287,9 @@
       "notional_jpy": 1009850,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 11885024672,
-      "day_high": 536.5,
-      "pm_high": null,
+      "value_approx_jpy": 11920635172,
+      "day_high": 540.6,
+      "pm_high": 540.6,
       "優先順位": 8
     },
     {
@@ -323,9 +323,9 @@
       "notional_jpy": 970500,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 11241469875,
-      "day_high": 9883.0,
-      "pm_high": null,
+      "value_approx_jpy": 11290965375,
+      "day_high": 10010.0,
+      "pm_high": 10010.0,
       "優先順位": 9
     },
     {
@@ -338,7 +338,7 @@
       "前引け値": 3455.0,
       "前場安値": 3405.0,
       "前場高値": 3455.0,
-      "atr14": 7.43,
+      "atr14": 7.5,
       "hist_1130": -0.3759,
       "gc_state": "負",
       "d1_sign": "+",
@@ -359,9 +359,9 @@
       "notional_jpy": 691000,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 7989683300,
-      "day_high": 3455.0,
-      "pm_high": null,
+      "value_approx_jpy": 8055995300,
+      "day_high": 3518.0,
+      "pm_high": 3518.0,
       "優先順位": 10
     },
     {
@@ -395,9 +395,9 @@
       "notional_jpy": 971600,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 5772826325,
-      "day_high": 4897.0,
-      "pm_high": null,
+      "value_approx_jpy": 5781570725,
+      "day_high": 4917.0,
+      "pm_high": 4917.0,
       "優先順位": 11
     },
     {
@@ -431,9 +431,9 @@
       "notional_jpy": 1006000,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 5764087325,
-      "day_high": 2534.0,
-      "pm_high": null,
+      "value_approx_jpy": 5772638325,
+      "day_high": 2574.5,
+      "pm_high": 2574.5,
       "優先順位": 12
     },
     {
@@ -467,9 +467,9 @@
       "notional_jpy": 935500,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 3897507612,
-      "day_high": 1892.0,
-      "pm_high": null,
+      "value_approx_jpy": 3905179738,
+      "day_high": 1894.5,
+      "pm_high": 1894.5,
       "優先順位": 13
     },
     {
@@ -503,46 +503,10 @@
       "notional_jpy": 882500,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 3825344138,
-      "day_high": 1768.0,
-      "pm_high": null,
+      "value_approx_jpy": 3830992138,
+      "day_high": 1789.0,
+      "pm_high": 1789.0,
       "優先順位": 14
-    },
-    {
-      "code4": "5711",
-      "name": "三菱マテ",
-      "区分": "緑",
-      "sector": "非鉄金属",
-      "financial": false,
-      "no_market_order": false,
-      "前引け値": 5105.0,
-      "前場安値": 5018.0,
-      "前場高値": 5105.0,
-      "atr14": 13.79,
-      "hist_1130": 3.5749,
-      "gc_state": "正",
-      "d1_sign": "+",
-      "d2_sign": "+",
-      "momentum_hint": 3.5749,
-      "gc_price": 5044.39,
-      "mom_price": 5100.4,
-      "decision_price": 5044.39,
-      "needs_mom_check": false,
-      "signal_1130": 9.6008,
-      "ema12_1130": 5076.9667,
-      "ema26_1130": 5063.7909,
-      "shares": 200,
-      "sl": 5002.7,
-      "tp": 5411.3,
-      "trail_trigger": 5181.6,
-      "risk_jpy": 20463,
-      "notional_jpy": 1021000,
-      "tradable": true,
-      "has_1130_bar": true,
-      "value_approx_jpy": 2767333700,
-      "day_high": 5105.0,
-      "pm_high": null,
-      "優先順位": 15
     },
     {
       "code4": "8630",
@@ -575,10 +539,10 @@
       "notional_jpy": 665200,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 2693735375,
-      "day_high": 6699.0,
-      "pm_high": null,
-      "優先順位": 16
+      "value_approx_jpy": 2805488975,
+      "day_high": 6723.0,
+      "pm_high": 6723.0,
+      "優先順位": 15
     },
     {
       "code4": "8729",
@@ -590,7 +554,7 @@
       "前引け値": 157.1,
       "前場安値": 155.5,
       "前場高値": 157.2,
-      "atr14": 0.25,
+      "atr14": 0.26,
       "hist_1130": 0.0894,
       "gc_state": "正",
       "d1_sign": "+",
@@ -611,9 +575,45 @@
       "notional_jpy": 1021150,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 2445390788,
-      "day_high": 157.2,
-      "pm_high": null,
+      "value_approx_jpy": 2781691791,
+      "day_high": 158.9,
+      "pm_high": 158.9,
+      "優先順位": 16
+    },
+    {
+      "code4": "5711",
+      "name": "三菱マテ",
+      "区分": "緑",
+      "sector": "非鉄金属",
+      "financial": false,
+      "no_market_order": false,
+      "前引け値": 5105.0,
+      "前場安値": 5018.0,
+      "前場高値": 5105.0,
+      "atr14": 13.86,
+      "hist_1130": 3.5749,
+      "gc_state": "正",
+      "d1_sign": "+",
+      "d2_sign": "+",
+      "momentum_hint": 3.5749,
+      "gc_price": 5044.39,
+      "mom_price": 5100.4,
+      "decision_price": 5044.39,
+      "needs_mom_check": false,
+      "signal_1130": 9.6008,
+      "ema12_1130": 5076.9667,
+      "ema26_1130": 5063.7909,
+      "shares": 200,
+      "sl": 5002.7,
+      "tp": 5411.3,
+      "trail_trigger": 5181.6,
+      "risk_jpy": 20463,
+      "notional_jpy": 1021000,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 2773457900,
+      "day_high": 5145.0,
+      "pm_high": 5145.0,
       "優先順位": 17
     },
     {
@@ -647,9 +647,9 @@
       "notional_jpy": 767000,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 2208996925,
-      "day_high": 3855.0,
-      "pm_high": null,
+      "value_approx_jpy": 2220885425,
+      "day_high": 3884.0,
+      "pm_high": 3884.0,
       "優先順位": 18
     },
     {
@@ -683,9 +683,9 @@
       "notional_jpy": 700000,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 2100654175,
-      "day_high": 7020.0,
-      "pm_high": null,
+      "value_approx_jpy": 2109754175,
+      "day_high": 7192.0,
+      "pm_high": 7192.0,
       "優先順位": 19
     },
     {
@@ -719,9 +719,9 @@
       "notional_jpy": 964800,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 1363575000,
-      "day_high": 4890.0,
-      "pm_high": null,
+      "value_approx_jpy": 1367434200,
+      "day_high": 4900.0,
+      "pm_high": 4900.0,
       "優先順位": 20
     },
     {
@@ -755,9 +755,9 @@
       "notional_jpy": 1013250,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 1093490725,
-      "day_high": 2027.5,
-      "pm_high": null,
+      "value_approx_jpy": 1094909275,
+      "day_high": 2040.5,
+      "pm_high": 2040.5,
       "優先順位": 21
     },
     {
@@ -791,9 +791,9 @@
       "notional_jpy": 893700,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 1053682600,
-      "day_high": 8937.0,
-      "pm_high": null,
+      "value_approx_jpy": 1060832200,
+      "day_high": 9041.0,
+      "pm_high": 9041.0,
       "優先順位": 22
     },
     {
@@ -827,9 +827,9 @@
       "notional_jpy": 772800,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 957043275,
-      "day_high": 3867.0,
-      "pm_high": null,
+      "value_approx_jpy": 959361675,
+      "day_high": 3877.0,
+      "pm_high": 3877.0,
       "優先順位": 23
     },
     {
@@ -863,9 +863,9 @@
       "notional_jpy": 886500,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 898811825,
-      "day_high": 1791.0,
-      "pm_high": null,
+      "value_approx_jpy": 903244325,
+      "day_high": 1792.0,
+      "pm_high": 1792.0,
       "優先順位": 24
     },
     {
@@ -899,9 +899,9 @@
       "notional_jpy": 951400,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 527017025,
-      "day_high": 4761.0,
-      "pm_high": null,
+      "value_approx_jpy": 528444125,
+      "day_high": 4786.0,
+      "pm_high": 4786.0,
       "優先順位": 25
     },
     {
@@ -935,9 +935,9 @@
       "notional_jpy": 884400,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 286627275,
+      "value_approx_jpy": 287216875,
       "day_high": 1498.5,
-      "pm_high": null,
+      "pm_high": 1485.5,
       "優先順位": 26
     },
     {
@@ -971,9 +971,9 @@
       "notional_jpy": 956100,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 123221125,
+      "value_approx_jpy": 124177225,
       "day_high": 3226.0,
-      "pm_high": null,
+      "pm_high": 3225.0,
       "優先順位": 27
     }
   ]
