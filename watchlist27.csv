@@ -7,6 +7,7 @@ code4,name,cls,sector,financial,no_market_order
 8411,みずほ,green,銀行,true,false
 8766,東京海上,green,保険,true,false
 5802,住友電工,green,非鉄金属,false,false
+5706,三井金属,green,非鉄金属,false,false
 8725,MS&AD,green,保険,true,false
 5713,住友鉱山,green,非鉄金属,false,false
 8729,ソニーFG,green,保険,true,false

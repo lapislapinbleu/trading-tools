@@ -312,7 +312,10 @@ function roundDownTick(price, tick) {
 function fmt(n) { return (n === null || n === undefined || Number.isNaN(n)) ? "―" : Math.round(n).toLocaleString("ja-JP"); }
 function fmtPrice(n) { return (n === null || n === undefined || Number.isNaN(n)) ? "―" : n.toLocaleString("ja-JP", { maximumFractionDigits: 2 }); }
 
-// ---- 監視リスト27銘柄辞書（rulebook v1.5 §2.1・2.4、2026-07-23判定） ----
+// ---- 監視リスト28銘柄辞書（rulebook v1.20 §2.1・2.4）----
+// 2026-10-04: 三井金属(5706)を追加。§2.1の選定規則「売買代金上位で選定」に対し
+// 非鉄金属の売買代金4位でありながら脱漏していたため（5〜8位は監視入り済み）。
+// 12:30-40売買代金14.98億（条件②の2億を充足）で緑区分、売買代金順9位。
 const WATCH_ENTRIES = [
   { code: "5803", name: "フジクラ",     sector: "非鉄金属", cls: "green", rank: 1 },
   { code: "8306", name: "三菱UFJ",      sector: "銀行",     cls: "green", rank: 2 },
@@ -322,18 +325,19 @@ const WATCH_ENTRIES = [
   { code: "8411", name: "みずほ",       sector: "銀行",     cls: "green", rank: 6 },
   { code: "8766", name: "東京海上",     sector: "保険",     cls: "green", rank: 7 },
   { code: "5802", name: "住友電工",     sector: "非鉄金属", cls: "green", rank: 8 },
-  { code: "8725", name: "MS&AD",        sector: "保険",     cls: "green", rank: 9 },
-  { code: "5713", name: "住友鉱山",     sector: "非鉄金属", cls: "green", rank: 10 },
-  { code: "8729", name: "ソニーFG",     sector: "保険",     cls: "green", rank: 11 },
-  { code: "8308", name: "りそな",       sector: "銀行",     cls: "green", rank: 12 },
-  { code: "7182", name: "ゆうちょ",     sector: "銀行",     cls: "green", rank: 13 },
-  { code: "8750", name: "第一生命",     sector: "保険",     cls: "green", rank: 14 },
-  { code: "5108", name: "ブリヂストン", sector: "ゴム",     cls: "green", rank: 15 },
-  { code: "8630", name: "SOMPO",        sector: "保険",     cls: "green", rank: 16 },
-  { code: "8309", name: "三井住友TR",   sector: "銀行",     cls: "green", rank: 17 },
-  { code: "8795", name: "T&D",          sector: "保険",     cls: "green", rank: 18 },
-  { code: "5101", name: "横浜ゴム",     sector: "ゴム",     cls: "green", rank: 19 },
-  { code: "5711", name: "三菱マテ",     sector: "非鉄金属", cls: "green", rank: 20 },
+  { code: "5706", name: "三井金属",     sector: "非鉄金属", cls: "green", rank: 9 },
+  { code: "8725", name: "MS&AD",        sector: "保険",     cls: "green", rank: 10 },
+  { code: "5713", name: "住友鉱山",     sector: "非鉄金属", cls: "green", rank: 11 },
+  { code: "8729", name: "ソニーFG",     sector: "保険",     cls: "green", rank: 12 },
+  { code: "8308", name: "りそな",       sector: "銀行",     cls: "green", rank: 13 },
+  { code: "7182", name: "ゆうちょ",     sector: "銀行",     cls: "green", rank: 14 },
+  { code: "8750", name: "第一生命",     sector: "保険",     cls: "green", rank: 15 },
+  { code: "5108", name: "ブリヂストン", sector: "ゴム",     cls: "green", rank: 16 },
+  { code: "8630", name: "SOMPO",        sector: "保険",     cls: "green", rank: 17 },
+  { code: "8309", name: "三井住友TR",   sector: "銀行",     cls: "green", rank: 18 },
+  { code: "8795", name: "T&D",          sector: "保険",     cls: "green", rank: 19 },
+  { code: "5101", name: "横浜ゴム",     sector: "ゴム",     cls: "green", rank: 20 },
+  { code: "5711", name: "三菱マテ",     sector: "非鉄金属", cls: "green", rank: 21 },
   { code: "5714", name: "DOWA",         sector: "非鉄金属", cls: "yellow", rank: null },
   { code: "5110", name: "住友ゴム",     sector: "ゴム",     cls: "yellow", rank: null },
   { code: "5105", name: "TOYO TIRE",    sector: "ゴム",     cls: "yellow", rank: null },
@@ -361,6 +365,7 @@ const NO_MARKET_CODES = ["9364", "9301", "9302"];
 // ローリング窓は分割前後で分断して算出(比率自体はスケール不変なので分割後もそのまま使える)。
 const ATR_PCODE = {
   "5016": 0.00590, "5101": 0.00298, "5105": 0.00225, "5108": 0.00150, "5110": 0.00225,
+  "5706": 0.00549,
   "5711": 0.00325, "5713": 0.00431, "5714": 0.00322, "5801": 0.00631, "5802": 0.00506,
   "5803": 0.00631, "7181": 0.00235, "7182": 0.00263, "8306": 0.00221, "8308": 0.00296,
   "8309": 0.00208, "8316": 0.00226, "8411": 0.00279, "8630": 0.00208, "8725": 0.00184,
@@ -588,7 +593,7 @@ function StockBadge({ code }) {
   const info = WATCHLIST[norm];
   if (!info) {
     return e("div", { className: "inline-flex items-center gap-1 rounded-md bg-red-500/10 border border-red-500/25 px-2 py-1 text-[11px] text-red-300" },
-      "監視リスト外（27銘柄外）");
+      "監視リスト外（28銘柄外）");
   }
   const isGreen = info.cls === "green";
   const badgeColor = isGreen
@@ -1192,7 +1197,7 @@ function computeRegistrationWarnings(form, positions, closed, slot) {
       warnings.push(`${info.name}（${code}）は成行不可。前引け値の指値（当日限り）で発注、未約定なら見送り`);
     }
   } else {
-    warnings.push(`コード${code}は監視リスト27銘柄外。フェニックス発注対象外`);
+    warnings.push(`コード${code}は監視リスト28銘柄外。フェニックス発注対象外`);
   }
 
   return warnings;
@@ -1740,14 +1745,14 @@ function PositionsSection({ positions, setPositions, closed, setClosed, prep, ma
   );
 }
 
-// ---- サイジング一覧UI（rulebook v1.9指揮官指示・2026-08-03: 27銘柄一覧化） ----
+// ---- サイジング一覧UI（rulebook v1.9指揮官指示・2026-08-03: 全銘柄一覧化） ----
 // 行の各種入力(前引け値・前場安値・前場高値・ATR・株数・ref_price・約定値)
 function emptyRowEdits() {
   return { entry: "", morningLow: "", morningHigh: "", atrManual: "", qty: "", refPrice: "", fillPrice: "",
            c1230: "", c1235: "", c1240: "" };
 }
 
-// 27銘柄の表示行を構築。daily_prep.json取得済みならJSON値で自動入力し優先順位でソート、
+// 監視銘柄の表示行を構築。daily_prep.json取得済みならJSON値で自動入力し優先順位でソート、
 // 未取得（フォールバック）時はWATCH_ENTRIES自体の並び（緑1-20→黄21-27）を優先順位とする
 function buildSizing27Rows(prepData) {
   const byCode = {};
@@ -2182,7 +2187,7 @@ function Sizing27Section({ onRegister, heldPositions, closed, prep, reloadPrep, 
             const advice = noBar.length
               ? "生成が早すぎた可能性。数分後に再読込してください"
               : "該当銘柄にシグナルが出たら手入力で確認（他の銘柄はそのまま使えます）";
-            return e("span", null, `${(data.stocks || []).length}/27銘柄を取得。${detail}。${advice}`);
+            return e("span", null, `${(data.stocks || []).length}/${WATCH_ENTRIES.length}銘柄を取得。${detail}。${advice}`);
           })()
         ),
         data.stocks.length === 0 && e("div", { className: "text-[12px] text-slate-500 py-2" }, "本日の候補データがありません（休場日、またはActions未実行の可能性。各行を手入力してください）")
