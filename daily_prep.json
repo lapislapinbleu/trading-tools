@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-08T15:42:04.385256+09:00",
+  "generated_at": "2026-10-08T18:21:35.408916+09:00",
   "date": "2026-10-08",
   "complete": true,
   "missing": [],
@@ -365,6 +365,42 @@
       "優先順位": 10
     },
     {
+      "code4": "5711",
+      "name": "三菱マテ",
+      "区分": "緑",
+      "sector": "非鉄金属",
+      "financial": false,
+      "no_market_order": false,
+      "前引け値": 4847.0,
+      "前場安値": 4813.0,
+      "前場高値": 4873.0,
+      "atr14": 8.79,
+      "hist_1130": 9.9283,
+      "gc_state": "正",
+      "d1_sign": "-",
+      "d2_sign": "-",
+      "momentum_hint": 9.9283,
+      "gc_price": 4699.47,
+      "mom_price": 4855.04,
+      "decision_price": 4855.04,
+      "needs_mom_check": true,
+      "signal_1130": -25.4652,
+      "ema12_1130": 4838.3527,
+      "ema26_1130": 4853.8897,
+      "shares": 200,
+      "sl": 4798.5,
+      "tp": 5137.8,
+      "trail_trigger": 4919.7,
+      "risk_jpy": 9708,
+      "notional_jpy": 969400,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 8923863150,
+      "day_high": 4873.0,
+      "pm_high": 4848.0,
+      "優先順位": 11
+    },
+    {
       "code4": "8308",
       "name": "りそな",
       "区分": "緑",
@@ -398,7 +434,7 @@
       "value_approx_jpy": 7464601538,
       "day_high": 2504.5,
       "pm_high": 2478.0,
-      "優先順位": 11
+      "優先順位": 12
     },
     {
       "code4": "8725",
@@ -434,7 +470,7 @@
       "value_approx_jpy": 6755623525,
       "day_high": 4897.0,
       "pm_high": 4897.0,
-      "優先順位": 12
+      "優先順位": 13
     },
     {
       "code4": "7182",
@@ -470,7 +506,7 @@
       "value_approx_jpy": 6513356875,
       "day_high": 3314.0,
       "pm_high": 3287.0,
-      "優先順位": 13
+      "優先順位": 14
     },
     {
       "code4": "8630",
@@ -506,7 +542,7 @@
       "value_approx_jpy": 3883511725,
       "day_high": 6557.0,
       "pm_high": 6557.0,
-      "優先順位": 14
+      "優先順位": 15
     },
     {
       "code4": "8750",
@@ -542,7 +578,7 @@
       "value_approx_jpy": 3821229612,
       "day_high": 1813.5,
       "pm_high": 1810.5,
-      "優先順位": 15
+      "優先順位": 16
     },
     {
       "code4": "8309",
@@ -578,42 +614,6 @@
       "value_approx_jpy": 3415512375,
       "day_high": 1738.0,
       "pm_high": 1720.5,
-      "優先順位": 16
-    },
-    {
-      "code4": "5711",
-      "name": "三菱マテ",
-      "区分": "緑",
-      "sector": "非鉄金属",
-      "financial": false,
-      "no_market_order": false,
-      "前引け値": 4847.0,
-      "前場安値": 4813.0,
-      "前場高値": 4873.0,
-      "atr14": 8.86,
-      "hist_1130": 9.9275,
-      "gc_state": "正",
-      "d1_sign": "-",
-      "d2_sign": "-",
-      "momentum_hint": 9.9275,
-      "gc_price": 4699.48,
-      "mom_price": 4855.04,
-      "decision_price": 4855.04,
-      "needs_mom_check": true,
-      "signal_1130": -25.4627,
-      "ema12_1130": 4838.3527,
-      "ema26_1130": 4853.8879,
-      "shares": 200,
-      "sl": 4798.5,
-      "tp": 5137.8,
-      "trail_trigger": 4919.7,
-      "risk_jpy": 9708,
-      "notional_jpy": 969400,
-      "tradable": true,
-      "has_1130_bar": true,
-      "value_approx_jpy": 2952229100,
-      "day_high": 4873.0,
-      "pm_high": 4848.0,
       "優先順位": 17
     },
     {
@@ -901,7 +901,7 @@
       "has_1130_bar": true,
       "value_approx_jpy": 798119525,
       "day_high": 4027.0,
-      "pm_high": 3995.0,
+      "pm_high": 3996.0,
       "優先順位": 25
     },
     {
