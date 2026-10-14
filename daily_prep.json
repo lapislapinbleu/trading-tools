@@ -1,8 +1,14 @@
 {
-  "generated_at": "2026-10-14T15:45:07.756804+09:00",
+  "generated_at": "2026-10-14T16:55:57.888176+09:00",
   "date": "2026-10-14",
   "complete": false,
-  "missing": [],
+  "missing": [
+    {
+      "code4": "5108",
+      "name": "ブリヂストン",
+      "reason": "データ取得なし"
+    }
+  ],
   "stocks": [
     {
       "code4": "5803",
@@ -194,19 +200,19 @@
       "前引け値": 3285.0,
       "前場安値": 3272.0,
       "前場高値": 3312.0,
-      "atr14": 4.71,
-      "hist_1130": 2.5467,
+      "atr14": 4.79,
+      "hist_1130": 2.5102,
       "gc_state": "正",
       "d1_sign": "+",
       "d2_sign": "+",
-      "momentum_hint": 2.5467,
-      "gc_price": 3245.84,
-      "mom_price": 3285.74,
-      "decision_price": 3245.84,
+      "momentum_hint": 2.5102,
+      "gc_price": 3246.11,
+      "mom_price": 3285.44,
+      "decision_price": 3246.11,
       "needs_mom_check": false,
-      "signal_1130": -8.6559,
-      "ema12_1130": 3283.4338,
-      "ema26_1130": 3289.5429,
+      "signal_1130": -8.6809,
+      "ema12_1130": 3283.3036,
+      "ema26_1130": 3289.4744,
       "shares": 300,
       "sl": 3262.1,
       "tp": 3482.1,
@@ -215,7 +221,7 @@
       "notional_jpy": 985500,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 16987631125,
+      "value_approx_jpy": 16987611900,
       "day_high": 3312.0,
       "pm_high": 3297.0,
       "優先順位": 6
@@ -231,18 +237,18 @@
       "前場安値": 2599.0,
       "前場高値": 2663.0,
       "atr14": 11.21,
-      "hist_1130": -0.4575,
+      "hist_1130": -0.4571,
       "gc_state": "負",
       "d1_sign": "+",
       "d2_sign": "+",
-      "momentum_hint": -0.4575,
-      "gc_price": 2648.0,
+      "momentum_hint": -0.4571,
+      "gc_price": 2647.99,
       "mom_price": 2640.83,
-      "decision_price": 2648.0,
+      "decision_price": 2647.99,
       "needs_mom_check": false,
-      "signal_1130": 11.6012,
+      "signal_1130": 11.5998,
       "ema12_1130": 2631.9133,
-      "ema26_1130": 2620.7696,
+      "ema26_1130": 2620.7706,
       "shares": 300,
       "sl": 2587.8,
       "tp": 2801.6,
@@ -251,7 +257,7 @@
       "notional_jpy": 792900,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 12542453300,
+      "value_approx_jpy": 12542413488,
       "day_high": 2663.0,
       "pm_high": 2654.5,
       "優先順位": 7
@@ -303,18 +309,18 @@
       "前場安値": 525.2,
       "前場高値": 533.5,
       "atr14": 0.91,
-      "hist_1130": 0.0421,
+      "hist_1130": 0.042,
       "gc_state": "正",
       "d1_sign": "+",
       "d2_sign": "-",
-      "momentum_hint": 0.0421,
+      "momentum_hint": 0.042,
       "gc_price": 525.23,
       "mom_price": 525.89,
       "decision_price": 525.23,
       "needs_mom_check": false,
-      "signal_1130": -0.9686,
+      "signal_1130": -0.9681,
       "ema12_1130": 526.6163,
-      "ema26_1130": 527.5427,
+      "ema26_1130": 527.5424,
       "shares": 1900,
       "sl": 523.6,
       "tp": 557.5,
@@ -359,7 +365,7 @@
       "notional_jpy": 937800,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 9592989575,
+      "value_approx_jpy": 9592999188,
       "day_high": 2417.0,
       "pm_high": 2351.5,
       "優先順位": 10
@@ -581,42 +587,6 @@
       "優先順位": 16
     },
     {
-      "code4": "5108",
-      "name": "ブリヂストン",
-      "区分": "緑",
-      "sector": "ゴム",
-      "financial": false,
-      "no_market_order": false,
-      "前引け値": 3979.0,
-      "前場安値": 3923.0,
-      "前場高値": 3987.0,
-      "atr14": 5.0,
-      "hist_1130": -0.5626,
-      "gc_state": "負",
-      "d1_sign": "-",
-      "d2_sign": "-",
-      "momentum_hint": -0.5626,
-      "gc_price": 3990.54,
-      "mom_price": 3981.72,
-      "decision_price": 3990.54,
-      "needs_mom_check": false,
-      "signal_1130": 8.9987,
-      "ema12_1130": 3975.6514,
-      "ema26_1130": 3967.2154,
-      "shares": 200,
-      "sl": 3911.1,
-      "tp": 4217.7,
-      "trail_trigger": 4038.7,
-      "risk_jpy": 13587,
-      "notional_jpy": 795800,
-      "tradable": true,
-      "has_1130_bar": true,
-      "value_approx_jpy": 2426102275,
-      "day_high": 3987.0,
-      "pm_high": 3983.0,
-      "優先順位": 17
-    },
-    {
       "code4": "8729",
       "name": "ソニーFG",
       "区分": "緑",
@@ -650,7 +620,7 @@
       "value_approx_jpy": 1503545346,
       "day_high": 149.3,
       "pm_high": 149.3,
-      "優先順位": 18
+      "優先順位": 17
     },
     {
       "code4": "8795",
@@ -683,10 +653,10 @@
       "notional_jpy": 958600,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 1442153575,
+      "value_approx_jpy": 1442146975,
       "day_high": 4863.0,
       "pm_high": 4814.0,
-      "優先順位": 19
+      "優先順位": 18
     },
     {
       "code4": "5101",
@@ -719,10 +689,10 @@
       "notional_jpy": 733700,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 1340916550,
+      "value_approx_jpy": 1340915500,
       "day_high": 7368.0,
       "pm_high": 7337.0,
-      "優先順位": 20
+      "優先順位": 19
     },
     {
       "code4": "5711",
@@ -758,7 +728,7 @@
       "value_approx_jpy": 1315155350,
       "day_high": 4922.0,
       "pm_high": 4922.0,
-      "優先順位": 21
+      "優先順位": 20
     },
     {
       "code4": "5110",
@@ -791,10 +761,10 @@
       "notional_jpy": 1023500,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 1107673750,
+      "value_approx_jpy": 1107674350,
       "day_high": 2059.0,
       "pm_high": 2059.0,
-      "優先順位": 22
+      "優先順位": 21
     },
     {
       "code4": "5105",
@@ -827,10 +797,10 @@
       "notional_jpy": 821600,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 891993275,
+      "value_approx_jpy": 891992275,
       "day_high": 4123.0,
       "pm_high": 4120.0,
-      "優先順位": 23
+      "優先順位": 22
     },
     {
       "code4": "7181",
@@ -866,7 +836,7 @@
       "value_approx_jpy": 758009088,
       "day_high": 1711.5,
       "pm_high": 1704.0,
-      "優先順位": 24
+      "優先順位": 23
     },
     {
       "code4": "5714",
@@ -879,11 +849,11 @@
       "前場安値": 8486.0,
       "前場高値": 8580.0,
       "atr14": 11.5,
-      "hist_1130": 3.6394,
+      "hist_1130": 3.6395,
       "gc_state": "正",
       "d1_sign": "+",
       "d2_sign": "+",
-      "momentum_hint": 3.6394,
+      "momentum_hint": 3.6395,
       "gc_price": 8503.42,
       "mom_price": 8560.45,
       "decision_price": 8503.42,
@@ -899,10 +869,10 @@
       "notional_jpy": 855900,
       "tradable": true,
       "has_1130_bar": true,
-      "value_approx_jpy": 662438050,
+      "value_approx_jpy": 662436650,
       "day_high": 8613.0,
       "pm_high": 8613.0,
-      "優先順位": 25
+      "優先順位": 24
     },
     {
       "code4": "9364",
@@ -938,7 +908,7 @@
       "value_approx_jpy": 612684625,
       "day_high": 4810.0,
       "pm_high": 4806.0,
-      "優先順位": 26
+      "優先順位": 25
     },
     {
       "code4": "9301",
@@ -974,7 +944,7 @@
       "value_approx_jpy": 421456100,
       "day_high": 1483.0,
       "pm_high": 1478.5,
-      "優先順位": 27
+      "優先順位": 26
     },
     {
       "code4": "9302",
@@ -1010,7 +980,7 @@
       "value_approx_jpy": 87033625,
       "day_high": 3342.0,
       "pm_high": 3326.0,
-      "優先順位": 28
+      "優先順位": 27
     }
   ]
 }
