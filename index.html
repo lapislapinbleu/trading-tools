@@ -960,7 +960,7 @@ function applySplitToPosition(pos, ratio) {
 function PositionCard({
   pos, isEditing, editForm, onEditField, onStartEdit, onCancelEdit, onSaveEdit, onToggleTrail,
   isSettling, settlePrice, onSettlePriceChange, onStartSettle, onCancelSettle, onConfirmSettle,
-  maxHighSeen, generatedAt, onSplit,
+  settleWarn, maxHighSeen, generatedAt, onSplit,
 }) {
   if (isEditing) {
     return e("div", { className: "rounded-xl bg-slate-900/60 border border-amber-500/30 p-3.5 space-y-2.5" },
@@ -1042,16 +1042,77 @@ function PositionCard({
     }, "分割調整（保有中に株式分割があったとき）"),
     isSettling && e("div", { className: "rounded-lg bg-slate-950/60 border border-slate-800 p-3 space-y-2.5" },
       e(NumberField, { label: "決済単価", value: settlePrice, onChange: onSettlePriceChange, placeholder: "例: 4900", suffix: "円" }),
+      // 2026-10-20: 決済単価の検算警告（P2）。阻止はせず、同じ単価での再押下で通す。
+      settleWarn && settleWarn.price === parseFloat(settlePrice) && e("div", {
+        className: `rounded-lg border p-2.5 text-[11.5px] leading-relaxed ${settleWarn.kind === "swap" || settleWarn.kind === "high" ? "border-rose-500/60 bg-rose-500/10 text-rose-200" : "border-amber-500/60 bg-amber-500/10 text-amber-200"}`,
+      }, (settleWarn.kind === "swap" ? "⚠ 銘柄の取り違えの疑い： "
+        : settleWarn.kind === "high" ? "⚠ 観測最高値を超えています： "
+        : "⚠ 決済単価の確認： ") + settleWarn.msg),
       e("div", { className: "flex gap-2" },
         e("button", {
           onClick: onConfirmSettle,
           disabled: !(parseFloat(settlePrice) > 0),
-          className: `flex-1 rounded-lg text-[12.5px] font-semibold py-2.5 ${parseFloat(settlePrice) > 0 ? "bg-emerald-500/90 text-slate-950" : "bg-slate-800 text-slate-600"}`,
-        }, "決済確定"),
+          className: `flex-1 rounded-lg text-[12.5px] font-semibold py-2.5 ${parseFloat(settlePrice) > 0 ? (settleWarn && settleWarn.price === parseFloat(settlePrice) ? "bg-amber-500/90 text-slate-950" : "bg-emerald-500/90 text-slate-950") : "bg-slate-800 text-slate-600"}`,
+        }, settleWarn && settleWarn.price === parseFloat(settlePrice) ? "確認した・このまま決済する" : "決済確定"),
         e("button", { onClick: onCancelSettle, className: "flex-1 rounded-lg bg-slate-800 text-slate-300 text-[12.5px] font-semibold py-2.5" }, "キャンセル")
       )
     )
   );
+}
+
+// 決済単価の検算（2026-10-20 新設。results/october2026_interim_audit_20261020.md P2）。
+// 10月実弾では決済単価の手入力ミスが多発し、SBI実額との差異が11件（最大±24万円）出た。
+// 代表例: 10/15に古河電工とフジクラの決済単価を入れ違えて入力し、
+// 銘柄別で +200,800 / −281,940（実際は −38,293 / −43,327）と記録された。
+// ここでは入力値を「その建玉のSL〜TPから決まる想定レンジ」と照合し、外れていれば警告する。
+// 窓開けでSLを下抜けた決済・TPを上抜けた決済は実在するため、**阻止はせず確認を求める**。
+const SETTLE_BAND_SL_MARGIN = 0.10;   // SL下限のさらに10%下まで許容（窓開け分）
+const SETTLE_BAND_TP_MARGIN = 0.10;   // TP上限のさらに10%上まで許容（窓開け分）
+const SETTLE_ABS_GUARD = 0.15;        // SL/TP未設定時の絶対ガード（entry比±15%）
+const SETTLE_SWAP_TOL = 0.03;         // 他建玉の建値±3%以内なら取り違えを疑う
+
+function settleSanity(pos, closePrice, otherPositions, maxHighSeenForPos) {
+  if (!(closePrice > 0) || !(pos.entryPrice > 0)) return null;
+  const hasSl = Number.isFinite(pos.slPrice);
+  const hasTp = Number.isFinite(pos.tpPrice);
+  const lo = (hasSl ? pos.slPrice : pos.entryPrice * (1 - SETTLE_ABS_GUARD)) * (1 - SETTLE_BAND_SL_MARGIN);
+  const hi = (hasTp ? pos.tpPrice : pos.entryPrice * (1 + SETTLE_ABS_GUARD)) * (1 + SETTLE_BAND_TP_MARGIN);
+  const outOfBand = closePrice < lo || closePrice > hi;
+  const pct = (closePrice / pos.entryPrice - 1) * 100;
+
+  // 他の建玉の価格帯に一致していないか（銘柄の取り違え検知）
+  let swap = null;
+  (otherPositions || []).forEach((o) => {
+    if (!o || o.id === pos.id || o.code === pos.code || !(o.entryPrice > 0)) return;
+    if (Math.abs(closePrice / o.entryPrice - 1) <= SETTLE_SWAP_TOL) swap = o;
+  });
+
+  // 観測最高値より高い値で売れることはない（記録が古い場合もあるので警告のみ）
+  const mh = Number.isFinite(maxHighSeenForPos) ? maxHighSeenForPos : null;
+  if (mh && closePrice > mh * 1.02) {
+    return {
+      kind: "high",
+      msg: `この決済単価 ${closePrice} 円は、記録されている観測最高値 ${mh} 円を上回っています。`
+        + `入力ミスか、観測最高値の記録が古い可能性があります。`,
+    };
+  }
+
+  if (swap && outOfBand) {
+    return {
+      kind: "swap",
+      msg: `この決済単価 ${closePrice} 円は ${pos.name} の想定レンジ（${Math.round(lo)}〜${Math.round(hi)}円）の外で、`
+        + `保有中の ${swap.name}（${swap.code}）の価格帯に一致します。銘柄を取り違えていないか確認してください。`,
+    };
+  }
+  if (outOfBand) {
+    return {
+      kind: "band",
+      msg: `この決済単価 ${closePrice} 円は想定レンジ（${Math.round(lo)}〜${Math.round(hi)}円）の外です`
+        + `（建値比 ${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%）。`
+        + (hasSl || hasTp ? "窓開けでなければ入力ミスの可能性があります。" : "SL/TPが未設定のため建値±15%で判定しています。"),
+    };
+  }
+  return null;
 }
 
 function effectivePositionMaxLoss(p) {
@@ -1220,7 +1281,11 @@ function RegistrationWarnings({ warnings }) {
 const CSV_HEADER = [
   "type", "id", "code", "name", "sector", "entryDate", "qty", "entryPrice", "slPrice", "tpPrice",
   "trailArmed", "refPrice", "fillPrice", "morningClose", "morningLow", "closeDate", "closePrice", "pnl", "note",
+  // 2026-10-20 追加（results/october2026_interim_audit_20261020.md P3）。決済時にSL/TPと
+  // 建値トレールの状態が失われると、rulebook §2.3の+1.5%トレールとリスク上限77,000円を事後検証できない。
+  "trailArmedAtClose",
 ];
+const CSV_HEADER_V1_LEN = 19;   // 旧19列バックアップの読み込み互換
 
 function csvEscape(v) {
   if (v === null || v === undefined) return "";
@@ -1235,17 +1300,19 @@ function positionToCsvRow(p) {
     "position", p.id, p.code, p.name, p.sector || "", p.entryDate, numOrEmpty(p.qty), numOrEmpty(p.entryPrice),
     numOrEmpty(p.slPrice), numOrEmpty(p.tpPrice), p.trailArmed ? "true" : "false",
     numOrEmpty(p.refPrice), numOrEmpty(p.fillPrice), numOrEmpty(p.morningClose), numOrEmpty(p.morningLow),
-    "", "", "", p.note || "",
+    "", "", "", p.note || "", "",
   ].map(csvEscape).join(",");
 }
 function closedToCsvRow(c) {
   return [
-    // closed行では slPrice/tpPrice は未使用。trailArmed列は settleWindow("am"/"pm") の保存に転用する
-    // （当日枠の計算に使う。列数・列順は既存フォーマットのまま変えない）
+    // trailArmed列は settleWindow("am"/"pm") の保存に転用する（当日枠の計算に使う）。
+    // 2026-10-20: closed行でも slPrice/tpPrice をエントリー時の値として保存し、建値トレールの
+    // 発動有無は末尾の trailArmedAtClose 列に出す（監査で事後検証できるようにするため）。
     "closed", c.id, c.code, c.name, c.sector || "", c.entryDate, numOrEmpty(c.qty), numOrEmpty(c.entryPrice),
-    "", "", c.settleWindow || "",
+    numOrEmpty(c.slPrice), numOrEmpty(c.tpPrice), c.settleWindow || "",
     numOrEmpty(c.refPrice), numOrEmpty(c.fillPrice), numOrEmpty(c.morningClose), numOrEmpty(c.morningLow),
     c.closeDate, numOrEmpty(c.closePrice), numOrEmpty(c.pnl), c.note || "",
+    c.trailArmedAtClose === true ? "true" : (c.trailArmedAtClose === false ? "false" : ""),
   ].map(csvEscape).join(",");
 }
 // A型の記録行。rulebook §3.4 の停止条件（約定価格 − 2本目始値 の平均が1ティック超で停止）を
@@ -1256,7 +1323,7 @@ function atypeToCsvRow(a) {
     "atype", a.id, a.code, a.name, "", a.entryDate, numOrEmpty(a.qty), numOrEmpty(a.c2open),
     numOrEmpty(a.slPrice), numOrEmpty(a.tpPrice), "",
     numOrEmpty(a.c2open), numOrEmpty(a.fillPrice), numOrEmpty(a.c2high), "",
-    a.closeDate || "", numOrEmpty(a.closePrice), numOrEmpty(a.pnl), a.note || "",
+    a.closeDate || "", numOrEmpty(a.closePrice), numOrEmpty(a.pnl), a.note || "", "",
   ].map(csvEscape).join(",");
 }
 function buildCsv(positions, closed, atype) {
@@ -1300,9 +1367,11 @@ function parseBackupCsv(text) {
   const rows = parseCsvRows(text);
   if (rows.length === 0) throw new Error("データがありません。");
   const header = rows[0];
-  if (header[0] !== "type" || header.length !== CSV_HEADER.length) {
-    throw new Error(`ヘッダ形式が不正です（1行目が type から始まる${CSV_HEADER.length}列のCSVである必要があります）。旧JSON形式のバックアップはインポートできません。`);
+  // 2026-10-20: 列を1つ追加したため、旧19列のバックアップも読み込めるようにする。
+  if (header[0] !== "type" || (header.length !== CSV_HEADER.length && header.length !== CSV_HEADER_V1_LEN)) {
+    throw new Error(`ヘッダ形式が不正です（1行目が type から始まる${CSV_HEADER.length}列または${CSV_HEADER_V1_LEN}列のCSVである必要があります）。旧JSON形式のバックアップはインポートできません。`);
   }
+  const nCols = header.length;
   const numOrNull = (s) => {
     if (s === "" || s === undefined) return null;
     const n = parseFloat(s);
@@ -1313,11 +1382,12 @@ function parseBackupCsv(text) {
   const atype = [];
   for (let i = 1; i < rows.length; i++) {
     const cols = rows[i];
-    if (cols.length !== CSV_HEADER.length) {
-      throw new Error(`${i + 1}行目: 列数が${CSV_HEADER.length}列ではありません（${cols.length}列）。`);
+    if (cols.length !== nCols) {
+      throw new Error(`${i + 1}行目: 列数が${nCols}列ではありません（${cols.length}列）。`);
     }
     const [type, id, code, name, sector, entryDate, qtyS, entryPriceS, slPriceS, tpPriceS, trailArmedS,
       refPriceS, fillPriceS, morningCloseS, morningLowS, closeDate, closePriceS, pnlS, note] = cols;
+    const trailAtCloseS = nCols > CSV_HEADER_V1_LEN ? cols[19] : "";
     const qty = parseFloat(qtyS), entryPrice = parseFloat(entryPriceS);
     if (!code || !Number.isFinite(qty) || !Number.isFinite(entryPrice)) {
       throw new Error(`${i + 1}行目: code・qty・entryPrice が不正です。`);
@@ -1343,6 +1413,9 @@ function parseBackupCsv(text) {
       closed.push({
         ...base, closeDate, closePrice, pnl,
         settleWindow: (trailArmedS === "am" || trailArmedS === "pm") ? trailArmedS : null,
+        // 2026-10-20 追加。旧19列バックアップには存在しないので null のまま読む。
+        slPrice: numOrNull(slPriceS), tpPrice: numOrNull(tpPriceS),
+        trailArmedAtClose: trailAtCloseS === "true" ? true : (trailAtCloseS === "false" ? false : null),
       });
     } else if (type === "atype") {
       atype.push({
@@ -1564,6 +1637,7 @@ function PositionsSection({ positions, setPositions, closed, setClosed, prep, ma
   const [editForm, setEditForm] = useState(null);
   const [settlingId, setSettlingId] = useState(null);
   const [settlePrice, setSettlePrice] = useState("");
+  const [settleWarn, setSettleWarn] = useState(null);   // 2026-10-20: 決済単価の検算警告
   const [closedOpen, setClosedOpen] = useState(false);
 
   const updateForm = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
@@ -1661,13 +1735,20 @@ function PositionsSection({ positions, setPositions, closed, setClosed, prep, ma
     setEditForm(null);
   };
 
-  const startSettle = (pos) => { setSettlingId(pos.id); setSettlePrice(""); };
-  const cancelSettle = () => { setSettlingId(null); setSettlePrice(""); };
+  const startSettle = (pos) => { setSettlingId(pos.id); setSettlePrice(""); setSettleWarn(null); };
+  const cancelSettle = () => { setSettlingId(null); setSettlePrice(""); setSettleWarn(null); };
   const confirmSettle = () => {
     const closePrice = parseFloat(settlePrice);
     if (!(closePrice > 0)) return;
     const pos = positions.find((p) => p.id === settlingId);
     if (!pos) return;
+    // 2026-10-20: 想定レンジ外・他建玉の価格帯との一致を検知したら、一度止めて確認を求める。
+    // 同じ単価で再度押されたときだけ通す（阻止はしない）。
+    const sanity = settleSanity(pos, closePrice, positions, (maxHighSeen || {})[pos.id]);
+    if (sanity && !(settleWarn && settleWarn.id === pos.id && settleWarn.price === closePrice)) {
+      setSettleWarn({ id: pos.id, price: closePrice, kind: sanity.kind, msg: sanity.msg });
+      return;
+    }
     const pnl = (closePrice - pos.entryPrice) * pos.qty;
     const record = {
       id: genId(), code: pos.code, name: pos.name, sector: pos.sector,
@@ -1676,6 +1757,10 @@ function PositionsSection({ positions, setPositions, closed, setClosed, prep, ma
       // 既定は操作時刻で判定し、記録が遅れたときはサイジングタブの枠パネルから切り替えられる。
       settleWindow: settleWindowNow(),
       entryPrice: pos.entryPrice, closePrice, pnl, note: pos.note || "",
+      // 2026-10-20: 決済後も監査できるようにエントリー時のSL/TPと建値トレールの状態を残す。
+      slPrice: Number.isFinite(pos.slPrice) ? pos.slPrice : null,
+      tpPrice: Number.isFinite(pos.tpPrice) ? pos.tpPrice : null,
+      trailArmedAtClose: !!pos.trailArmed,
       refPrice: Number.isFinite(pos.refPrice) ? pos.refPrice : null,
       fillPrice: Number.isFinite(pos.fillPrice) ? pos.fillPrice : null,
       morningClose: Number.isFinite(pos.morningClose) ? pos.morningClose : null,
@@ -1685,6 +1770,7 @@ function PositionsSection({ positions, setPositions, closed, setClosed, prep, ma
     setPositions((prev) => prev.filter((p) => p.id !== pos.id));
     setSettlingId(null);
     setSettlePrice("");
+    setSettleWarn(null);
   };
 
   const warnings = useMemo(() => computeRegistrationWarnings(form, positions, closed, slot), [form, positions, closed, slot]);
@@ -1735,6 +1821,7 @@ function PositionsSection({ positions, setPositions, closed, setClosed, prep, ma
             onStartSettle: () => startSettle(pos),
             onCancelSettle: cancelSettle,
             onConfirmSettle: confirmSettle,
+            settleWarn: settleWarn && settleWarn.id === pos.id ? settleWarn : null,
             maxHighSeen: (maxHighSeen || {})[pos.id],
             generatedAt,
           }))
