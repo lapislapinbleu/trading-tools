@@ -61,6 +61,13 @@ const CAPITAL = 5500000;
 const MAX_POSITIONS = 5;
 const TP_MULT = 1.06;
 const TRAIL_MULT = 1.015;
+// 2026-10-20 rulebook v1.36（指揮官決定）: **建値トレールを撤廃**。
+// 理由は成績ではなく再現性。ストップ水準±0.1%の差で全期間リターンが4.25pt振れ、
+// 実弾の建値はモデルより平均+0.10%高く、距離ゼロのストップでは「刈られる／耐える」が反転していた
+// （results/trail_reproducibility_20261020.md）。撤廃すると操作が消えるので乖離が原理的に生じない。
+// 受け入れたトレードオフ: 15.4万円超過日数が 9日→12日（事前登録の条件3には不合格のまま採用）。
+// 復活させるときは false に戻すだけでよいよう、コードは消さずにフラグで止めている。
+const TRAIL_ABOLISHED = true;
 
 // ---- 昼の準備シート（phoenix-data Actions生成のdaily_prep.jsonを読み込む） ----
 const DAILY_PREP_URL = "daily_prep.json"; // 同一オリジン(GitHub Pages)。生成はこのリポジトリのActions(daily_prep.yml)
@@ -973,8 +980,10 @@ function PositionCard({
     );
   }
   const hasSl = Number.isFinite(pos.slPrice);
-  const effectiveSL = pos.trailArmed ? Math.max(hasSl ? pos.slPrice : pos.entryPrice, pos.entryPrice) : pos.slPrice;
-  const maxLoss = hasSl || pos.trailArmed ? Math.max(0, (pos.entryPrice - effectiveSL) * pos.qty) : null;
+  const effectiveSL = (!TRAIL_ABOLISHED && pos.trailArmed)
+    ? Math.max(hasSl ? pos.slPrice : pos.entryPrice, pos.entryPrice) : pos.slPrice;
+  const maxLoss = (hasSl || (!TRAIL_ABOLISHED && pos.trailArmed))
+    ? Math.max(0, (pos.entryPrice - effectiveSL) * pos.qty) : null;
   const trailTrigger = pos.entryPrice * TRAIL_MULT;
   const positionValue = pos.qty * pos.entryPrice;
 
@@ -993,7 +1002,7 @@ function PositionCard({
           ? e("span", { className: "text-[11px] text-slate-500" }, `［${SECTOR_CHAR[pos.sector] || pos.sector}］`)
           : e("span", { className: "rounded-md border border-red-500/25 bg-red-500/10 px-1.5 py-0.5 text-[10.5px] text-red-300" }, "監視リスト外")
       ),
-      pos.trailArmed && e("span", { className: "rounded-md border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-300" }, "トレール済（実質ノーリスク）")
+      (!TRAIL_ABOLISHED && pos.trailArmed) && e("span", { className: "rounded-md border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-300" }, "トレール済（実質ノーリスク）")
     ),
     e("div", { className: "grid grid-cols-2 gap-x-3" },
       e(ResultRow, { label: "株数", value: `${fmt(pos.qty)}株`, tone: "muted" }),
@@ -1001,12 +1010,15 @@ function PositionCard({
     ),
     e(ResultRow, { label: "建玉代金", value: `¥${fmt(positionValue)}`, tone: "muted" }),
     e(ResultRow, {
-      label: pos.trailArmed ? "SL（建値・トレール済）" : "SL価格",
-      value: pos.trailArmed ? `¥${fmtPrice(pos.entryPrice)}` : (hasSl ? `¥${fmtPrice(pos.slPrice)}` : "―"),
+      label: (!TRAIL_ABOLISHED && pos.trailArmed) ? "SL（建値・トレール済）" : "SL価格（期限まで据え置き）",
+      value: (!TRAIL_ABOLISHED && pos.trailArmed) ? `¥${fmtPrice(pos.entryPrice)}` : (hasSl ? `¥${fmtPrice(pos.slPrice)}` : "―"),
     }),
     e(ResultRow, { label: "TP価格", value: Number.isFinite(pos.tpPrice) ? `¥${fmtPrice(pos.tpPrice)}` : "―", tone: "good" }),
-    e(ResultRow, { label: "トレール発動ライン（+1.5%）", value: `¥${fmtPrice(trailTrigger)}`, tone: "muted" }),
-    !pos.trailArmed && e(TrailCheckRow, { pos, trailTrigger, maxHighSeen, generatedAt, onToggleTrail }),
+    TRAIL_ABOLISHED
+      ? e("div", { className: "rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2 text-[11.5px] text-slate-500" },
+          "建値トレールは撤廃（rulebook v1.36）。OCO2は当初SLのまま期限まで据え置く。")
+      : e(ResultRow, { label: "トレール発動ライン（+1.5%）", value: `¥${fmtPrice(trailTrigger)}`, tone: "muted" }),
+    !TRAIL_ABOLISHED && !pos.trailArmed && e(TrailCheckRow, { pos, trailTrigger, maxHighSeen, generatedAt, onToggleTrail }),
     e(ResultRow, { label: "SL到達時の想定最大損失", value: maxLoss === null ? "―" : `−¥${fmt(maxLoss)}`, tone: "risk" }),
     e(ResultRow, { label: "期限日（5営業日目）", value: fmtDateWithWeekday(dueDate), tone: isDueToday ? "risk" : "muted" }),
     e(ResultRow, { label: "寄成返済日", value: fmtDateWithWeekday(marketSellDate), tone: isPastMarketSell ? "risk" : "muted" }),
@@ -1032,6 +1044,7 @@ function PositionCard({
       e("button", {
         onClick: onToggleTrail,
         className: `flex-1 rounded-lg text-[12.5px] font-semibold py-2.5 border ${pos.trailArmed ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-300" : "bg-slate-800 border-slate-700 text-slate-300"}`,
+        style: TRAIL_ABOLISHED ? { display: "none" } : undefined,
       }, pos.trailArmed ? "トレール解除" : "トレール発動"),
       e("button", { onClick: onStartEdit, className: "flex-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-[12.5px] font-semibold py-2.5" }, "編集"),
       e("button", { onClick: onStartSettle, className: "flex-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-[12.5px] font-semibold py-2.5" }, "決済")
@@ -1117,6 +1130,8 @@ function settleSanity(pos, closePrice, otherPositions, maxHighSeenForPos) {
 
 function effectivePositionMaxLoss(p) {
   const hasSl = Number.isFinite(p.slPrice);
+  // v1.36: 撤廃後は trailArmed を見ない（当初SLのまま据え置くため）
+  if (TRAIL_ABOLISHED) return hasSl ? Math.max(0, (p.entryPrice - p.slPrice) * p.qty) : 0;
   if (!hasSl && !p.trailArmed) return 0;
   const eff = p.trailArmed ? Math.max(hasSl ? p.slPrice : p.entryPrice, p.entryPrice) : p.slPrice;
   return Math.max(0, (p.entryPrice - eff) * p.qty);
@@ -1777,7 +1792,7 @@ function PositionsSection({ positions, setPositions, closed, setClosed, prep, ma
 
   // トレール引上げが必要な建玉件数（サマリーバッジ用。trail_check_ui_spec.md）
   const generatedAt = prep && prep.data ? prep.data.generated_at : null;
-  const trailDueCount = positions.filter((p) => {
+  const trailDueCount = TRAIL_ABOLISHED ? 0 : positions.filter((p) => {
     if (p.trailArmed) return false;
     const maxHigh = (maxHighSeen || {})[p.id];
     if (maxHigh === undefined || maxHigh === null) return false;

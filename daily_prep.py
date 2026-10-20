@@ -50,6 +50,10 @@ PM_START_MIN = 12 * 60 + 35         # 12:35（後場ハイの判定基準。ト�
 ATR_PERIOD = 14
 SL_PCT = 0.003
 TP_MULT = 1.06
+# 2026-10-20 rulebook v1.36（指揮官決定）で**建値トレールは撤廃**された。
+# 以下の trail_trigger / day_high / pm_high は、建玉管理ツール側が参照しなくなったため
+# **運用上は未使用**である。JSONスキーマ互換のため出力は残している（消すとツールの読み込みが壊れる）。
+# 復活させる場合は index.html の TRAIL_ABOLISHED を false に戻すだけでよい。
 TRAIL_MULT = 1.015
 RISK_CAP_JPY = 77_000
 NOTIONAL_CAP_JPY = 1_027_000
