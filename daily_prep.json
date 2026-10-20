@@ -1,39 +1,8 @@
 {
-  "generated_at": "2026-10-20T11:47:24.374539+09:00",
+  "generated_at": "2026-10-20T11:52:09.023866+09:00",
   "date": "2026-10-20",
-  "complete": false,
-  "missing": [
-    {
-      "code4": "5016",
-      "name": "JX金属",
-      "reason": "データ取得なし"
-    },
-    {
-      "code4": "5802",
-      "name": "住友電工",
-      "reason": "データ取得なし"
-    },
-    {
-      "code4": "5713",
-      "name": "住友鉱山",
-      "reason": "データ取得なし"
-    },
-    {
-      "code4": "8630",
-      "name": "SOMPO",
-      "reason": "データ取得なし"
-    },
-    {
-      "code4": "5711",
-      "name": "三菱マテ",
-      "reason": "データ取得なし"
-    },
-    {
-      "code4": "7181",
-      "name": "かんぽ生命",
-      "reason": "データ取得なし"
-    }
-  ],
+  "complete": true,
+  "missing": [],
   "stocks": [
     {
       "code4": "5803",
@@ -180,6 +149,78 @@
       "優先順位": 4
     },
     {
+      "code4": "5016",
+      "name": "JX金属",
+      "区分": "緑",
+      "sector": "非鉄金属",
+      "financial": false,
+      "no_market_order": false,
+      "前引け値": 2998.0,
+      "前場安値": 2954.5,
+      "前場高値": 3059.0,
+      "atr14": 11.29,
+      "hist_1130": 5.4994,
+      "gc_state": "正",
+      "d1_sign": "+",
+      "d2_sign": "-",
+      "momentum_hint": 5.4994,
+      "gc_price": 2917.29,
+      "mom_price": 3003.46,
+      "decision_price": 2917.29,
+      "needs_mom_check": false,
+      "signal_1130": -11.5842,
+      "ema12_1130": 2991.8804,
+      "ema26_1130": 2997.9652,
+      "shares": 300,
+      "sl": 2943.2,
+      "tp": 3177.9,
+      "trail_trigger": 3043.0,
+      "risk_jpy": 16436,
+      "notional_jpy": 899400,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 21861533250,
+      "day_high": 3059.0,
+      "pm_high": null,
+      "優先順位": 5
+    },
+    {
+      "code4": "5802",
+      "name": "住友電工",
+      "区分": "緑",
+      "sector": "非鉄金属",
+      "financial": false,
+      "no_market_order": false,
+      "前引け値": 2002.0,
+      "前場安値": 1981.0,
+      "前場高値": 2048.0,
+      "atr14": 6.75,
+      "hist_1130": 2.8643,
+      "gc_state": "正",
+      "d1_sign": "-",
+      "d2_sign": "-",
+      "momentum_hint": 2.8643,
+      "gc_price": 1961.45,
+      "mom_price": 2006.33,
+      "decision_price": 2006.33,
+      "needs_mom_check": true,
+      "signal_1130": -7.6283,
+      "ema12_1130": 2001.78,
+      "ema26_1130": 2006.544,
+      "shares": 500,
+      "sl": 1974.2,
+      "tp": 2122.1,
+      "trail_trigger": 2032.0,
+      "risk_jpy": 13875,
+      "notional_jpy": 1001000,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 20246724088,
+      "day_high": 2048.0,
+      "pm_high": null,
+      "優先順位": 6
+    },
+    {
       "code4": "5706",
       "name": "三井金属",
       "区分": "緑",
@@ -213,7 +254,7 @@
       "value_approx_jpy": 16389470488,
       "day_high": 2383.0,
       "pm_high": null,
-      "優先順位": 5
+      "優先順位": 7
     },
     {
       "code4": "8316",
@@ -249,7 +290,7 @@
       "value_approx_jpy": 11615323300,
       "day_high": 3243.0,
       "pm_high": null,
-      "優先順位": 6
+      "優先順位": 8
     },
     {
       "code4": "8766",
@@ -285,7 +326,43 @@
       "value_approx_jpy": 9501947876,
       "day_high": 559.5,
       "pm_high": null,
-      "優先順位": 7
+      "優先順位": 9
+    },
+    {
+      "code4": "5713",
+      "name": "住友鉱山",
+      "区分": "緑",
+      "sector": "非鉄金属",
+      "financial": false,
+      "no_market_order": false,
+      "前引け値": 8495.0,
+      "前場安値": 8404.0,
+      "前場高値": 8797.0,
+      "atr14": 29.0,
+      "hist_1130": 16.5403,
+      "gc_state": "正",
+      "d1_sign": "+",
+      "d2_sign": "+",
+      "momentum_hint": 16.5403,
+      "gc_price": 8230.76,
+      "mom_price": 8489.94,
+      "decision_price": 8230.76,
+      "needs_mom_check": false,
+      "signal_1130": -47.8529,
+      "ema12_1130": 8467.1849,
+      "ema26_1130": 8498.4975,
+      "shares": 100,
+      "sl": 8375.0,
+      "tp": 9004.7,
+      "trail_trigger": 8622.4,
+      "risk_jpy": 12000,
+      "notional_jpy": 849500,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 7715953625,
+      "day_high": 8797.0,
+      "pm_high": null,
+      "優先順位": 10
     },
     {
       "code4": "8725",
@@ -321,7 +398,7 @@
       "value_approx_jpy": 5572636225,
       "day_high": 5191.0,
       "pm_high": null,
-      "優先順位": 8
+      "優先順位": 11
     },
     {
       "code4": "8308",
@@ -357,7 +434,43 @@
       "value_approx_jpy": 5469098788,
       "day_high": 2298.0,
       "pm_high": null,
-      "優先順位": 9
+      "優先順位": 12
+    },
+    {
+      "code4": "8630",
+      "name": "SOMPO",
+      "区分": "緑",
+      "sector": "保険",
+      "financial": true,
+      "no_market_order": false,
+      "前引け値": 6879.0,
+      "前場安値": 6874.0,
+      "前場高値": 6949.0,
+      "atr14": 11.21,
+      "hist_1130": -1.9996,
+      "gc_state": "負",
+      "d1_sign": "-",
+      "d2_sign": "-",
+      "momentum_hint": -1.9996,
+      "gc_price": 6911.62,
+      "mom_price": 6880.29,
+      "decision_price": 6911.62,
+      "needs_mom_check": false,
+      "signal_1130": -7.832,
+      "ema12_1130": 6895.6866,
+      "ema26_1130": 6905.5182,
+      "shares": 100,
+      "sl": 6853.4,
+      "tp": 7291.7,
+      "trail_trigger": 6982.2,
+      "risk_jpy": 2564,
+      "notional_jpy": 687900,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 5264438625,
+      "day_high": 6949.0,
+      "pm_high": null,
+      "優先順位": 13
     },
     {
       "code4": "8309",
@@ -393,7 +506,7 @@
       "value_approx_jpy": 5257424362,
       "day_high": 1664.5,
       "pm_high": null,
-      "優先順位": 10
+      "優先順位": 14
     },
     {
       "code4": "7182",
@@ -429,7 +542,7 @@
       "value_approx_jpy": 4588073225,
       "day_high": 3082.0,
       "pm_high": null,
-      "優先順位": 11
+      "優先順位": 15
     },
     {
       "code4": "8750",
@@ -465,7 +578,7 @@
       "value_approx_jpy": 3255480700,
       "day_high": 1860.5,
       "pm_high": null,
-      "優先順位": 12
+      "優先順位": 16
     },
     {
       "code4": "5108",
@@ -501,7 +614,7 @@
       "value_approx_jpy": 2886084200,
       "day_high": 4070.0,
       "pm_high": null,
-      "優先順位": 13
+      "優先順位": 17
     },
     {
       "code4": "5101",
@@ -537,7 +650,43 @@
       "value_approx_jpy": 2239995375,
       "day_high": 7062.0,
       "pm_high": null,
-      "優先順位": 14
+      "優先順位": 18
+    },
+    {
+      "code4": "5711",
+      "name": "三菱マテ",
+      "区分": "緑",
+      "sector": "非鉄金属",
+      "financial": false,
+      "no_market_order": false,
+      "前引け値": 4530.0,
+      "前場安値": 4487.0,
+      "前場高値": 4635.0,
+      "atr14": 10.0,
+      "hist_1130": 7.1395,
+      "gc_state": "正",
+      "d1_sign": "+",
+      "d2_sign": "+",
+      "momentum_hint": 7.1395,
+      "gc_price": 4415.26,
+      "mom_price": 4527.13,
+      "decision_price": 4415.26,
+      "needs_mom_check": false,
+      "signal_1130": -17.2716,
+      "ema12_1130": 4514.1648,
+      "ema26_1130": 4524.2969,
+      "shares": 200,
+      "sl": 4473.4,
+      "tp": 4801.8,
+      "trail_trigger": 4597.9,
+      "risk_jpy": 11318,
+      "notional_jpy": 906000,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 2192947125,
+      "day_high": 4635.0,
+      "pm_high": null,
+      "優先順位": 19
     },
     {
       "code4": "8729",
@@ -573,7 +722,7 @@
       "value_approx_jpy": 2059537742,
       "day_high": 149.0,
       "pm_high": null,
-      "優先順位": 15
+      "優先順位": 20
     },
     {
       "code4": "8795",
@@ -609,7 +758,7 @@
       "value_approx_jpy": 1017582950,
       "day_high": 4824.0,
       "pm_high": null,
-      "優先順位": 16
+      "優先順位": 21
     },
     {
       "code4": "5110",
@@ -645,7 +794,7 @@
       "value_approx_jpy": 1061594938,
       "day_high": 2043.5,
       "pm_high": null,
-      "優先順位": 17
+      "優先順位": 22
     },
     {
       "code4": "5714",
@@ -681,7 +830,7 @@
       "value_approx_jpy": 975108450,
       "day_high": 8326.0,
       "pm_high": null,
-      "優先順位": 18
+      "優先順位": 23
     },
     {
       "code4": "5105",
@@ -717,7 +866,43 @@
       "value_approx_jpy": 745226425,
       "day_high": 4236.0,
       "pm_high": null,
-      "優先順位": 19
+      "優先順位": 24
+    },
+    {
+      "code4": "7181",
+      "name": "かんぽ生命",
+      "区分": "黄",
+      "sector": "保険",
+      "financial": true,
+      "no_market_order": false,
+      "前引け値": 1706.0,
+      "前場安値": 1702.5,
+      "前場高値": 1722.5,
+      "atr14": 3.25,
+      "hist_1130": -0.0132,
+      "gc_state": "負",
+      "d1_sign": "+",
+      "d2_sign": "+",
+      "momentum_hint": -0.0132,
+      "gc_price": 1704.19,
+      "mom_price": 1703.99,
+      "decision_price": 1704.19,
+      "needs_mom_check": false,
+      "signal_1130": -3.276,
+      "ema12_1130": 1707.0828,
+      "ema26_1130": 1710.372,
+      "shares": 600,
+      "sl": 1697.4,
+      "tp": 1808.4,
+      "trail_trigger": 1731.6,
+      "risk_jpy": 5171,
+      "notional_jpy": 1023600,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 702700250,
+      "day_high": 1722.5,
+      "pm_high": null,
+      "優先順位": 25
     },
     {
       "code4": "9301",
@@ -753,7 +938,7 @@
       "value_approx_jpy": 480314375,
       "day_high": 1510.0,
       "pm_high": null,
-      "優先順位": 20
+      "優先順位": 26
     },
     {
       "code4": "9364",
@@ -789,7 +974,7 @@
       "value_approx_jpy": 284733900,
       "day_high": 4845.0,
       "pm_high": null,
-      "優先順位": 21
+      "優先順位": 27
     },
     {
       "code4": "9302",
@@ -825,7 +1010,7 @@
       "value_approx_jpy": 242665450,
       "day_high": 3299.0,
       "pm_high": null,
-      "優先順位": 22
+      "優先順位": 28
     }
   ]
 }
