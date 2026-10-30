@@ -1,14 +1,8 @@
 {
-  "generated_at": "2026-10-30T18:47:39.408427+09:00",
+  "generated_at": "2026-10-30T19:05:03.181463+09:00",
   "date": "2026-10-30",
   "complete": false,
-  "missing": [
-    {
-      "code4": "5714",
-      "name": "DOWA",
-      "reason": "データ取得なし"
-    }
-  ],
+  "missing": [],
   "stocks": [
     {
       "code4": "5803",
@@ -767,6 +761,42 @@
       "優先順位": 21
     },
     {
+      "code4": "5714",
+      "name": "DOWA",
+      "区分": "黄",
+      "sector": "非鉄金属",
+      "financial": false,
+      "no_market_order": false,
+      "前引け値": 7907.0,
+      "前場安値": 7861.0,
+      "前場高値": 8093.0,
+      "atr14": 18.07,
+      "hist_1130": 7.2497,
+      "gc_state": "正",
+      "d1_sign": "-",
+      "d2_sign": "+",
+      "momentum_hint": 7.2497,
+      "gc_price": 7794.18,
+      "mom_price": 7907.78,
+      "decision_price": 7794.18,
+      "needs_mom_check": false,
+      "signal_1130": -30.778,
+      "ema12_1130": 7906.9057,
+      "ema26_1130": 7930.4339,
+      "shares": 100,
+      "sl": 7837.3,
+      "tp": 8381.4,
+      "trail_trigger": 8025.6,
+      "risk_jpy": 6972,
+      "notional_jpy": 790700,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 1021797400,
+      "day_high": 8093.0,
+      "pm_high": 7996.0,
+      "優先順位": 22
+    },
+    {
       "code4": "5110",
       "name": "住友ゴム",
       "区分": "黄",
@@ -800,7 +830,7 @@
       "value_approx_jpy": 982392400,
       "day_high": 1956.0,
       "pm_high": 1943.5,
-      "優先順位": 22
+      "優先順位": 23
     },
     {
       "code4": "5105",
@@ -836,7 +866,7 @@
       "value_approx_jpy": 492255375,
       "day_high": 4068.0,
       "pm_high": 4068.0,
-      "優先順位": 23
+      "優先順位": 24
     },
     {
       "code4": "7181",
@@ -872,7 +902,7 @@
       "value_approx_jpy": 388858525,
       "day_high": 1774.0,
       "pm_high": 1758.0,
-      "優先順位": 24
+      "優先順位": 25
     },
     {
       "code4": "9302",
@@ -908,7 +938,7 @@
       "value_approx_jpy": 355331400,
       "day_high": 3246.0,
       "pm_high": 3234.0,
-      "優先順位": 25
+      "優先順位": 26
     },
     {
       "code4": "9364",
@@ -944,7 +974,7 @@
       "value_approx_jpy": 343707450,
       "day_high": 4833.0,
       "pm_high": 4825.0,
-      "優先順位": 26
+      "優先順位": 27
     },
     {
       "code4": "9301",
@@ -980,7 +1010,7 @@
       "value_approx_jpy": 222443900,
       "day_high": 1501.5,
       "pm_high": 1499.0,
-      "優先順位": 27
+      "優先順位": 28
     }
   ]
 }
