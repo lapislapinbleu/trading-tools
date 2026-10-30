@@ -1,17 +1,11 @@
 {
-  "generated_at": "2026-10-30T11:52:28.584225+09:00",
+  "generated_at": "2026-10-30T12:00:26.739050+09:00",
   "prev_close_date": "2026-10-29",
   "band_pct": [
     0.035,
     0.05
   ],
-  "missing": [
-    {
-      "code4": "6981",
-      "name": "村田製作所",
-      "reason": "データ取得なし"
-    }
-  ],
+  "missing": [],
   "stocks": [
     {
       "code4": "5803",
@@ -34,6 +28,17 @@
       "band_low": 3060.0,
       "band_high": 3104.0,
       "tick": 0.5
+    },
+    {
+      "code4": "6981",
+      "name": "村田製作所",
+      "prev_close": 6890.0,
+      "prev_close_date": "2026-10-29",
+      "band_low_raw": 7131.15,
+      "band_high_raw": 7234.5,
+      "band_low": 7132.0,
+      "band_high": 7234.0,
+      "tick": 1.0
     }
   ]
 }
