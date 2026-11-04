@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-11-04T23:49:21.114834+09:00",
+  "generated_at": "2026-11-04T23:53:59.603389+09:00",
   "date": "2026-11-04",
   "complete": false,
   "missing": [
     {
-      "code4": "5802",
-      "name": "住友電工",
+      "code4": "8725",
+      "name": "MS&AD",
       "reason": "データ取得なし"
     }
   ],
@@ -83,6 +83,42 @@
       "優先順位": 2
     },
     {
+      "code4": "5802",
+      "name": "住友電工",
+      "区分": "緑",
+      "sector": "非鉄金属",
+      "financial": false,
+      "no_market_order": false,
+      "前引け値": 1513.0,
+      "前場安値": 1512.0,
+      "前場高値": 1623.0,
+      "atr14": 11.14,
+      "hist_1130": 0.7107,
+      "gc_state": "正",
+      "d1_sign": "-",
+      "d2_sign": "-",
+      "momentum_hint": 0.7107,
+      "gc_price": 1501.96,
+      "mom_price": 1513.1,
+      "decision_price": 1513.1,
+      "needs_mom_check": true,
+      "signal_1130": -22.6483,
+      "ema12_1130": 1531.2426,
+      "ema26_1130": 1553.1802,
+      "shares": 600,
+      "sl": 1500.9,
+      "tp": 1603.8,
+      "trail_trigger": 1535.7,
+      "risk_jpy": 7286,
+      "notional_jpy": 907800,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 37694577512,
+      "day_high": 1623.0,
+      "pm_high": 1546.0,
+      "優先順位": 3
+    },
+    {
       "code4": "5801",
       "name": "古河電工",
       "区分": "緑",
@@ -116,7 +152,7 @@
       "value_approx_jpy": 29867049462,
       "day_high": 2721.0,
       "pm_high": 2591.5,
-      "優先順位": 3
+      "優先順位": 4
     },
     {
       "code4": "5016",
@@ -152,7 +188,7 @@
       "value_approx_jpy": 28570249825,
       "day_high": 2889.0,
       "pm_high": 2821.0,
-      "優先順位": 4
+      "優先順位": 5
     },
     {
       "code4": "8316",
@@ -188,7 +224,7 @@
       "value_approx_jpy": 26191160825,
       "day_high": 3196.0,
       "pm_high": 3139.0,
-      "優先順位": 5
+      "優先順位": 6
     },
     {
       "code4": "8411",
@@ -224,7 +260,7 @@
       "value_approx_jpy": 21256697625,
       "day_high": 7710.0,
       "pm_high": 7515.0,
-      "優先順位": 6
+      "優先順位": 7
     },
     {
       "code4": "8766",
@@ -260,7 +296,7 @@
       "value_approx_jpy": 15593320620,
       "day_high": 583.8,
       "pm_high": 579.4,
-      "優先順位": 7
+      "優先順位": 8
     },
     {
       "code4": "5706",
@@ -296,7 +332,7 @@
       "value_approx_jpy": 10671700350,
       "day_high": 1979.0,
       "pm_high": 1890.5,
-      "優先順位": 8
+      "優先順位": 9
     },
     {
       "code4": "5713",
@@ -332,42 +368,6 @@
       "value_approx_jpy": 8005320425,
       "day_high": 7970.0,
       "pm_high": 7956.0,
-      "優先順位": 9
-    },
-    {
-      "code4": "8725",
-      "name": "MS&AD",
-      "区分": "緑",
-      "sector": "保険",
-      "financial": true,
-      "no_market_order": false,
-      "前引け値": 5168.0,
-      "前場安値": 5149.0,
-      "前場高値": 5304.0,
-      "atr14": 13.71,
-      "hist_1130": -7.2695,
-      "gc_state": "負",
-      "d1_sign": "+",
-      "d2_sign": "+",
-      "momentum_hint": -7.2695,
-      "gc_price": 5256.6,
-      "mom_price": 5142.69,
-      "decision_price": 5256.6,
-      "needs_mom_check": false,
-      "signal_1130": -17.5718,
-      "ema12_1130": 5188.5393,
-      "ema26_1130": 5213.3806,
-      "shares": 100,
-      "sl": 5133.5,
-      "tp": 5478.1,
-      "trail_trigger": 5245.5,
-      "risk_jpy": 3450,
-      "notional_jpy": 516800,
-      "tradable": true,
-      "has_1130_bar": true,
-      "value_approx_jpy": 5880133075,
-      "day_high": 5304.0,
-      "pm_high": 5215.0,
       "優先順位": 10
     },
     {
