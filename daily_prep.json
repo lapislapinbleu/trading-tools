@@ -1,15 +1,51 @@
 {
-  "generated_at": "2026-11-05T23:54:39.168305+09:00",
+  "generated_at": "2026-11-05T23:58:53.828739+09:00",
   "date": "2026-11-05",
   "complete": false,
   "missing": [
     {
-      "code4": "8306",
-      "name": "三菱UFJ",
+      "code4": "5108",
+      "name": "ブリヂストン",
       "reason": "データ取得なし"
     }
   ],
   "stocks": [
+    {
+      "code4": "8306",
+      "name": "三菱UFJ",
+      "区分": "緑",
+      "sector": "銀行",
+      "financial": true,
+      "no_market_order": false,
+      "前引け値": 3468.0,
+      "前場安値": 3433.0,
+      "前場高値": 3506.0,
+      "atr14": 10.57,
+      "hist_1130": -3.0434,
+      "gc_state": "負",
+      "d1_sign": "+",
+      "d2_sign": "+",
+      "momentum_hint": -3.0434,
+      "gc_price": 3509.53,
+      "mom_price": 3461.85,
+      "decision_price": 3509.53,
+      "needs_mom_check": false,
+      "signal_1130": 12.8045,
+      "ema12_1130": 3462.3196,
+      "ema26_1130": 3452.5584,
+      "shares": 200,
+      "sl": 3422.4,
+      "tp": 3676.1,
+      "trail_trigger": 3520.0,
+      "risk_jpy": 9114,
+      "notional_jpy": 693600,
+      "tradable": true,
+      "has_1130_bar": true,
+      "value_approx_jpy": 89905777825,
+      "day_high": 3506.0,
+      "pm_high": 3484.0,
+      "優先順位": 1
+    },
     {
       "code4": "5803",
       "name": "フジクラ",
@@ -44,7 +80,7 @@
       "value_approx_jpy": 72803689375,
       "day_high": 3492.0,
       "pm_high": 3397.0,
-      "優先順位": 1
+      "優先順位": 2
     },
     {
       "code4": "8316",
@@ -80,7 +116,7 @@
       "value_approx_jpy": 50894716875,
       "day_high": 3237.0,
       "pm_high": 3221.0,
-      "優先順位": 2
+      "優先順位": 3
     },
     {
       "code4": "5801",
@@ -116,7 +152,7 @@
       "value_approx_jpy": 43250985725,
       "day_high": 2443.0,
       "pm_high": 2274.0,
-      "優先順位": 3
+      "優先順位": 4
     },
     {
       "code4": "8411",
@@ -152,7 +188,7 @@
       "value_approx_jpy": 41027667625,
       "day_high": 7824.0,
       "pm_high": 7792.0,
-      "優先順位": 4
+      "優先順位": 5
     },
     {
       "code4": "5802",
@@ -188,7 +224,7 @@
       "value_approx_jpy": 38771893762,
       "day_high": 1484.5,
       "pm_high": 1446.5,
-      "優先順位": 5
+      "優先順位": 6
     },
     {
       "code4": "8766",
@@ -224,7 +260,7 @@
       "value_approx_jpy": 37158487846,
       "day_high": 612.3,
       "pm_high": 611.9,
-      "優先順位": 6
+      "優先順位": 7
     },
     {
       "code4": "5016",
@@ -260,7 +296,7 @@
       "value_approx_jpy": 26247505425,
       "day_high": 2801.5,
       "pm_high": 2707.5,
-      "優先順位": 7
+      "優先順位": 8
     },
     {
       "code4": "5713",
@@ -296,42 +332,6 @@
       "value_approx_jpy": 19928387675,
       "day_high": 8497.0,
       "pm_high": 8422.0,
-      "優先順位": 8
-    },
-    {
-      "code4": "5108",
-      "name": "ブリヂストン",
-      "区分": "緑",
-      "sector": "ゴム",
-      "financial": false,
-      "no_market_order": false,
-      "前引け値": 4196.0,
-      "前場安値": 4169.0,
-      "前場高値": 4262.0,
-      "atr14": 14.57,
-      "hist_1130": -8.3003,
-      "gc_state": "負",
-      "d1_sign": "+",
-      "d2_sign": "+",
-      "momentum_hint": -8.3003,
-      "gc_price": 4321.32,
-      "mom_price": 4191.25,
-      "decision_price": 4321.32,
-      "needs_mom_check": false,
-      "signal_1130": 20.2672,
-      "ema12_1130": 4206.1525,
-      "ema26_1130": 4194.1856,
-      "shares": 200,
-      "sl": 4154.4,
-      "tp": 4447.8,
-      "trail_trigger": 4258.9,
-      "risk_jpy": 8314,
-      "notional_jpy": 839200,
-      "tradable": true,
-      "has_1130_bar": true,
-      "value_approx_jpy": 15499250075,
-      "day_high": 4276.0,
-      "pm_high": 4276.0,
       "優先順位": 9
     },
     {
