@@ -50,6 +50,11 @@ PM_START_MIN = 12 * 60 + 35         # 12:35（後場ハイの判定基準。ト�
 CONFIRM_1230 = 12 * 60 + 30         # 12:30確認足（エンジンの atr_confirm の足）
 ORDER_WINDOW = (12 * 60 + 25, 13 * 60 + 5)   # 発注可能時間 12:30〜13:00 ±5分（§0）
 
+# index.html の PmHistTracker が追う後場3本（12:30／12:35／12:40足）。
+# 2026-11-10の実測（遅延10.1〜10.7分）で、発注締切13:00までに届くのはこの3本だけである。
+# 12:45足は13:00、12:50足は13:05、12:55足は13:10に届くので発注には使えない。
+PM_TRACK_BARS = (12 * 60 + 30, 12 * 60 + 35, 12 * 60 + 40)
+
 ATR_PERIOD = 14
 SL_PCT = 0.003
 TP_MULT = 1.06
@@ -329,6 +334,21 @@ def process_code(entry: dict, df: pd.DataFrame, target_date) -> dict | None:
     pm_df = day_df[day_df["time_min"] >= PM_START_MIN]
     pm_high = float(pm_df["high"].max()) if not pm_df.empty else None
 
+    # --- 後場の確定足の終値（2026-11-10 追加）---
+    # index.html の PmHistTracker は 12:30／12:35／12:40 足の終値を1本ずつ受け取って
+    # 各足の確定ヒストと採否を出す。その終値を**確定足だけ**から自動で埋めるために出す。
+    # **これは検算用である。** 2026-11-10の実測で yfinance の5分足はバー確定から
+    # 10.1〜10.7分（3銘柄・後場6本すべて同一時刻に到着）遅れて届くため、
+    # 12:30足の終値が届くのは約12:45＝12:35足の始値で建てる時刻より後になる。
+    # **本番の判定は指揮官が板の現在値を手入力して行う（遅延ゼロ）。**
+    # ここで出す値は、その手入力が正しかったかを後から照合するためのものである。
+    # 未確定足・板の値は入れない（rulebook §2 v1.8「動いている足のヒストで判断しない」）。
+    pm_closes = {}
+    for tm in PM_TRACK_BARS:
+        bar = day_df[day_df["time_min"] == tm]
+        if not bar.empty and not pd.isna(bar.iloc[0]["close"]):
+            pm_closes["%d" % tm] = round(float(bar.iloc[0]["close"]), 1)
+
     return {
         "code4": entry["code4"],
         "name": entry["name"],
@@ -378,6 +398,8 @@ def process_code(entry: dict, df: pd.DataFrame, target_date) -> dict | None:
         "value_approx_jpy": value_approx,
         "day_high": day_high,
         "pm_high": pm_high,
+        # 後場の確定足の終値（12:30/12:35/12:40足）。届いた足だけが入る。**検算用**
+        "pm_closes": pm_closes,
     }
 
 

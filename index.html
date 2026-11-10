@@ -134,7 +134,17 @@ function useDailyPrepData() {
         setState((s) => ({ ...s, status: "error", data: null, error: String((err && err.message) || err) }));
       });
   };
-  useEffect(() => { load(); }, []);
+  // 初回 + 5分ごとに再取得（2026-11-10 追加）。
+  // スケジューラは 11:42 / 11:52 / 12:46 / 12:52 / 12:57 / 15:42 に daily_prep.json を
+  // 生成してpushするので、開いたままのページが古いシートを表示し続けないようにする。
+  // **5分ごとに「判定」が新しくなるわけではない**——yfinanceの5分足はバー確定から
+  // 約10分遅れて届く（2026-11-10実測 10.1〜10.7分）。再取得が運ぶのは確定足だけで、
+  // 本番の判定は板の現在値を手入力して行う。
+  useEffect(() => {
+    load();
+    const id = setInterval(load, 5 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
   return [state, load];
 }
 
@@ -1933,6 +1943,9 @@ function buildSizing27Rows(prepData) {
       ema26: s && s.ema26_1130 != null ? s.ema26_1130 : null,
       signal: s && s.signal_1130 != null ? s.signal_1130 : null,
       hist1130: s && s.hist_1130 != null ? s.hist_1130 : null,
+      // 後場の確定足の終値（daily_prep.py pm_closes）。キーは "750"/"755"/"760" = 12:30/12:35/12:40。
+      // **届いた足だけが入る。検算用であって本番の判定ではない**（遅延約10分）。
+      pmCloses: (s && s.pm_closes) ? s.pm_closes : null,
       tradable: s ? !!s.tradable : null, hasBar: s ? !!s.has_1130_bar : null,
       fromJson: !!s,
     };
@@ -1965,10 +1978,12 @@ function rowRiskInfo(rowEdits, result) {
 // 各足の終値を1つ入れるごとに、その足の確定ヒストと「次の足がGCするために必要な終値」が出る。
 // モメンタムフィルターv3.4は標準GC専用なので、12:30でヒストが負だった後に成立するGCは
 // 新規GC＝モメンタム不問。したがって2本目以降はGC閾値だけを見ればよい。
+// tm は daily_prep.py pm_closes のキー（分）。12:30=750 / 12:35=755 / 12:40=760。
+// arrivesAt は 2026-11-10 の実測（バー確定から10.1〜10.7分）に基づく到着目安。
 const PM_BARS = [
-  { key: "c1230", label: "12:30足の終値（12:35に確定）", entryAt: "12:35足の始値" },
-  { key: "c1235", label: "12:35足の終値（12:40に確定）", entryAt: "12:40足の始値" },
-  { key: "c1240", label: "12:40足の終値（12:45に確定）", entryAt: "12:45足の始値" },
+  { key: "c1230", tm: 750, label: "12:30足の終値（12:35に確定）", entryAt: "12:35足の始値", arrivesAt: "12:45" },
+  { key: "c1235", tm: 755, label: "12:35足の終値（12:40に確定）", entryAt: "12:40足の始値", arrivesAt: "12:50" },
+  { key: "c1240", tm: 760, label: "12:40足の終値（12:45に確定）", entryAt: "12:45足の始値", arrivesAt: "12:55" },
 ];
 
 function PmHistTracker({ row, rowEdits, onEdit }) {
@@ -1981,9 +1996,18 @@ function PmHistTracker({ row, rowEdits, onEdit }) {
   for (let i = 0; i < PM_BARS.length; i++) {
     const bar = PM_BARS[i];
     const threshold = macdGcThreshold(state);
-    const c = parseFloat(rowEdits[bar.key]);
+    // **手入力が本番、自動は代替と検算。** 板の現在値は遅延ゼロで読めるが、
+    // daily_prep.json の確定足は約10分遅れて届く（2026-11-10実測）。
+    // したがって手入力があればそれを使い、自動値は照合にだけ使う。
+    const manual = parseFloat(rowEdits[bar.key]);
+    const hasManual = Number.isFinite(manual) && manual > 0;
+    const autoRaw = row.pmCloses ? row.pmCloses[String(bar.tm)] : null;
+    const auto = (autoRaw != null && Number.isFinite(Number(autoRaw))) ? Number(autoRaw) : null;
+    const c = hasManual ? manual : auto;
+    const src = hasManual ? "手入力" : (auto != null ? "自動（確定足）" : null);
+    const mismatch = (hasManual && auto != null && Math.abs(manual - auto) > 1e-9) ? (manual - auto) : null;
     if (!Number.isFinite(c) || c <= 0) {
-      items.push({ bar, threshold, hist: null, verdict: null, i });
+      items.push({ bar, threshold, hist: null, verdict: null, i, src: null, auto, mismatch: null });
       break;
     }
     const next = macdStep(state, c);
@@ -2000,7 +2024,7 @@ function PmHistTracker({ row, rowEdits, onEdit }) {
     } else {
       verdict = { ok: null, text: `未成立（ヒスト ${next.hist.toFixed(2)}・負）` };
     }
-    items.push({ bar, threshold, hist: next.hist, verdict, i });
+    items.push({ bar, threshold, hist: next.hist, verdict, i, src, auto, mismatch });
     if (verdict.ok !== null) { done = verdict; break; }
     state = next;
     prevHist = next.hist;
@@ -2009,11 +2033,22 @@ function PmHistTracker({ row, rowEdits, onEdit }) {
 
   return e("div", { className: "rounded-lg bg-slate-950/40 border border-slate-800 px-3 py-2.5 space-y-2" },
     e("div", { className: "text-[11.5px] font-semibold text-slate-300" }, "後場ヒスト追跡（12:30→12:35→12:40）"),
+    e("div", { className: "text-[10.5px] text-slate-500 leading-snug" },
+      "確定した足の終値を入れると、その足のヒストと採否が出ます。",
+      e("b", { className: "text-slate-400" }, "板の現在値を手で入れるのが本番です"),
+      "——自動欄は daily_prep.json の確定足で埋まりますが、到着が約10分遅れるので検算用です。"),
     items.map((it) => e("div", { key: it.bar.key, className: "space-y-1" },
       e(NumberField, {
         label: it.bar.label, value: rowEdits[it.bar.key] || "",
-        onChange: (v) => onEdit(it.bar.key, v), placeholder: "確定した終値", suffix: "円",
+        onChange: (v) => onEdit(it.bar.key, v),
+        placeholder: it.auto != null ? `自動: ${fmtPrice(it.auto)}（${it.bar.arrivesAt}頃着）` : "確定した終値",
+        suffix: "円",
       }),
+      it.src && e("div", { className: "text-[10.5px] text-slate-500 font-mono tabular-nums" },
+        `判定に使った値: ${it.src}`,
+        it.src === "自動（確定足）" ? `（${it.bar.arrivesAt}頃に届いた足の終値）` : ""),
+      it.mismatch != null && e("div", { className: "text-[10.5px] text-amber-400/90 font-mono tabular-nums" },
+        `検算: 手入力 ¥${fmtPrice(parseFloat(rowEdits[it.bar.key]))} と確定足 ¥${fmtPrice(it.auto)} が ${it.mismatch > 0 ? "+" : ""}${it.mismatch.toFixed(1)}円 違います（判定は手入力で出しています）`),
       it.hist == null
         ? (it.i > 0 && e("div", { className: "text-[11.5px] text-sky-300 font-mono tabular-nums" },
             `この足の終値が ¥${fmtPrice(it.threshold)} 超で新規GC成立（エントリーは${it.bar.entryAt}）`))
