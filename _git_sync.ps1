@@ -107,7 +107,7 @@ function Publish-Generated {
         [Parameter(Mandatory = $true)][string[]]$Generated, # 同期時にリモート優先でよいファイル一覧
         [Parameter(Mandatory = $true)][string]$Message,
         [int]$MaxAttempts = 4,
-        [scriptblock]$Log = { param($m) Write-Host $m }
+        [scriptblock]$LogWriter = { param($m) Write-Host $m }
     )
 
     # 生成したJSONの控え。push競合でorigin/mainの内容に戻したあと載せ替えるのに使う
@@ -124,7 +124,7 @@ function Publish-Generated {
             & git push --quiet origin main
             if ($LASTEXITCODE -eq 0) { return @{ ok = $true; reason = ("pushed (attempt {0})" -f $i) } }
 
-            & $Log ("push拒否 (attempt {0}) — リモートを取り込み直します" -f $i)
+            & $LogWriter ("push拒否 (attempt {0}) — リモートを取り込み直します" -f $i)
             & git fetch --quiet origin main
             if ($LASTEXITCODE -ne 0) {
                 Start-Sleep -Seconds 5

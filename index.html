@@ -434,6 +434,53 @@ function buildPosition(fields) {
 // セクターが強い日は−2.85%・19%、非鉄以外は−1.24%・10%。
 // ※これは「見送る」ための表示ではない（見送りフィルタはWF検証で不採用・rulebook v1.12 §2.5）。
 //   切られやすさを事前に知るための情報。
+// ---- 呼値と発注前ゲート（2026-11-04 追加・rulebook §0）----
+// 監視28銘柄は全てTOPIX500構成なので細かい呼値（topixweight_j.csv 2026-05-29で確認）。
+const TOPIX500_TICKS = [[1000, 0.1], [3000, 0.5], [10000, 1], [30000, 5]];
+function tickSize(price) {
+  for (const [upper, t] of TOPIX500_TICKS) if (price <= upper) return t;
+  return 10;
+}
+// SL（逆指値トリガー）は呼値に**切り下げ**る。切り上げるとストップが狭まる。
+function floorToTick(price) {
+  const t = tickSize(price);
+  return Math.floor(price / t + 1e-9) * t;
+}
+
+// 2026-11-04の実例（三菱マテリアル5711）: 12:35過ぎにSL 3,998円より下で買い、OCO設定時に気づいて
+// 成行で手仕舞い。**建てた瞬間に逆指値が引かれている建玉**だった。
+// SL（OCO2）は逆指値成行なので、ref_price ≤ SL は「成立と同時に損切り」を意味する同語反復であり、
+// 相場の向きに賭けていない。§3.2 v1.10（A型の「約定値がSLトリガー以上なら置き直す」）のロング版。
+// なお「ref_price ≤ 前場安値」は**警告のみ**。これを見送り条件にするのは「弱さ回避」族で、
+// 同族は11スケール連続でWF検証に落ちている（rulebook §2.5）。事前登録なしにブロックしない。
+function PreOrderGate({ refPrice, slOrder, morningLow }) {
+  const rp = parseFloat(refPrice);
+  if (!Number.isFinite(rp) || rp <= 0 || !Number.isFinite(slOrder)) return null;
+  const blocked = rp <= slOrder;
+  const warnLow = !blocked && Number.isFinite(morningLow) && rp <= morningLow;
+  if (!blocked && !warnLow) {
+    return e("div", { className: "text-[11px] text-emerald-400/80 font-mono tabular-nums" },
+      `発注前チェック: 現在値 ¥${fmtPrice(rp)} > SL ¥${fmtPrice(slOrder)}（+${((rp - slOrder) / rp * 100).toFixed(2)}%）→ 可`);
+  }
+  if (blocked) {
+    return e("div", { className: "flex items-start gap-2 rounded-xl bg-red-500/15 border border-red-500/40 px-3.5 py-3 text-[12.5px] text-red-300" },
+      e(AlertTriangle, { size: 15, className: "shrink-0 mt-0.5" }),
+      e("div", null,
+        e("b", null, "発注しない（当日見送り）。"),
+        ` 現在値 ¥${fmtPrice(rp)} が SL ¥${fmtPrice(slOrder)} 以下です。`,
+        e("br"),
+        "SLは逆指値成行なので、建てた瞬間に損切りが成立します。株数を減らしても解決しません。"
+      ));
+  }
+  return e("div", { className: "flex items-start gap-2 rounded-xl bg-amber-500/10 border border-amber-500/30 px-3.5 py-2.5 text-[12px] text-amber-300" },
+    e(AlertTriangle, { size: 14, className: "shrink-0 mt-0.5" }),
+    e("div", null,
+      `現在値 ¥${fmtPrice(rp)} が前場安値 ¥${fmtPrice(morningLow)} を割っています（SLまで残り${((rp - slOrder) / rp * 100).toFixed(2)}%）。`,
+      e("br"),
+      "SLの土台が崩れた状態です。見送り条件ではありません（弱さ回避は未検証）が、刺さりやすさを認識してください。"
+    ));
+}
+
 function slDistanceBand(pct) {
   const d = Math.abs(pct);
   if (d < 0.75) return { label: "非常にタイト", hit: "当日SL到達率は実測で4割前後", cls: "text-red-300", bar: "bg-red-400" };
@@ -538,7 +585,8 @@ function computePhoenixSlot(entry, morningLow, morningHigh, atrManual, code) {
   // SL距離（%）。近いほど当日中にSLへ刺さりやすい（results/phoenix_sector_strength_wf.md の実測）
   const slDistPct = riskPerShare / en * 100;
   return {
-    sl, tp, trailTrigger, riskPerShare, sharesByRisk, sharesByNotional, finalShares, binding,
+    sl, slOrder: floorToTick(sl), tick: tickSize(en),
+    tp, trailTrigger, riskPerShare, sharesByRisk, sharesByNotional, finalShares, binding,
     buf, bufSource, slDistPct,
     positionValue: finalShares * en, maxLoss: finalShares * riskPerShare, maxGain: finalShares * (tp - en),
   };
@@ -1227,6 +1275,11 @@ function computeRegistrationWarnings(form, positions, closed, slot) {
 
   if (positionValue > NOTIONAL_CAP) {
     warnings.push(`建玉代金 ¥${fmt(positionValue)} が1銘柄上限 ¥${fmt(NOTIONAL_CAP)} を超えています`);
+  }
+  // 2026-11-04 追加: 発注直前の現在値がSL以下＝建てた瞬間に損切り済み（rulebook §0）
+  const refPriceForm = parseFloat(form.refPrice);
+  if (Number.isFinite(refPriceForm) && refPriceForm > 0 && Number.isFinite(slPrice) && refPriceForm <= slPrice) {
+    warnings.push(`発注直前の現在値 ¥${fmt(refPriceForm)} がSL ¥${fmt(slPrice)} 以下です。建てた瞬間に損切りが成立します（当日見送りが正）`);
   }
   if (Number.isFinite(slPrice) && slPrice < entryPrice) {
     const risk = (entryPrice - slPrice) * qty;
@@ -1979,7 +2032,11 @@ function Sizing27Row({ row, rowEdits, result, isOpen, onToggle, onEdit, onRegist
   const riskInfo = rowRiskInfo(rowEdits, result);
   const overRisk = !!riskInfo && riskInfo.risk > RISK_CAP;
   const qtyDisplay = rowEdits.qty !== "" ? rowEdits.qty : ((result && !result.error) ? String(result.finalShares) : "");
-  const canRegister = !!result && !result.error && !isHeld;
+  // 発注前ゲート: ref_price ≤ SL なら登録させない（建てた瞬間に損切り済みの建玉）
+  const refPriceVal = parseFloat(rowEdits.refPrice);
+  const slBreachedAtOrder = !!result && !result.error
+    && Number.isFinite(refPriceVal) && refPriceVal > 0 && refPriceVal <= result.slOrder;
+  const canRegister = !!result && !result.error && !isHeld && !slBreachedAtOrder;
   const hintVal = row.momentumHint != null ? row.momentumHint.toFixed(2) : "―";
 
   return e("div", {
@@ -2051,8 +2108,9 @@ function Sizing27Row({ row, rowEdits, result, isOpen, onToggle, onEdit, onRegist
         e("span", null, result.error)
       ),
       result && !result.error && e("div", { className: "rounded-lg bg-slate-950/60 border border-slate-800 px-3 py-1" },
-        e(ResultRow, { label: "SL（前場安値−バッファ）", value: `¥${fmtPrice(result.sl)}` }),
-        e("div", { className: "pb-2 -mt-1 text-[11px] text-slate-500" }, `バッファ${fmtPrice(result.buf)}円 = ${result.bufSource.label}`),
+        e(ResultRow, { label: "SL（発注値・呼値切り下げ）", value: `¥${fmtPrice(result.slOrder)}` }),
+        e("div", { className: "pb-2 -mt-1 text-[11px] text-slate-500" },
+          `計算値 ${fmtPrice(result.sl)}円（前場安値−バッファ${fmtPrice(result.buf)}円 = ${result.bufSource.label}）／呼値${result.tick}円`),
         e(SlDistanceRow, { slDistPct: result.slDistPct }),
         (() => {
           // TP/トレールはエントリー価格基準(rulebook 2.3節)。約定値が入ったら約定値×1.06/×1.015に表示を切替
@@ -2072,6 +2130,10 @@ function Sizing27Row({ row, rowEdits, result, isOpen, onToggle, onEdit, onRegist
         e(NumberField, { label: "約定値", value: rowEdits.fillPrice, onChange: (v) => onEdit("fillPrice", v), placeholder: "例: 4810", suffix: "円" })
       ),
       e(SlippageRow, { refPrice: rowEdits.refPrice, fillPrice: rowEdits.fillPrice }),
+      result && !result.error && e(PreOrderGate, {
+        refPrice: rowEdits.refPrice, slOrder: result.slOrder,
+        morningLow: parseFloat(rowEdits.morningLow),
+      }),
       riskInfo && e("div", { className: `text-[12px] ${overRisk ? "text-red-400 font-semibold" : "text-slate-400"}` },
         `リスク額（${riskInfo.isFill ? "約定値" : "前引け値"}基準）: −¥${fmt(riskInfo.risk)}${overRisk ? `（上限¥${fmt(RISK_CAP)}超過。株数を減らしてください）` : ""}`),
       e(RegistrationWarnings, { warnings }),
@@ -2085,7 +2147,9 @@ function Sizing27Row({ row, rowEdits, result, isOpen, onToggle, onEdit, onRegist
                 ? (atCap ? "bg-red-500/15 border-red-500/30 text-red-300" : "bg-amber-500/15 border-amber-500/30 text-amber-300")
                 : "bg-slate-800 border-slate-700 text-slate-600"
             }`,
-          }, atCap ? "保有上限5件のため登録不可" : "この内容で建玉登録")
+          }, atCap ? "保有上限5件のため登録不可"
+             : slBreachedAtOrder ? "現在値がSL以下のため登録不可（当日見送り）"
+             : "この内容で建玉登録")
     )
   );
 }

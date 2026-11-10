@@ -33,9 +33,14 @@ $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interac
 # 実行時刻の根拠: 11:30バー（11:30〜11:35をカバー）はyfinance側の反映に数分かかるため、
 # 11:35ちょうどに実行すると has_1130_bar=false になる（2026-08-06に実測）。11:42/11:52の2本立てとし、
 # 大引け(15:30)後も同様に15:42へ後ろ倒しする。
+# 2026-11-04追加: 12:42/12:50 の発注前チェック枠。12:30足は12:35に確定するがyfinance反映に
+# 数分かかるため12:42とし、取りこぼしの保険を12:50に置く（発注可能時間13:00までに間に合う）。
+# この枠が無いと last_price_in_order_window=false のままで entry_block が常に null になる。
 $defs = @(
     @{ Name = "Phoenix DailyPrep Noon";   Time = "11:42"; Desc = "フェニックス昼の準備シート生成（サイジング用・主系）" },
     @{ Name = "Phoenix DailyPrep Noon2";  Time = "11:52"; Desc = "フェニックス昼の準備シート再生成（11:30バー取りこぼしの保険）" },
+    @{ Name = "Phoenix DailyPrep Order";  Time = "12:42"; Desc = "発注前チェック用（12:30確認足のATRで正しいSLを出し、発注可能時間内の直近値で entry_block を判定）" },
+    @{ Name = "Phoenix DailyPrep Order2"; Time = "12:50"; Desc = "発注前チェック再生成（12:30バー取りこぼしの保険）" },
     @{ Name = "Phoenix DailyPrep Close";  Time = "15:42"; Desc = "フェニックス大引け後の準備シート更新（トレール引上げ判定用）" }
 )
 

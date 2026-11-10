@@ -87,7 +87,7 @@ try {
     }
 
     $msg = "daily prep sheet update (local) {0}" -f (Get-Date -Format "yyyy-MM-dd HH:mm")
-    $pub = Publish-Generated -File "daily_prep.json" -Generated $GENERATED -Message $msg -Log { param($m) Write-Log $m }
+    $pub = Publish-Generated -File "daily_prep.json" -Generated $GENERATED -Message $msg -LogWriter { param($m) Write-Log $m }
     if (-not $pub.ok) {
         Write-Log ("ERROR: " + $pub.reason)
         exit 1

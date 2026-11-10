@@ -47,6 +47,9 @@ MORNING_END_MIN = 11 * 60 + 30      # 11:30
 MOMENTUM_TIMES = (11 * 60 + 20, 11 * 60 + 25, 11 * 60 + 30)  # 11:20,11:25,11:30
 PM_START_MIN = 12 * 60 + 35         # 12:35（後場ハイの判定基準。トレール引上げ判定UI用）
 
+CONFIRM_1230 = 12 * 60 + 30         # 12:30確認足（エンジンの atr_confirm の足）
+ORDER_WINDOW = (12 * 60 + 25, 13 * 60 + 5)   # 発注可能時間 12:30〜13:00 ±5分（§0）
+
 ATR_PERIOD = 14
 SL_PCT = 0.003
 TP_MULT = 1.06
@@ -57,6 +60,24 @@ TP_MULT = 1.06
 TRAIL_MULT = 1.015
 RISK_CAP_JPY = 77_000
 NOTIONAL_CAP_JPY = 1_027_000
+
+# 呼値（rulebook §2.4: 監視28銘柄は全てTOPIX500構成なので細かい呼値が適用される。
+# topixweight_j.csv 2026-05-29 で確認済み。非TOPIX500が候補入りした場合はここを分岐させること）
+TOPIX500_TICKS = ((1_000, 0.1), (3_000, 0.5), (10_000, 1.0), (30_000, 5.0))
+
+
+def tick_size(price: float) -> float:
+    for upper, t in TOPIX500_TICKS:
+        if price <= upper:
+            return t
+    return 10.0
+
+
+def floor_to_tick(price: float) -> float:
+    """SL（逆指値トリガー）は呼値に**切り下げ**る。切り上げるとストップが狭まるため。"""
+    t = tick_size(price)
+    return math.floor(price / t + 1e-9) * t
+
 
 FETCH_PERIOD = "60d"   # MACD/ATRのウォームアップ用(yfinance 5分足の取得上限)
 FETCH_INTERVAL = "5m"
@@ -278,6 +299,30 @@ def process_code(entry: dict, df: pd.DataFrame, target_date) -> dict | None:
 
     sizing = compute_sizing(zenba_close, zenba_low, atr14)
 
+    # --- 発注前チェック（rulebook §0「SLが既に割れている建玉を新規に建てない」）---
+    # エンジンの SL は atr_confirm＝**12:30確認足**のATRを使う（phoenix_common._simulate_one）。
+    # 12:30足はyfinanceに12:40頃まで出ないので、前場時点の実行では11:30足のATRで代用する。
+    # 代用誤差は1,674 code-dayの実測で中央値+0.0177%・|差|0.3%超0件・90.7%で12:30の方が大きい
+    # （results/sl_width_vs_sizing_audit_20261104.md §6）。**11:30代用はSLが狭い側＝保守側**。
+    bar_1230 = day_df[day_df["time_min"] == CONFIRM_1230]
+    atr_confirm = None
+    if not bar_1230.empty and not pd.isna(bar_1230.iloc[0]["atr14"]):
+        atr_confirm = float(bar_1230.iloc[0]["atr14"])
+    atr_for_sl = atr_confirm if atr_confirm is not None else atr14
+    sl_basis = "12:30確認足" if atr_confirm is not None else "11:30足で代用"
+    sl_exact = zenba_low - max(SL_PCT * zenba_close, atr_for_sl or 0.0)
+    sl_order = floor_to_tick(sl_exact)
+    last_bar_any = day_df.sort_values("time_min").iloc[-1]
+    last_price = float(last_bar_any["close"])
+    last_price_time = int(last_bar_any["time_min"])
+    # **時刻ガード**: last_price は5分足の終値であって板ではない。発注可能時間の外の足で
+    # 判定すると「13時以降に値を戻したのでブロック解除」という無意味な結果が出る
+    # （2026-11-04 14:34の実行で三菱マテが4,072に戻り False になった）。
+    # 窓の外では判定を出さず null にし、**板の直近約定値で指揮官が判定する**ことを強制する。
+    in_window = ORDER_WINDOW[0] <= last_price_time <= ORDER_WINDOW[1]
+    entry_block = bool(last_price <= sl_order) if in_window else None
+    entry_warn = bool(last_price <= zenba_low) if in_window else None
+
     # トレール引上げ判定UI用（trail_check_ui_spec.md）: 当日ザラ場全体の高値と後場(12:35以降)の高値。
     # 前場のみの時点(11:35/11:50/12:05実行)では day_high=前場高値・pm_high=None になる。
     day_high = float(day_df["high"].max())
@@ -315,6 +360,20 @@ def process_code(entry: dict, df: pd.DataFrame, target_date) -> dict | None:
         "risk_jpy": sizing["risk_jpy"],
         "notional_jpy": sizing["notional_jpy"],
         "tradable": sizing["tradable"],
+        # --- 発注前チェック用（2026-11-04 追加・rulebook §0）---
+        "atr_confirm": atr_confirm,          # 12:30足のATR14。未形成ならnull
+        "sl_basis": sl_basis,                # SLがどの足のATRで出ているか
+        "sl_exact": sl_exact,                # 丸め前のSL（監査用）
+        "sl_order": sl_order,                # **実際に発注する逆指値トリガー（呼値に切り下げ）**
+        "tick": tick_size(zenba_close),
+        "last_price": last_price,            # 取得できた最終足の終値（板の代用。発注前に板で再確認）
+        "last_price_time_min": last_price_time,
+        "last_price_in_order_window": in_window,
+        # 直近約定値がSL以下＝建てた瞬間に損切り済み。**同語反復なので見送りが正**。
+        # 発注可能時間の足が無ければ null（＝板で判定せよ）。
+        "entry_block": entry_block,
+        # 直近約定値が前場安値以下＝SLの土台が崩れている。**警告のみ。ブロックは事前登録が必要**
+        "entry_warn_below_zenba_low": entry_warn,
         "has_1130_bar": has_1130_bar,
         "value_approx_jpy": value_approx,
         "day_high": day_high,
@@ -325,10 +384,11 @@ def process_code(entry: dict, df: pd.DataFrame, target_date) -> dict | None:
 def round_stock_numbers(s: dict) -> dict:
     """出力直前の丸め処理(円は整数、値は小数2桁程度)。"""
     out = dict(s)
-    for k in ("前引け値", "前場安値", "前場高値", "sl", "tp", "trail_trigger", "day_high", "pm_high"):
+    for k in ("前引け値", "前場安値", "前場高値", "sl", "tp", "trail_trigger", "day_high", "pm_high",
+              "sl_exact", "sl_order", "last_price"):
         if out.get(k) is not None:
             out[k] = round(out[k], 1)
-    for k in ("atr14",):
+    for k in ("atr14", "atr_confirm"):
         if out.get(k) is not None:
             out[k] = round(out[k], 2)
     for k in ("hist_1130", "momentum_hint", "signal_1130", "ema12_1130", "ema26_1130"):
