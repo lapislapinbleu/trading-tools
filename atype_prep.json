@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-13T12:33:00.045883+09:00",
+  "generated_at": "2026-11-13T12:39:58.058660+09:00",
   "prev_close_date": "2026-11-12",
   "band_pct": [
     0.035,
@@ -7,22 +7,22 @@
   ],
   "missing": [
     {
-      "code4": "5803",
-      "name": "フジクラ",
+      "code4": "6723",
+      "name": "ルネサス",
       "reason": "データ取得なし"
     }
   ],
   "stocks": [
     {
-      "code4": "6723",
-      "name": "ルネサス",
-      "prev_close": 2840.0,
+      "code4": "5803",
+      "name": "フジクラ",
+      "prev_close": 3002.0,
       "prev_close_date": "2026-11-12",
-      "band_low_raw": 2939.4,
-      "band_high_raw": 2982.0,
-      "band_low": 2939.5,
-      "band_high": 2982.0,
-      "tick": 0.5
+      "band_low_raw": 3107.07,
+      "band_high_raw": 3152.1,
+      "band_low": 3108.0,
+      "band_high": 3152.0,
+      "tick": 1.0
     },
     {
       "code4": "6981",
