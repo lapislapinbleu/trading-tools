@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-11-17T14:16:29.184220+09:00",
-  "prev_close_date": "2026-11-16",
+  "generated_at": "2026-11-18T08:40:05.354793+09:00",
+  "prev_close_date": "2026-11-17",
   "band_pct": [
     0.035,
     0.05
@@ -10,34 +10,34 @@
     {
       "code4": "5803",
       "name": "フジクラ",
-      "prev_close": 2700.0,
-      "prev_close_date": "2026-11-16",
-      "band_low_raw": 2794.5,
-      "band_high_raw": 2835.0,
-      "band_low": 2794.5,
-      "band_high": 2835.0,
+      "prev_close": 2590.5,
+      "prev_close_date": "2026-11-17",
+      "band_low_raw": 2681.17,
+      "band_high_raw": 2720.03,
+      "band_low": 2681.5,
+      "band_high": 2720.0,
       "tick": 0.5
     },
     {
       "code4": "6723",
       "name": "ルネサス",
-      "prev_close": 2704.5,
-      "prev_close_date": "2026-11-16",
-      "band_low_raw": 2799.16,
-      "band_high_raw": 2839.72,
-      "band_low": 2799.5,
-      "band_high": 2839.5,
+      "prev_close": 2618.5,
+      "prev_close_date": "2026-11-17",
+      "band_low_raw": 2710.15,
+      "band_high_raw": 2749.43,
+      "band_low": 2710.5,
+      "band_high": 2749.0,
       "tick": 0.5
     },
     {
       "code4": "6981",
       "name": "村田製作所",
-      "prev_close": 4855.0,
-      "prev_close_date": "2026-11-16",
-      "band_low_raw": 5024.92,
-      "band_high_raw": 5097.75,
-      "band_low": 5025.0,
-      "band_high": 5097.0,
+      "prev_close": 4851.0,
+      "prev_close_date": "2026-11-17",
+      "band_low_raw": 5020.78,
+      "band_high_raw": 5093.55,
+      "band_low": 5021.0,
+      "band_high": 5093.0,
       "tick": 1.0
     }
   ]
