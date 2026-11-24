@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-24T12:52:04.134620+09:00",
+  "generated_at": "2026-11-24T12:57:04.325180+09:00",
   "date": "2026-11-24",
   "complete": true,
   "missing": [],
@@ -39,8 +39,8 @@
       "sl_exact": 2350.6,
       "sl_order": 2350.5,
       "tick": 0.5,
-      "last_price": 2419.0,
-      "last_price_time_min": 755,
+      "last_price": 2425.5,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
@@ -50,7 +50,8 @@
       "pm_high": 2430.5,
       "pm_closes": {
         "750": 2424.0,
-        "755": 2419.0
+        "755": 2422.5,
+        "760": 2425.5
       },
       "優先順位": 1
     },
@@ -89,18 +90,19 @@
       "sl_exact": 3072.5,
       "sl_order": 3072.0,
       "tick": 1.0,
-      "last_price": 3159.0,
-      "last_price_time_min": 755,
+      "last_price": 3161.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 47709965800,
       "day_high": 3168.0,
-      "pm_high": 3159.0,
+      "pm_high": 3162.0,
       "pm_closes": {
         "750": 3157.0,
-        "755": 3159.0
+        "755": 3158.0,
+        "760": 3161.0
       },
       "優先順位": 2
     },
@@ -139,18 +141,19 @@
       "sl_exact": 7380.9,
       "sl_order": 7380.0,
       "tick": 1.0,
-      "last_price": 7768.0,
-      "last_price_time_min": 755,
+      "last_price": 7763.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 36719035700,
       "day_high": 7784.0,
-      "pm_high": 7768.0,
+      "pm_high": 7777.0,
       "pm_closes": {
         "750": 7763.0,
-        "755": 7768.0
+        "755": 7759.0,
+        "760": 7763.0
       },
       "優先順位": 3
     },
@@ -189,8 +192,8 @@
       "sl_exact": 1677.0,
       "sl_order": 1677.0,
       "tick": 0.5,
-      "last_price": 1807.5,
-      "last_price_time_min": 755,
+      "last_price": 1808.5,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
@@ -200,7 +203,8 @@
       "pm_high": 1815.5,
       "pm_closes": {
         "750": 1812.5,
-        "755": 1807.5
+        "755": 1805.5,
+        "760": 1808.5
       },
       "優先順位": 4
     },
@@ -239,18 +243,19 @@
       "sl_exact": 2949.8,
       "sl_order": 2949.5,
       "tick": 1.0,
-      "last_price": 3045.0,
-      "last_price_time_min": 755,
+      "last_price": 3048.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 29697504100,
       "day_high": 3054.0,
-      "pm_high": 3046.0,
+      "pm_high": 3049.0,
       "pm_closes": {
         "750": 3044.0,
-        "755": 3045.0
+        "755": 3046.0,
+        "760": 3048.0
       },
       "優先順位": 5
     },
@@ -289,18 +294,19 @@
       "sl_exact": 1907.3,
       "sl_order": 1907.0,
       "tick": 0.5,
-      "last_price": 1956.0,
-      "last_price_time_min": 755,
+      "last_price": 1961.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 22039774800,
       "day_high": 2010.0,
-      "pm_high": 1959.5,
+      "pm_high": 1964.5,
       "pm_closes": {
         "750": 1955.5,
-        "755": 1956.0
+        "755": 1956.5,
+        "760": 1961.0
       },
       "優先順位": 6
     },
@@ -339,18 +345,19 @@
       "sl_exact": 570.7,
       "sl_order": 570.6,
       "tick": 0.1,
-      "last_price": 581.9,
-      "last_price_time_min": 755,
+      "last_price": 583.4,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 18611086653,
       "day_high": 587.7,
-      "pm_high": 583.0,
+      "pm_high": 583.7,
       "pm_closes": {
         "750": 583.0,
-        "755": 581.9
+        "755": 583.1,
+        "760": 583.4
       },
       "優先順位": 7
     },
@@ -389,8 +396,8 @@
       "sl_exact": 1279.3,
       "sl_order": 1279.0,
       "tick": 0.5,
-      "last_price": 1321.0,
-      "last_price_time_min": 755,
+      "last_price": 1322.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
@@ -400,7 +407,8 @@
       "pm_high": 1325.5,
       "pm_closes": {
         "750": 1324.0,
-        "755": 1321.0
+        "755": 1320.5,
+        "760": 1322.0
       },
       "優先順位": 8
     },
@@ -439,18 +447,19 @@
       "sl_exact": 1165.3,
       "sl_order": 1165.0,
       "tick": 0.5,
-      "last_price": 1193.0,
-      "last_price_time_min": 755,
+      "last_price": 1194.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 12370015300,
       "day_high": 1239.0,
-      "pm_high": 1195.5,
+      "pm_high": 1196.0,
       "pm_closes": {
         "750": 1190.5,
-        "755": 1193.0
+        "755": 1191.5,
+        "760": 1194.0
       },
       "優先順位": 9
     },
@@ -489,18 +498,19 @@
       "sl_exact": 6831.9,
       "sl_order": 6831.0,
       "tick": 1.0,
-      "last_price": 7091.0,
-      "last_price_time_min": 755,
+      "last_price": 7099.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 8862299075,
-      "day_high": 7098.0,
-      "pm_high": 7094.0,
+      "day_high": 7101.0,
+      "pm_high": 7101.0,
       "pm_closes": {
         "750": 7093.0,
-        "755": 7091.0
+        "755": 7097.0,
+        "760": 7099.0
       },
       "優先順位": 10
     },
@@ -539,18 +549,19 @@
       "sl_exact": 1648.5,
       "sl_order": 1648.0,
       "tick": 0.5,
-      "last_price": 1687.0,
-      "last_price_time_min": 755,
+      "last_price": 1691.5,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 7938169088,
       "day_high": 1694.5,
-      "pm_high": 1687.5,
+      "pm_high": 1691.5,
       "pm_closes": {
         "750": 1686.0,
-        "755": 1687.0
+        "755": 1689.5,
+        "760": 1691.5
       },
       "優先順位": 11
     },
@@ -589,18 +600,19 @@
       "sl_exact": 2009.8,
       "sl_order": 2009.5,
       "tick": 0.5,
-      "last_price": 2056.0,
-      "last_price_time_min": 755,
+      "last_price": 2060.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 7906115375,
       "day_high": 2080.0,
-      "pm_high": 2056.5,
+      "pm_high": 2060.5,
       "pm_closes": {
         "750": 2055.0,
-        "755": 2056.0
+        "755": 2058.0,
+        "760": 2060.0
       },
       "優先順位": 12
     },
@@ -639,18 +651,19 @@
       "sl_exact": 5521.9,
       "sl_order": 5521.0,
       "tick": 1.0,
-      "last_price": 5567.0,
-      "last_price_time_min": 755,
+      "last_price": 5586.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 7728476975,
       "day_high": 5749.0,
-      "pm_high": 5574.0,
+      "pm_high": 5589.0,
       "pm_closes": {
         "750": 5568.0,
-        "755": 5567.0
+        "755": 5577.0,
+        "760": 5586.0
       },
       "優先順位": 13
     },
@@ -689,18 +702,19 @@
       "sl_exact": 5055.6,
       "sl_order": 5055.0,
       "tick": 1.0,
-      "last_price": 5175.0,
-      "last_price_time_min": 755,
+      "last_price": 5184.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 6090763525,
-      "day_high": 5183.0,
-      "pm_high": 5183.0,
+      "day_high": 5185.0,
+      "pm_high": 5185.0,
       "pm_closes": {
         "750": 5179.0,
-        "755": 5175.0
+        "755": 5181.0,
+        "760": 5184.0
       },
       "優先順位": 14
     },
@@ -739,18 +753,19 @@
       "sl_exact": 3000.8,
       "sl_order": 3000.0,
       "tick": 1.0,
-      "last_price": 3071.0,
-      "last_price_time_min": 755,
+      "last_price": 3081.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 5484905825,
       "day_high": 3084.0,
-      "pm_high": 3073.0,
+      "pm_high": 3081.0,
       "pm_closes": {
         "750": 3073.0,
-        "755": 3071.0
+        "755": 3078.0,
+        "760": 3081.0
       },
       "優先順位": 15
     },
@@ -789,18 +804,19 @@
       "sl_exact": 4254.1,
       "sl_order": 4254.0,
       "tick": 1.0,
-      "last_price": 4304.0,
-      "last_price_time_min": 755,
+      "last_price": 4312.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 4606123375,
       "day_high": 4343.0,
-      "pm_high": 4305.0,
+      "pm_high": 4312.0,
       "pm_closes": {
         "750": 4304.0,
-        "755": 4304.0
+        "755": 4312.0,
+        "760": 4312.0
       },
       "優先順位": 16
     },
@@ -839,18 +855,19 @@
       "sl_exact": 141.4,
       "sl_order": 141.3,
       "tick": 0.1,
-      "last_price": 142.8,
-      "last_price_time_min": 755,
+      "last_price": 143.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 4573587802,
       "day_high": 143.0,
-      "pm_high": 142.9,
+      "pm_high": 143.0,
       "pm_closes": {
         "750": 142.7,
-        "755": 142.8
+        "755": 142.9,
+        "760": 143.0
       },
       "優先順位": 17
     },
@@ -889,18 +906,19 @@
       "sl_exact": 1712.8,
       "sl_order": 1712.5,
       "tick": 0.5,
-      "last_price": 1738.5,
-      "last_price_time_min": 755,
+      "last_price": 1742.5,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 4344398950,
       "day_high": 1749.5,
-      "pm_high": 1739.5,
+      "pm_high": 1742.5,
       "pm_closes": {
         "750": 1739.0,
-        "755": 1738.5
+        "755": 1741.5,
+        "760": 1742.5
       },
       "優先順位": 18
     },
@@ -939,18 +957,19 @@
       "sl_exact": 4658.8,
       "sl_order": 4658.0,
       "tick": 1.0,
-      "last_price": 4754.0,
-      "last_price_time_min": 755,
+      "last_price": 4766.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 2940822600,
       "day_high": 4784.0,
-      "pm_high": 4755.0,
+      "pm_high": 4771.0,
       "pm_closes": {
         "750": 4751.0,
-        "755": 4754.0
+        "755": 4767.0,
+        "760": 4766.0
       },
       "優先順位": 19
     },
@@ -989,18 +1008,19 @@
       "sl_exact": 3623.8,
       "sl_order": 3623.0,
       "tick": 1.0,
-      "last_price": 3639.0,
-      "last_price_time_min": 755,
+      "last_price": 3658.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
-      "entry_warn_below_zenba_low": true,
+      "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 2447428325,
       "day_high": 3735.0,
-      "pm_high": 3641.0,
+      "pm_high": 3658.0,
       "pm_closes": {
         "750": 3640.0,
-        "755": 3639.0
+        "755": 3647.0,
+        "760": 3658.0
       },
       "優先順位": 20
     },
@@ -1039,18 +1059,19 @@
       "sl_exact": 6879.2,
       "sl_order": 6879.0,
       "tick": 1.0,
-      "last_price": 6923.0,
-      "last_price_time_min": 755,
+      "last_price": 6935.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 2015482275,
       "day_high": 7043.0,
-      "pm_high": 6928.0,
+      "pm_high": 6936.0,
       "pm_closes": {
         "750": 6925.0,
-        "755": 6923.0
+        "755": 6930.0,
+        "760": 6935.0
       },
       "優先順位": 21
     },
@@ -1089,18 +1110,19 @@
       "sl_exact": 7268.2,
       "sl_order": 7268.0,
       "tick": 1.0,
-      "last_price": 7321.0,
-      "last_price_time_min": 755,
+      "last_price": 7344.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 1828586950,
       "day_high": 7503.0,
-      "pm_high": 7323.0,
+      "pm_high": 7344.0,
       "pm_closes": {
         "750": 7317.0,
-        "755": 7321.0
+        "755": 7327.0,
+        "760": 7344.0
       },
       "優先順位": 22
     },
@@ -1139,18 +1161,19 @@
       "sl_exact": 3834.4,
       "sl_order": 3834.0,
       "tick": 1.0,
-      "last_price": 3847.0,
-      "last_price_time_min": 755,
+      "last_price": 3855.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 1012714150,
       "day_high": 3933.0,
-      "pm_high": 3851.0,
+      "pm_high": 3857.0,
       "pm_closes": {
         "750": 3849.0,
-        "755": 3847.0
+        "755": 3851.0,
+        "760": 3855.0
       },
       "優先順位": 23
     },
@@ -1190,7 +1213,7 @@
       "sl_order": 1904.0,
       "tick": 0.5,
       "last_price": 1902.5,
-      "last_price_time_min": 755,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": true,
       "entry_warn_below_zenba_low": true,
@@ -1200,7 +1223,8 @@
       "pm_high": 1904.5,
       "pm_closes": {
         "750": 1905.0,
-        "755": 1902.5
+        "755": 1904.0,
+        "760": 1902.5
       },
       "優先順位": 24
     },
@@ -1239,18 +1263,19 @@
       "sl_exact": 1710.3,
       "sl_order": 1710.0,
       "tick": 0.5,
-      "last_price": 1726.0,
-      "last_price_time_min": 755,
+      "last_price": 1729.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 763330438,
       "day_high": 1737.0,
-      "pm_high": 1728.5,
+      "pm_high": 1729.0,
       "pm_closes": {
         "750": 1728.0,
-        "755": 1726.0
+        "755": 1728.5,
+        "760": 1729.0
       },
       "優先順位": 25
     },
@@ -1289,18 +1314,19 @@
       "sl_exact": 4807.5,
       "sl_order": 4807.0,
       "tick": 1.0,
-      "last_price": 4850.0,
-      "last_price_time_min": 755,
+      "last_price": 4854.0,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
       "has_1130_bar": true,
       "value_approx_jpy": 264922625,
       "day_high": 4883.0,
-      "pm_high": 4850.0,
+      "pm_high": 4854.0,
       "pm_closes": {
         "750": 4848.0,
-        "755": 4850.0
+        "755": 4850.0,
+        "760": 4854.0
       },
       "優先順位": 26
     },
@@ -1339,8 +1365,8 @@
       "sl_exact": 1211.3,
       "sl_order": 1211.0,
       "tick": 0.5,
-      "last_price": 1232.0,
-      "last_price_time_min": 755,
+      "last_price": 1231.5,
+      "last_price_time_min": 760,
       "last_price_in_order_window": true,
       "entry_block": false,
       "entry_warn_below_zenba_low": false,
@@ -1350,7 +1376,8 @@
       "pm_high": 1232.5,
       "pm_closes": {
         "750": 1232.0,
-        "755": 1232.0
+        "755": 1230.5,
+        "760": 1231.5
       },
       "優先順位": 27
     },
@@ -1389,7 +1416,7 @@
       "sl_exact": 3180.4,
       "sl_order": 3180.0,
       "tick": 1.0,
-      "last_price": 3212.0,
+      "last_price": 3204.0,
       "last_price_time_min": 755,
       "last_price_in_order_window": true,
       "entry_block": false,
@@ -1400,7 +1427,7 @@
       "pm_high": 3212.0,
       "pm_closes": {
         "750": 3211.0,
-        "755": 3212.0
+        "755": 3204.0
       },
       "優先順位": 28
     }
