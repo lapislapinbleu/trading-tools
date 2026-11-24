@@ -1,8 +1,14 @@
 {
-  "generated_at": "2026-11-24T21:57:33.788364+09:00",
+  "generated_at": "2026-11-24T22:27:48.966044+09:00",
   "date": "2026-11-24",
-  "complete": true,
-  "missing": [],
+  "complete": false,
+  "missing": [
+    {
+      "code4": "5801",
+      "name": "古河電工",
+      "reason": "データ取得なし"
+    }
+  ],
   "stocks": [
     {
       "code4": "5803",
@@ -45,7 +51,7 @@
       "entry_block": null,
       "entry_warn_below_zenba_low": null,
       "has_1130_bar": true,
-      "value_approx_jpy": 79243261050,
+      "value_approx_jpy": 79243262025,
       "day_high": 2540.0,
       "pm_high": 2432.0,
       "pm_closes": {
@@ -96,7 +102,7 @@
       "entry_block": null,
       "entry_warn_below_zenba_low": null,
       "has_1130_bar": true,
-      "value_approx_jpy": 59683405125,
+      "value_approx_jpy": 59685195100,
       "day_high": 3178.0,
       "pm_high": 3178.0,
       "pm_closes": {
@@ -117,18 +123,18 @@
       "前場安値": 7405.0,
       "前場高値": 7784.0,
       "atr14": 22.64,
-      "hist_1130": -5.4163,
+      "hist_1130": -5.4174,
       "gc_state": "負",
       "d1_sign": "+",
       "d2_sign": "+",
-      "momentum_hint": -5.4163,
-      "gc_price": 7854.34,
+      "momentum_hint": -5.4174,
+      "gc_price": 7854.36,
       "mom_price": 7769.47,
-      "decision_price": 7854.34,
+      "decision_price": 7854.36,
       "needs_mom_check": false,
-      "signal_1130": 62.1984,
-      "ema12_1130": 7733.7181,
-      "ema26_1130": 7676.936,
+      "signal_1130": 62.2067,
+      "ema12_1130": 7733.7167,
+      "ema26_1130": 7676.9274,
       "shares": 100,
       "sl": 7381.7,
       "tp": 8241.5,
@@ -147,7 +153,7 @@
       "entry_block": null,
       "entry_warn_below_zenba_low": null,
       "has_1130_bar": true,
-      "value_approx_jpy": 48265275900,
+      "value_approx_jpy": 48265202025,
       "day_high": 7784.0,
       "pm_high": 7778.0,
       "pm_closes": {
@@ -168,18 +174,18 @@
       "前場安値": 2959.0,
       "前場高値": 3054.0,
       "atr14": 7.07,
-      "hist_1130": -2.3205,
+      "hist_1130": -2.3194,
       "gc_state": "負",
       "d1_sign": "+",
       "d2_sign": "+",
-      "momentum_hint": -2.3205,
-      "gc_price": 3081.79,
-      "mom_price": 3045.43,
-      "decision_price": 3081.79,
+      "momentum_hint": -2.3194,
+      "gc_price": 3081.77,
+      "mom_price": 3045.42,
+      "decision_price": 3081.77,
       "needs_mom_check": false,
-      "signal_1130": 13.7765,
-      "ema12_1130": 3042.065,
-      "ema26_1130": 3030.6089,
+      "signal_1130": 13.7619,
+      "ema12_1130": 3042.0687,
+      "ema26_1130": 3030.6262,
       "shares": 300,
       "sl": 2949.8,
       "tp": 3234.1,
@@ -198,7 +204,7 @@
       "entry_block": null,
       "entry_warn_below_zenba_low": null,
       "has_1130_bar": true,
-      "value_approx_jpy": 36916449275,
+      "value_approx_jpy": 36912240550,
       "day_high": 3059.0,
       "pm_high": 3059.0,
       "pm_closes": {
@@ -207,57 +213,6 @@
         "760": 3039.0
       },
       "優先順位": 4
-    },
-    {
-      "code4": "5801",
-      "name": "古河電工",
-      "区分": "緑",
-      "sector": "非鉄金属",
-      "financial": false,
-      "no_market_order": false,
-      "前引け値": 1833.0,
-      "前場安値": 1694.5,
-      "前場高値": 1879.0,
-      "atr14": 16.25,
-      "hist_1130": -6.3913,
-      "gc_state": "負",
-      "d1_sign": "+",
-      "d2_sign": "+",
-      "momentum_hint": -6.3913,
-      "gc_price": 1922.32,
-      "mom_price": 1822.17,
-      "decision_price": 1922.32,
-      "needs_mom_check": false,
-      "signal_1130": 27.7421,
-      "ema12_1130": 1822.3785,
-      "ema26_1130": 1801.0277,
-      "shares": 400,
-      "sl": 1678.2,
-      "tp": 1943.0,
-      "trail_trigger": 1860.5,
-      "risk_jpy": 61900,
-      "notional_jpy": 733200,
-      "tradable": true,
-      "atr_confirm": 17.46,
-      "sl_basis": "12:30確認足",
-      "sl_exact": 1677.0,
-      "sl_order": 1677.0,
-      "tick": 0.5,
-      "last_price": 1788.5,
-      "last_price_time_min": 920,
-      "last_price_in_order_window": false,
-      "entry_block": null,
-      "entry_warn_below_zenba_low": null,
-      "has_1130_bar": true,
-      "value_approx_jpy": 35299078038,
-      "day_high": 1879.0,
-      "pm_high": 1823.5,
-      "pm_closes": {
-        "750": 1812.5,
-        "755": 1805.5,
-        "760": 1797.5
-      },
-      "優先順位": 5
     },
     {
       "code4": "8766",
@@ -281,7 +236,7 @@
       "needs_mom_check": false,
       "signal_1130": 0.3405,
       "ema12_1130": 580.7885,
-      "ema26_1130": 580.4865,
+      "ema26_1130": 580.4866,
       "shares": 1700,
       "sl": 570.7,
       "tp": 615.3,
@@ -308,7 +263,7 @@
         "755": 583.1,
         "760": 584.2
       },
-      "優先順位": 6
+      "優先順位": 5
     },
     {
       "code4": "5016",
@@ -351,7 +306,7 @@
       "entry_block": null,
       "entry_warn_below_zenba_low": null,
       "has_1130_bar": true,
-      "value_approx_jpy": 22039771925,
+      "value_approx_jpy": 22039774800,
       "day_high": 2010.0,
       "pm_high": 1964.5,
       "pm_closes": {
@@ -359,7 +314,7 @@
         "755": 1956.5,
         "760": 1948.0
       },
-      "優先順位": 7
+      "優先順位": 6
     },
     {
       "code4": "5802",
@@ -402,7 +357,7 @@
       "entry_block": null,
       "entry_warn_below_zenba_low": null,
       "has_1130_bar": true,
-      "value_approx_jpy": 19401144950,
+      "value_approx_jpy": 19401077688,
       "day_high": 1368.5,
       "pm_high": 1325.5,
       "pm_closes": {
@@ -410,7 +365,7 @@
         "755": 1320.5,
         "760": 1315.5
       },
-      "優先順位": 8
+      "優先順位": 7
     },
     {
       "code4": "5706",
@@ -453,7 +408,7 @@
       "entry_block": null,
       "entry_warn_below_zenba_low": null,
       "has_1130_bar": true,
-      "value_approx_jpy": 12370015250,
+      "value_approx_jpy": 12370015300,
       "day_high": 1239.0,
       "pm_high": 1202.0,
       "pm_closes": {
@@ -461,7 +416,7 @@
         "755": 1191.5,
         "760": 1185.0
       },
-      "優先順位": 9
+      "優先順位": 8
     },
     {
       "code4": "8630",
@@ -474,18 +429,18 @@
       "前場安値": 6853.0,
       "前場高値": 7061.0,
       "atr14": 17.64,
-      "hist_1130": 5.4281,
+      "hist_1130": 5.4279,
       "gc_state": "正",
       "d1_sign": "-",
       "d2_sign": "-",
-      "momentum_hint": 5.4281,
+      "momentum_hint": 5.4279,
       "gc_price": 6963.83,
       "mom_price": 7048.88,
       "decision_price": 7048.88,
       "needs_mom_check": true,
-      "signal_1130": 14.3285,
+      "signal_1130": 14.3293,
       "ema12_1130": 7013.5256,
-      "ema26_1130": 6993.769,
+      "ema26_1130": 6993.7684,
       "shares": 100,
       "sl": 6831.9,
       "tp": 7459.2,
@@ -504,7 +459,7 @@
       "entry_block": null,
       "entry_warn_below_zenba_low": null,
       "has_1130_bar": true,
-      "value_approx_jpy": 10956691900,
+      "value_approx_jpy": 10956688500,
       "day_high": 7154.0,
       "pm_high": 7154.0,
       "pm_closes": {
@@ -512,58 +467,7 @@
         "755": 7097.0,
         "760": 7095.0
       },
-      "優先順位": 10
-    },
-    {
-      "code4": "8750",
-      "name": "第一生命",
-      "区分": "緑",
-      "sector": "保険",
-      "financial": true,
-      "no_market_order": false,
-      "前引け値": 1736.5,
-      "前場安値": 1718.0,
-      "前場高値": 1749.5,
-      "atr14": 2.96,
-      "hist_1130": -0.5178,
-      "gc_state": "負",
-      "d1_sign": "+",
-      "d2_sign": "+",
-      "momentum_hint": -0.5178,
-      "gc_price": 1743.79,
-      "mom_price": 1735.68,
-      "decision_price": 1743.79,
-      "needs_mom_check": false,
-      "signal_1130": 3.3697,
-      "ema12_1130": 1734.6496,
-      "ema26_1130": 1731.7977,
-      "shares": 500,
-      "sl": 1712.8,
-      "tp": 1840.7,
-      "trail_trigger": 1762.5,
-      "risk_jpy": 11855,
-      "notional_jpy": 868250,
-      "tradable": true,
-      "atr_confirm": 3.11,
-      "sl_basis": "12:30確認足",
-      "sl_exact": 1712.8,
-      "sl_order": 1712.5,
-      "tick": 0.5,
-      "last_price": 1742.5,
-      "last_price_time_min": 920,
-      "last_price_in_order_window": false,
-      "entry_block": null,
-      "entry_warn_below_zenba_low": null,
-      "has_1130_bar": true,
-      "value_approx_jpy": 10460708875,
-      "day_high": 1751.0,
-      "pm_high": 1751.0,
-      "pm_closes": {
-        "750": 1739.0,
-        "755": 1741.5,
-        "760": 1740.5
-      },
-      "優先順位": 11
+      "優先順位": 9
     },
     {
       "code4": "8309",
@@ -614,7 +518,7 @@
         "755": 1689.5,
         "760": 1688.5
       },
-      "優先順位": 12
+      "優先順位": 10
     },
     {
       "code4": "8308",
@@ -657,7 +561,7 @@
       "entry_block": null,
       "entry_warn_below_zenba_low": null,
       "has_1130_bar": true,
-      "value_approx_jpy": 7906115375,
+      "value_approx_jpy": 7906154038,
       "day_high": 2080.0,
       "pm_high": 2062.0,
       "pm_closes": {
@@ -665,7 +569,7 @@
         "755": 2058.0,
         "760": 2054.5
       },
-      "優先順位": 13
+      "優先順位": 11
     },
     {
       "code4": "7182",
@@ -708,7 +612,7 @@
       "entry_block": null,
       "entry_warn_below_zenba_low": null,
       "has_1130_bar": true,
-      "value_approx_jpy": 7841277825,
+      "value_approx_jpy": 7841274450,
       "day_high": 3094.0,
       "pm_high": 3094.0,
       "pm_closes": {
@@ -716,7 +620,7 @@
         "755": 3078.0,
         "760": 3074.0
       },
-      "優先順位": 14
+      "優先順位": 12
     },
     {
       "code4": "5713",
@@ -729,18 +633,18 @@
       "前場安値": 5550.0,
       "前場高値": 5749.0,
       "atr14": 24.86,
-      "hist_1130": -12.767,
+      "hist_1130": -12.7678,
       "gc_state": "負",
       "d1_sign": "+",
       "d2_sign": "+",
-      "momentum_hint": -12.767,
-      "gc_price": 5807.4,
+      "momentum_hint": -12.7678,
+      "gc_price": 5807.41,
       "mom_price": 5607.34,
-      "decision_price": 5807.4,
+      "decision_price": 5807.41,
       "needs_mom_check": false,
-      "signal_1130": 24.8654,
-      "ema12_1130": 5636.1182,
-      "ema26_1130": 5624.0197,
+      "signal_1130": 24.8681,
+      "ema12_1130": 5636.1181,
+      "ema26_1130": 5624.0177,
       "shares": 100,
       "sl": 5525.1,
       "tp": 5977.3,
@@ -765,9 +669,9 @@
       "pm_closes": {
         "750": 5568.0,
         "755": 5577.0,
-        "760": 5559.0
+        "760": 5560.0
       },
-      "優先順位": 15
+      "優先順位": 13
     },
     {
       "code4": "8725",
@@ -818,7 +722,7 @@
         "755": 5181.0,
         "760": 5186.0
       },
-      "優先順位": 16
+      "優先順位": 14
     },
     {
       "code4": "5108",
@@ -861,7 +765,7 @@
       "entry_block": null,
       "entry_warn_below_zenba_low": null,
       "has_1130_bar": true,
-      "value_approx_jpy": 5610935425,
+      "value_approx_jpy": 5610948475,
       "day_high": 4343.0,
       "pm_high": 4339.0,
       "pm_closes": {
@@ -869,7 +773,58 @@
         "755": 4312.0,
         "760": 4316.0
       },
-      "優先順位": 17
+      "優先順位": 15
+    },
+    {
+      "code4": "8750",
+      "name": "第一生命",
+      "区分": "緑",
+      "sector": "保険",
+      "financial": true,
+      "no_market_order": false,
+      "前引け値": 1736.5,
+      "前場安値": 1718.0,
+      "前場高値": 1749.5,
+      "atr14": 2.96,
+      "hist_1130": -0.5178,
+      "gc_state": "負",
+      "d1_sign": "+",
+      "d2_sign": "+",
+      "momentum_hint": -0.5178,
+      "gc_price": 1743.79,
+      "mom_price": 1735.68,
+      "decision_price": 1743.79,
+      "needs_mom_check": false,
+      "signal_1130": 3.3697,
+      "ema12_1130": 1734.6496,
+      "ema26_1130": 1731.7977,
+      "shares": 500,
+      "sl": 1712.8,
+      "tp": 1840.7,
+      "trail_trigger": 1762.5,
+      "risk_jpy": 11855,
+      "notional_jpy": 868250,
+      "tradable": true,
+      "atr_confirm": 3.11,
+      "sl_basis": "12:30確認足",
+      "sl_exact": 1712.8,
+      "sl_order": 1712.5,
+      "tick": 0.5,
+      "last_price": 1742.5,
+      "last_price_time_min": 920,
+      "last_price_in_order_window": false,
+      "entry_block": null,
+      "entry_warn_below_zenba_low": null,
+      "has_1130_bar": true,
+      "value_approx_jpy": 5375577025,
+      "day_high": 1751.0,
+      "pm_high": 1751.0,
+      "pm_closes": {
+        "750": 1739.0,
+        "755": 1741.5,
+        "760": 1740.5
+      },
+      "優先順位": 16
     },
     {
       "code4": "8729",
@@ -920,7 +875,7 @@
         "755": 142.9,
         "760": 143.1
       },
-      "優先順位": 18
+      "優先順位": 17
     },
     {
       "code4": "8795",
@@ -963,7 +918,7 @@
       "entry_block": null,
       "entry_warn_below_zenba_low": null,
       "has_1130_bar": true,
-      "value_approx_jpy": 3445505175,
+      "value_approx_jpy": 3445494000,
       "day_high": 4801.0,
       "pm_high": 4801.0,
       "pm_closes": {
@@ -971,7 +926,7 @@
         "755": 4767.0,
         "760": 4762.0
       },
-      "優先順位": 19
+      "優先順位": 18
     },
     {
       "code4": "5711",
@@ -993,9 +948,9 @@
       "mom_price": 3664.99,
       "decision_price": 3784.68,
       "needs_mom_check": false,
-      "signal_1130": 17.6532,
+      "signal_1130": 17.6531,
       "ema12_1130": 3679.6257,
-      "ema26_1130": 3669.6109,
+      "ema26_1130": 3669.611,
       "shares": 200,
       "sl": 3626.6,
       "tp": 3902.9,
@@ -1014,7 +969,7 @@
       "entry_block": null,
       "entry_warn_below_zenba_low": null,
       "has_1130_bar": true,
-      "value_approx_jpy": 2447448075,
+      "value_approx_jpy": 2447428325,
       "day_high": 3735.0,
       "pm_high": 3658.0,
       "pm_closes": {
@@ -1022,7 +977,7 @@
         "755": 3647.0,
         "760": 3642.0
       },
-      "優先順位": 20
+      "優先順位": 19
     },
     {
       "code4": "5101",
@@ -1035,18 +990,18 @@
       "前場安値": 6900.0,
       "前場高値": 7043.0,
       "atr14": 17.71,
-      "hist_1130": -2.8214,
+      "hist_1130": -2.8216,
       "gc_state": "負",
       "d1_sign": "+",
       "d2_sign": "+",
-      "momentum_hint": -2.8214,
-      "gc_price": 6976.0,
-      "mom_price": 6931.79,
-      "decision_price": 6976.0,
+      "momentum_hint": -2.8216,
+      "gc_price": 6975.98,
+      "mom_price": 6931.76,
+      "decision_price": 6975.98,
       "needs_mom_check": false,
-      "signal_1130": 3.7928,
-      "ema12_1130": 6939.7261,
-      "ema26_1130": 6938.7547,
+      "signal_1130": 3.7572,
+      "ema12_1130": 6939.7379,
+      "ema26_1130": 6938.8024,
       "shares": 100,
       "sl": 6879.2,
       "tp": 7361.7,
@@ -1065,7 +1020,7 @@
       "entry_block": null,
       "entry_warn_below_zenba_low": null,
       "has_1130_bar": true,
-      "value_approx_jpy": 2071723375,
+      "value_approx_jpy": 2071761625,
       "day_high": 7043.0,
       "pm_high": 6954.0,
       "pm_closes": {
@@ -1073,58 +1028,7 @@
         "755": 6930.0,
         "760": 6918.0
       },
-      "優先順位": 21
-    },
-    {
-      "code4": "5714",
-      "name": "DOWA",
-      "区分": "黄",
-      "sector": "非鉄金属",
-      "financial": false,
-      "no_market_order": false,
-      "前引け値": 7395.0,
-      "前場安値": 7300.0,
-      "前場高値": 7503.0,
-      "atr14": 26.36,
-      "hist_1130": -9.1476,
-      "gc_state": "負",
-      "d1_sign": "+",
-      "d2_sign": "+",
-      "momentum_hint": -9.1476,
-      "gc_price": 7500.06,
-      "mom_price": 7356.72,
-      "decision_price": 7500.06,
-      "needs_mom_check": false,
-      "signal_1130": 21.5727,
-      "ema12_1130": 7373.8543,
-      "ema26_1130": 7361.4292,
-      "shares": 100,
-      "sl": 7273.6,
-      "tp": 7838.7,
-      "trail_trigger": 7505.9,
-      "risk_jpy": 12136,
-      "notional_jpy": 739500,
-      "tradable": true,
-      "atr_confirm": 31.79,
-      "sl_basis": "12:30確認足",
-      "sl_exact": 7268.2,
-      "sl_order": 7268.0,
-      "tick": 1.0,
-      "last_price": 7323.0,
-      "last_price_time_min": 920,
-      "last_price_in_order_window": false,
-      "entry_block": null,
-      "entry_warn_below_zenba_low": null,
-      "has_1130_bar": true,
-      "value_approx_jpy": 1828592900,
-      "day_high": 7503.0,
-      "pm_high": 7359.0,
-      "pm_closes": {
-        "750": 7317.0,
-        "755": 7327.0,
-        "760": 7315.0
-      },
-      "優先順位": 22
+      "優先順位": 20
     },
     {
       "code4": "5105",
@@ -1146,7 +1050,7 @@
       "mom_price": 3842.68,
       "decision_price": 3897.16,
       "needs_mom_check": false,
-      "signal_1130": -0.6131,
+      "signal_1130": -0.6132,
       "ema12_1130": 3857.3765,
       "ema26_1130": 3861.4663,
       "shares": 200,
@@ -1167,7 +1071,7 @@
       "entry_block": null,
       "entry_warn_below_zenba_low": null,
       "has_1130_bar": true,
-      "value_approx_jpy": 1283415250,
+      "value_approx_jpy": 2562180825,
       "day_high": 3933.0,
       "pm_high": 3866.0,
       "pm_closes": {
@@ -1175,7 +1079,58 @@
         "755": 3851.0,
         "760": 3848.0
       },
-      "優先順位": 23
+      "優先順位": 21
+    },
+    {
+      "code4": "5714",
+      "name": "DOWA",
+      "区分": "黄",
+      "sector": "非鉄金属",
+      "financial": false,
+      "no_market_order": false,
+      "前引け値": 7395.0,
+      "前場安値": 7300.0,
+      "前場高値": 7503.0,
+      "atr14": 26.36,
+      "hist_1130": -9.1422,
+      "gc_state": "負",
+      "d1_sign": "+",
+      "d2_sign": "+",
+      "momentum_hint": -9.1422,
+      "gc_price": 7499.98,
+      "mom_price": 7356.73,
+      "decision_price": 7499.98,
+      "needs_mom_check": false,
+      "signal_1130": 21.55,
+      "ema12_1130": 7373.8558,
+      "ema26_1130": 7361.448,
+      "shares": 100,
+      "sl": 7273.6,
+      "tp": 7838.7,
+      "trail_trigger": 7505.9,
+      "risk_jpy": 12136,
+      "notional_jpy": 739500,
+      "tradable": true,
+      "atr_confirm": 31.79,
+      "sl_basis": "12:30確認足",
+      "sl_exact": 7268.2,
+      "sl_order": 7268.0,
+      "tick": 1.0,
+      "last_price": 7323.0,
+      "last_price_time_min": 920,
+      "last_price_in_order_window": false,
+      "entry_block": null,
+      "entry_warn_below_zenba_low": null,
+      "has_1130_bar": true,
+      "value_approx_jpy": 1828586950,
+      "day_high": 7503.0,
+      "pm_high": 7359.0,
+      "pm_closes": {
+        "750": 7317.0,
+        "755": 7327.0,
+        "760": 7315.0
+      },
+      "優先順位": 22
     },
     {
       "code4": "5110",
@@ -1197,7 +1152,7 @@
       "mom_price": 1912.29,
       "decision_price": 1919.62,
       "needs_mom_check": false,
-      "signal_1130": -0.7672,
+      "signal_1130": -0.7673,
       "ema12_1130": 1914.9024,
       "ema26_1130": 1916.1372,
       "shares": 500,
@@ -1226,7 +1181,7 @@
         "755": 1904.0,
         "760": 1899.0
       },
-      "優先順位": 24
+      "優先順位": 23
     },
     {
       "code4": "7181",
@@ -1277,7 +1232,7 @@
         "755": 1728.5,
         "760": 1727.5
       },
-      "優先順位": 25
+      "優先順位": 24
     },
     {
       "code4": "9364",
@@ -1320,7 +1275,7 @@
       "entry_block": null,
       "entry_warn_below_zenba_low": null,
       "has_1130_bar": true,
-      "value_approx_jpy": 320890600,
+      "value_approx_jpy": 320891075,
       "day_high": 4883.0,
       "pm_high": 4872.0,
       "pm_closes": {
@@ -1328,7 +1283,7 @@
         "755": 4850.0,
         "760": 4855.0
       },
-      "優先順位": 26
+      "優先順位": 25
     },
     {
       "code4": "9301",
@@ -1379,7 +1334,7 @@
         "755": 1230.5,
         "760": 1231.0
       },
-      "優先順位": 27
+      "優先順位": 26
     },
     {
       "code4": "9302",
@@ -1430,7 +1385,7 @@
         "755": 3204.0,
         "760": 3205.0
       },
-      "優先順位": 28
+      "優先順位": 27
     }
   ]
 }
